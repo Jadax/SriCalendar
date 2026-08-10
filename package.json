@@ -21,7 +21,7 @@
     "dexie": "^4.0.11",
     "dexie-react-hooks": "^1.1.7",
     "framer-motion": "^12.23.12",
-    "lucide-react": "^0.468.0",
+    "lucide-react": "^1.29.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "recharts": "^2.15.4",
