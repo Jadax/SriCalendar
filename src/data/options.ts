@@ -61,6 +61,16 @@ export function cap(value: string): string {
 
 export function escapeRegExp(value: string): string { return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+/** Returns a copy of the list sorted alphabetically by its display (cap) value, without mutating the source. */
+export function alpha<T extends string>(list: readonly T[]): T[] {
+  return [...list].sort((a, b) => cap(a).localeCompare(cap(b)));
+}
+
+/** Sorts a list by a display accessor (used for object arrays like currency/streams). */
+export function alphaBy<T>(list: readonly T[], display: (item: T) => string): T[] {
+  return [...list].sort((a, b) => display(a).localeCompare(display(b)));
+}
+
 /** Fills {token} placeholders in a hook template with sensible defaults. */
 export function fillTemplate(template: string, topic: string, niche: string): string {
   const defaults: Record<string, string> = {

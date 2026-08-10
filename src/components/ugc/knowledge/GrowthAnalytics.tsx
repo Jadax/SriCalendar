@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useCollection } from '../../../hooks/useCollection';
-import { PLATFORMS, cap } from '../../../data/options';
+import { PLATFORMS, cap, alpha, alphaBy } from '../../../data/options';
 import { CURRENCIES, formatMoney, getBaseCurrency, fromUsd, toUsd } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, StatCard, confirmDelete } from '../shared/primitives';
 import type { AnalyticsEntry } from '../../../types/ugc';
@@ -83,7 +83,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
 
     <section className="section-block">
       <div className="board-toolbar">
-        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         <div className="spacer"/><span className="hint">{filtered.length} log entries</span>
       </div>
       {filtered.length === 0 ? <EmptyState emoji="📈" title="No metrics yet" note="Log daily or weekly numbers per platform. Engagement rate is computed automatically."/> :
@@ -105,7 +105,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" onClick={() => void save()}>Save metrics</button></div>}>
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
-          <Field label="Platform"><select className="select" value={editing.platform} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
           <Field label="Date"><input type="date" className="date-input" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })}/></Field>
         </FormRow>
         <FormRow>
@@ -121,7 +121,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
         </FormRow>
         <FormRow>
           <Field label="Revenue"><input type="number" className="input" min={0} value={editing.revenue} onChange={(e) => setEditing({ ...editing, revenue: Number(e.target.value) })}/></Field>
-          <Field label="Currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
           <Field label="Engagement rate (auto)"><input className="input" value={`${erOf(editing).toFixed(2)}%`} disabled/></Field>
         </FormRow>
         <Field label="Notes"><input className="input" value={editing.notes ?? ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} placeholder="Campaign, content type, context…"/></Field>

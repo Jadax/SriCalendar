@@ -3,8 +3,9 @@ import { addMonths, format, startOfMonth } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { PLATFORMS, cap } from '../../../data/options';
+import { PLATFORMS, cap, alpha } from '../../../data/options';
 import { CURRENCIES, formatMoney, fromUsd, getBaseCurrency, setBaseCurrency, streamMeta, toUsd } from '../../../utils/money';
+import { alphaBy } from '../../../data/options';
 import { EmptyState, Field, FormRow, PageHead, Pill, StatCard } from '../shared/primitives';
 import type { Invoice } from '../../../types/ugc';
 
@@ -118,7 +119,7 @@ export function Income({ userId }: Props): ReactElement {
         <div key="cur" className="row" style={{ gap: 8 }}>
           <span className="hint" style={{ display: 'inline-flex', alignItems: 'center' }}>Report in</span>
           <select className="select" style={{ width: 170 }} value={base} onChange={(e) => changeBase(e.target.value)} aria-label="Base currency">
-            {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}
+            {alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}
           </select>
         </div>,
       ]} />
@@ -158,13 +159,13 @@ export function Income({ userId }: Props): ReactElement {
         <div className="grid" style={{ gap: 12 }}>
           <FormRow>
             <Field label="Followers"><select className="select" value={tier} onChange={(e) => setTier(e.target.value)}>{TIERS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select></Field>
-            <Field label="Platform"><select className="select" value={platform} onChange={(e) => setPlatform(e.target.value)}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+            <Field label="Platform"><select className="select" value={platform} onChange={(e) => setPlatform(e.target.value)}>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
             <Field label="Niche"><select className="select" value={niche} onChange={(e) => setNiche(e.target.value)}>{NICHES.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}</select></Field>
           </FormRow>
           <FormRow>
             <Field label="Usage rights"><select className="select" value={rights} onChange={(e) => setRights(e.target.value)}>{RIGHTS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}</select></Field>
             <Field label="Deliverables (videos)"><input type="number" className="input" min={1} value={deliverables} onChange={(e) => setDeliverables(Math.max(1, Number(e.target.value)))}/></Field>
-            <Field label="Show in"><select className="select" value={calcCur} onChange={(e) => setCalcCur(e.target.value)}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
+            <Field label="Show in"><select className="select" value={calcCur} onChange={(e) => setCalcCur(e.target.value)}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
           </FormRow>
           <div className="quote-card" style={{ textAlign: 'center' }}>
             <div className="row" style={{ justifyContent: 'center', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>

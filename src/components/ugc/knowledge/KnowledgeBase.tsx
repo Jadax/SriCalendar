@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { ExternalLink, Plus, Search, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { KNOWLEDGE_CATEGORIES, cap } from '../../../data/options';
+import { KNOWLEDGE_CATEGORIES, cap, alpha, alphaBy } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, cx } from '../shared/primitives';
 import type { KnowledgeItem } from '../../../types/ugc';
@@ -73,13 +73,13 @@ export function KnowledgeBase({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Title *"><input className="input" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })}/></Field>
-          <Field label="Category"><select className="select" value={editing.category ?? 'software'} onChange={(e) => setEditing({ ...editing, category: e.target.value })}>{KNOWLEDGE_CATEGORIES.map((c) => <option key={c} value={c}>{cap(c)}</option>)}</select></Field>
+          <Field label="Category"><select className="select" value={editing.category ?? 'software'} onChange={(e) => setEditing({ ...editing, category: e.target.value })}>{alpha(KNOWLEDGE_CATEGORIES).map((c) => <option key={c} value={c}>{cap(c)}</option>)}</select></Field>
         </FormRow>
         <Field label="Description"><textarea className="textarea" value={editing.description ?? ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })}/></Field>
         <FormRow>
           <Field label="URL"><input className="input" value={editing.url ?? ''} onChange={(e) => setEditing({ ...editing, url: e.target.value })} placeholder="https://…"/></Field>
           <Field label="Cost"><input type="number" className="input" min={0} value={editing.cost ?? 0} onChange={(e) => setEditing({ ...editing, cost: Number(e.target.value) })}/></Field>
-          <Field label="Currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code}</option>)}</select></Field>
           <Field label="Renewal date"><input type="date" className="date-input" value={editing.renewal_date ?? ''} onChange={(e) => setEditing({ ...editing, renewal_date: e.target.value || null })}/></Field>
         </FormRow>
         <Field label="Tags">

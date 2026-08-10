@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
+import { alphaBy } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill } from '../shared/primitives';
 import type { MediaKitProfile, RateCard, PastCollab } from '../../../types/ugc';
 
@@ -61,7 +62,7 @@ export function MediaKit({ userId }: Props): ReactElement {
           <Field label="Tagline"><input className="input" value={editing.tagline ?? ''} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} placeholder="e.g. Documenting the soft-life side of creating"/></Field>
         </FormRow>
         <FormRow>
-          <Field label="Rate card currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
+          <Field label="Rate card currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Email"><input type="email" className="input" value={editing.email ?? ''} onChange={(e) => setEditing({ ...editing, email: e.target.value })}/></Field>

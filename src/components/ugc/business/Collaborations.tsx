@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { COLLAB_STATUSES, cap } from '../../../data/options';
+import { COLLAB_STATUSES, cap, alpha } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { Collaboration } from '../../../types/ugc';
 
@@ -57,7 +57,7 @@ export function Collaborations({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Partner / brand *"><input className="input" value={editing.partner_name} onChange={(e) => setEditing({ ...editing, partner_name: e.target.value })}/></Field>
-          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{COLLAB_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{alpha(COLLAB_STATUSES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <Field label="Deadline"><input type="date" className="date-input" value={editing.deadline ?? ''} onChange={(e) => setEditing({ ...editing, deadline: e.target.value || null })}/></Field>
         </FormRow>
         <Field label="Contact info"><input className="input" value={editing.contact_info ?? ''} onChange={(e) => setEditing({ ...editing, contact_info: e.target.value })} placeholder="Email / socials / manager contact"/></Field>

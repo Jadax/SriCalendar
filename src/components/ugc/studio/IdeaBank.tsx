@@ -1,8 +1,9 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { CalendarPlus, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Trash2, Clapperboard } from 'lucide-react';
+import { Brain, CalendarPlus, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Trash2, Clapperboard } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { schedulePlatformPost } from '../../../lib/calendarActions';
-import { fillTemplate, PLATFORMS, PRIORITIES, EFFORT_LEVELS, IDEA_STATUSES, PRIORITY_META, EFFORT_META, PLATFORM_META, cap } from '../../../data/options';
+import { buildBrain } from '../../../lib/scriptBrain';
+import { fillTemplate, PLATFORMS, PRIORITIES, EFFORT_LEVELS, IDEA_STATUSES, PRIORITY_META, EFFORT_META, PLATFORM_META, cap, alpha } from '../../../data/options';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { ContentIdea } from '../../../types/ugc';
 import type { Platform } from '../../../types';
@@ -62,11 +63,18 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   };
 
   const moveToScript = async (idea: ContentIdea): Promise<void> => {
+    const brain = buildBrain({ niche: idea.pillar ?? '', topic: idea.title, platform: idea.platform ?? 'tiktok', content: idea.description ?? '' }, []);
+    const topHook = brain.hooks[0]!;
+    const content = [
+      idea.hook_idea ? `[HOOK ${idea.content_angle ?? 'Hook'}] ${idea.hook_idea.replace(/^\[HOOK[^\]]+\]\s*/, '')}\n` : `[HOOK ${topHook.category}] ${topHook.text}\n`,
+      '', `## ${brain.structure.name}`, brain.structure.body, '',
+      '---', 'B-roll to capture:', ...brain.editingNotes.map((n) => `· ${n}`),
+    ].join('\n');
     await scripts.add({
       title: idea.title,
-      content: idea.hook_idea ? `${idea.hook_idea}\n\n` : '',
+      content,
       niche: idea.pillar || null,
-      hook_template_used: idea.content_angle || null,
+      hook_template_used: idea.content_angle || topHook.category || null,
       platform_target: idea.platform,
       status: 'draft',
       word_count: 0,
@@ -88,6 +96,21 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     if (!topic) return;
     const hook = fillTemplate(HOOKS[Math.floor(Math.random() * HOOKS.length)] ?? '', topic, topic);
     setEditing({ ...emptyIdea(), title: `${topic} quick win`, hook_idea: hook, inspiration_source: '✨ AI spark' });
+  };
+
+  const suggestHook = (): void => {
+    if (!editing) return;
+    const topic = editing.title.trim() || 'your topic';
+    const brain = buildBrain({ niche: editing.pillar ?? '', topic, platform: editing.platform ?? 'tiktok', content: editing.description ?? '' }, []);
+    const top = brain.hooks[0]!;
+    const promise = editing.audience_promise || (brain.description.split('\n')[0]?.replace(/\.$/, '') ?? '');
+    setEditing({
+      ...editing,
+      hook_idea: (editing.hook_idea || top.text),
+      content_angle: editing.content_angle || top.category,
+      audience_promise: promise,
+      inspiration_source: editing.inspiration_source || '🧠 AI suggested',
+    });
   };
 
   const renderCard = (idea: ContentIdea): ReactElement => (
@@ -127,10 +150,10 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     <section className="section-block">
       <div className="board-toolbar">
         <FormRow>
-          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{IDEA_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
-          <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{PLATFORMS.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
-          <Field label="Priority"><select className="select" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}><option value="all">All priorities</option>{PRIORITIES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
-          <Field label="Effort"><select className="select" value={effortFilter} onChange={(e) => setEffortFilter(e.target.value)}><option value="all">All effort</option>{EFFORT_LEVELS.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{alpha(IDEA_STATUSES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{alpha(PLATFORMS).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Priority"><select className="select" value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}><option value="all">All priorities</option>{alpha(PRIORITIES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Effort"><select className="select" value={effortFilter} onChange={(e) => setEffortFilter(e.target.value)}><option value="all">All effort</option>{alpha(EFFORT_LEVELS).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <Field label="Sort"><select className="select" value={sort} onChange={(e) => setSort(e.target.value as 'recent' | 'score')}><option value="recent">Recently updated</option><option value="score">ICE score</option></select></Field>
         </FormRow>
         <div className="spacer"/>
@@ -146,12 +169,13 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" onClick={() => void save()}>Save idea</button></div>}>
       <div className="grid" style={{ gap: 14 }}>
         <Field label="Title *"><input className="input" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} placeholder="e.g. 'POV: the morning routine that fixed my attention'"/></Field>
+        <button className="btn soft" onClick={suggestHook} disabled={!editing.title.trim()}><Brain size={14}/> Suggest AI hook, angle & promise</button>
         <FormRow>
-          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
-          <Field label="Priority"><select className="select" value={editing.priority ?? 'medium'} onChange={(e) => setEditing({ ...editing, priority: e.target.value })}>{PRIORITIES.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
-          <Field label="Effort"><select className="select" value={editing.effort_level ?? 'quick'} onChange={(e) => setEditing({ ...editing, effort_level: e.target.value })}>{EFFORT_LEVELS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Priority"><select className="select" value={editing.priority ?? 'medium'} onChange={(e) => setEditing({ ...editing, priority: e.target.value })}>{alpha(PRIORITIES).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Effort"><select className="select" value={editing.effort_level ?? 'quick'} onChange={(e) => setEditing({ ...editing, effort_level: e.target.value })}>{alpha(EFFORT_LEVELS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         </FormRow>
-        <Field label="Status"><select className="select" value={editing.status ?? 'idea'} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{IDEA_STATUSES.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+        <Field label="Status"><select className="select" value={editing.status ?? 'idea'} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{alpha(IDEA_STATUSES).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         <FormRow>
           <Field label={`Impact. Will this move the needle? (${editing.impact ?? 3})`}><input type="range" min={1} max={5} step={1} className="range-input" value={editing.impact ?? 3} onChange={(e) => setEditing({ ...editing, impact: Number(e.target.value) })}/></Field>
           <Field label={`Confidence. How sure are you? (${editing.confidence ?? 3})`}><input type="range" min={1} max={5} step={1} className="range-input" value={editing.confidence ?? 3} onChange={(e) => setEditing({ ...editing, confidence: Number(e.target.value) })}/></Field>

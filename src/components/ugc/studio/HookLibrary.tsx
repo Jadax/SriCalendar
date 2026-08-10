@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { ClipboardCopy, Plus, Search, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { fillTemplate, PLATFORMS, cap } from '../../../data/options';
+import { fillTemplate, PLATFORMS, cap, alpha } from '../../../data/options';
 import { HOOK_CATEGORIES } from '../../../data/hookTemplates';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { HookItem } from '../../../types/ugc';
@@ -49,8 +49,8 @@ export function HookLibrary({ userId }: Props): ReactElement {
     <section className="section-block">
       <div className="board-toolbar">
         <div className="row" style={{ flex: 1, minWidth: 200 }}><label className="chip-input" style={{ flex: 1 }}><Search size={14} color="var(--muted)"/><input className="input" style={{ border: 0, padding: 0 }} value={search} placeholder="Search hooks, captions, niches…" onChange={(e) => setSearch(e.target.value)}/></label></div>
-        <Field label="Type"><select className="select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">All</option>{TYPES.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
-        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All</option>{PLATFORMS.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+        <Field label="Type"><select className="select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">All</option>{alpha(TYPES).map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All</option>{alpha(PLATFORMS).map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
         <span style={{ fontSize: 12, fontWeight: 800, color: 'var(--muted)' }}>{visible.length} saved</span>
       </div>
 
@@ -95,8 +95,8 @@ export function HookLibrary({ userId }: Props): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" onClick={() => void save()}>Save template</button></div>}>
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
-          <Field label="Type"><select className="select" value={editing.type ?? 'hook'} onChange={(e) => setEditing({ ...editing, type: e.target.value })}>{TYPES.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
-          <Field label="Platform"><select className="select" value={editing.platform ?? 'instagram'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+          <Field label="Type"><select className="select" value={editing.type ?? 'hook'} onChange={(e) => setEditing({ ...editing, type: e.target.value })}>{alpha(TYPES).map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform ?? 'instagram'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{alpha(PLATFORMS).map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
           <Field label="Niche"><input className="input" value={editing.niche ?? ''} onChange={(e) => setEditing({ ...editing, niche: e.target.value })} placeholder="beauty, tech, fitness…"/></Field>
         </FormRow>
         <Field label="Template content *"><textarea className="textarea" rows={4} value={editing.content} onChange={(e) => setEditing({ ...editing, content: e.target.value })} placeholder="Use {placeholders} like {topic} and {niche}. They fill in when you copy."/></Field>

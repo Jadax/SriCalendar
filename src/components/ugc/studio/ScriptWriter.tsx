@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { Brain, Clapperboard, ClipboardCopy, FilePlus2, Film, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { HOOK_CATEGORIES, HOOK_TEMPLATES } from '../../../data/hookTemplates';
-import { PLATFORMS, cap } from '../../../data/options';
+import { PLATFORMS, cap, alpha } from '../../../data/options';
 import { generateScene, NICHES, type SceneFormula } from '../../../data/sceneFormulas';
 import { buildBrain, type BrainResult } from '../../../lib/scriptBrain';
 import { Teleprompter } from './Teleprompter';
@@ -109,7 +109,7 @@ function ScriptEditor({ script, onDelete, userId }: EditorProps): ReactElement {
         <input className="input" style={{ fontSize: 17, fontWeight: 800 }} value={script.title} onChange={(e) => void update(script.id, { title: e.target.value } as never)} aria-label="Script title" />
         <FormRow>
           <Field label="Niche"><input className="input" value={script.niche ?? ''} onChange={(e) => void update(script.id, { niche: e.target.value } as never)} placeholder="beauty, tech…"/></Field>
-          <Field label="Platform"><select className="select" value={script.platform_target ?? ''} onChange={(e) => void update(script.id, { platform_target: e.target.value } as never)}><option value="">Any</option>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={script.platform_target ?? ''} onChange={(e) => void update(script.id, { platform_target: e.target.value } as never)}><option value="">Any</option>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
           <Field label="Status"><select className="select" value={script.status} onChange={(e) => void update(script.id, { status: e.target.value } as never)}><option value="draft">Draft</option><option value="ready">Ready to film</option><option value="filming">Filming</option><option value="published">Published</option></select></Field>
         </FormRow>
       </div>
@@ -131,7 +131,7 @@ function ScriptEditor({ script, onDelete, userId }: EditorProps): ReactElement {
 
       <aside className="hook-shelf">
         <div className="block-head" style={{ marginBottom: 6 }}><h2 style={{ fontSize: 13 }}>Hook shelf</h2></div>
-        <select className="select" value={shelfFilter} onChange={(e) => setShelfFilter(e.target.value)} aria-label="Filter hooks"><option>All</option>{HOOK_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
+        <select className="select" value={shelfFilter} onChange={(e) => setShelfFilter(e.target.value)} aria-label="Filter hooks"><option>All</option>{alpha(HOOK_CATEGORIES).map((c) => <option key={c}>{c}</option>)}</select>
         <div style={{ display: 'grid', gap: 6, marginTop: 8 }}>
           {shelf.map((hook) => <button key={hook.text} className="hook-shelf-item" onClick={() => { insertAtCursor(`[HOOK ${hook.category}] ${hook.text}`); }}><span className="hs-type">{hook.category}</span>{hook.text}</button>)}
         </div>
@@ -152,7 +152,7 @@ function SceneGeneratorModal({ niche, topic, onInsert, onClose }: { niche: strin
   return <Modal title="🎬 AI scene generator" onClose={onClose} wide
     footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={onClose}>Close</button>{scene && <button className="btn primary" onClick={() => onInsert(sceneBlock(scene))}><Plus size={15}/> Add scene to script</button>}</div>}>
     <FormRow>
-      <Field label="Niche"><select className="select" value={nicheSel} onChange={(e) => setNicheSel(e.target.value)}>{NICHES.map((n) => <option key={n}>{n}</option>)}</select></Field>
+      <Field label="Niche"><select className="select" value={nicheSel} onChange={(e) => setNicheSel(e.target.value)}>{alpha(NICHES).map((n) => <option key={n}>{n}</option>)}</select></Field>
       <Field label="Topic"><input className="input" value={topicValue} onChange={(e) => setTopicValue(e.target.value)} placeholder="e.g. 3-reel blueprints"/></Field>
       <div className="field"><button className="btn soft" style={{ alignSelf: 'end' }} onClick={generate}><Wand2 size={15}/> Generate scene</button></div>
     </FormRow>

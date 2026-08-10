@@ -2,8 +2,9 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Table2, Trash2, Wallet } from 'lucide-react';
 import { addMonths, eachDayOfInterval, endOfMonth, format, isSameMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { useCollection } from '../../../hooks/useCollection';
-import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap } from '../../../data/options';
+import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap, alpha } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
+import { alphaBy } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete, cx } from '../shared/primitives';
 import type { BrandDeal } from '../../../types/ugc';
 
@@ -51,7 +52,7 @@ export function BrandDeals({ userId }: Props): ReactElement {
     {view === 'table' ? (
       <section className="section-block">
         <div className="board-toolbar">
-          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{DEAL_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{alpha(DEAL_STATUSES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <div className="spacer"/>
           <span className="hint">💧 Pipeline: {formatMoney(items.filter((d) => d.status !== 'declined').reduce((sum, d) => sum + (d.deal_value ?? 0), 0))} total value</span>
         </div>
@@ -102,7 +103,7 @@ export function BrandDeals({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Brand name *"><input className="input" value={editing.brand_name} onChange={(e) => setEditing({ ...editing, brand_name: e.target.value })}/></Field>
-          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Contact name"><input className="input" value={editing.contact_name ?? ''} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })}/></Field>
@@ -110,13 +111,13 @@ export function BrandDeals({ userId }: Props): ReactElement {
         </FormRow>
         <FormRow>
           <Field label="Deal value"><input type="number" className="input" min={0} value={editing.deal_value ?? 0} onChange={(e) => setEditing({ ...editing, deal_value: Number(e.target.value) })}/></Field>
-          <Field label="Currency"><select className="select" value={editing.currency} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={editing.currency} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
           <Field label="Estimated probability %"><input type="number" className="input" min={0} max={100} value={editing.estimated_probability} onChange={(e) => setEditing({ ...editing, estimated_probability: Number(e.target.value) })}/></Field>
         </FormRow>
         <FormRow>
-          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{DEAL_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
-          <Field label="Payment"><select className="select" value={editing.payment_status} onChange={(e) => setEditing({ ...editing, payment_status: e.target.value })}>{PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
-          <Field label="Usage rights"><select className="select" value={editing.rights_period ?? ''} onChange={(e) => setEditing({ ...editing, rights_period: e.target.value || null })}><option value="">Custom</option>{RIGHTS_PERIODS.map((s) => <option key={s} value={s}>{s}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{alpha(DEAL_STATUSES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Payment"><select className="select" value={editing.payment_status} onChange={(e) => setEditing({ ...editing, payment_status: e.target.value })}>{alpha(PAYMENT_STATUSES).map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Usage rights"><select className="select" value={editing.rights_period ?? ''} onChange={(e) => setEditing({ ...editing, rights_period: e.target.value || null })}><option value="">Custom</option>{alpha(RIGHTS_PERIODS).map((s) => <option key={s} value={s}>{s}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Pitch date"><input type="date" className="date-input" value={editing.pitch_date ?? ''} onChange={(e) => setEditing({ ...editing, pitch_date: e.target.value || null })}/></Field>

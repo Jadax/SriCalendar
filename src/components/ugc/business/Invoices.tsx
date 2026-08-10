@@ -3,6 +3,7 @@ import { Download, Eye, FilePlus2, Pencil, Printer, Trash2 } from 'lucide-react'
 import { useCollection } from '../../../hooks/useCollection';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import { CURRENCIES, INCOME_STREAMS, formatMoney } from '../../../utils/money';
+import { alphaBy } from '../../../data/options';
 import type { Invoice, InvoiceLineItem } from '../../../types/ugc';
 
 interface Props { userId: string }
@@ -113,8 +114,8 @@ export function Invoices({ userId }: Props): ReactElement {
           <Field label="Status"><select className="select" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}><option value="draft">Draft</option><option value="sent">Sent</option><option value="overdue">Overdue</option><option value="paid">Paid</option></select></Field>
         </FormRow>
         <FormRow>
-          <Field label="Currency"><select className="select" value={draft.currency} onChange={(e) => setDraft({ ...draft, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
-          <Field label="Income stream"><select className="select" value={draft.stream ?? 'brand-deal'} onChange={(e) => setDraft({ ...draft, stream: e.target.value })}>{INCOME_STREAMS.map((s) => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={draft.currency} onChange={(e) => setDraft({ ...draft, currency: e.target.value })}>{alphaBy(CURRENCIES, (c) => c.name).map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
+          <Field label="Income stream"><select className="select" value={draft.stream ?? 'brand-deal'} onChange={(e) => setDraft({ ...draft, stream: e.target.value })}>{alphaBy(INCOME_STREAMS, (s) => s.label).map((s) => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}</select></Field>
         </FormRow>
 
         <div>

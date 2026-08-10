@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent, type DragOverEvent, type DragStartEvent } from '@dnd-kit/core';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { BOARD_COLUMNS, PLATFORMS, PRIORITIES, PRIORITY_META, PLATFORM_META, cap } from '../../../data/options';
+import { BOARD_COLUMNS, PLATFORMS, PRIORITIES, PRIORITY_META, PLATFORM_META, cap, alpha } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete, cx } from '../shared/primitives';
 import type { BoardCard, BoardSubtask } from '../../../types/ugc';
 
@@ -126,8 +126,8 @@ function CardDetail({ card, onClose, onSave, onDelete, onAddSubtask }: { card: B
     <div className="grid" style={{ gap: 14 }}>
       <Field label="Title"><input className="input" value={merged.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })}/></Field>
       <FormRow>
-        <Field label="Platform"><select className="select" value={merged.platform ?? 'tiktok'} onChange={(e) => setDraft({ ...draft, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
-        <Field label="Priority"><select className="select" value={merged.priority ?? 'medium'} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>{PRIORITIES.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+        <Field label="Platform"><select className="select" value={merged.platform ?? 'tiktok'} onChange={(e) => setDraft({ ...draft, platform: e.target.value })}>{alpha(PLATFORMS).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+        <Field label="Priority"><select className="select" value={merged.priority ?? 'medium'} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>{alpha(PRIORITIES).map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         <Field label="Due date"><input type="date" className="date-input" value={merged.due_date ?? ''} onChange={(e) => setDraft({ ...draft, due_date: e.target.value || null })}/></Field>
       </FormRow>
       <FormRow>
