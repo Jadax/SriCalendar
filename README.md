@@ -62,7 +62,14 @@ Never put a Neon database connection string or API key in a `VITE_` variable. On
 
 ## Live demo
 
-The production URL will be available after connecting [the GitHub repository](https://github.com/Jadax/SriCalendar) to Vercel. See [DEPLOYMENT.md](DEPLOYMENT.md).
+Try the app at [sri-calendar.vercel.app](https://sri-calendar.vercel.app). No-login previews of each workspace:
+
+- [Studio](https://sri-calendar.vercel.app/preview/studio) — Idea Bank, Script Writer, Checklists
+- [Business](https://sri-calendar.vercel.app/preview/business) — Income, Brand Deals, Invoices
+- [Knowledge](https://sri-calendar.vercel.app/preview/knowledge) — Goals, Growth Analytics
+- [Calendar](https://sri-calendar.vercel.app/preview/today) — the content calendar
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the Neon + Vercel setup.
 
 ## Documentation
 
