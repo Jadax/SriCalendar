@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { COLLAB_STATUSES } from '../../../data/options';
+import { COLLAB_STATUSES, cap } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { Collaboration } from '../../../types/ugc';
 
@@ -30,7 +30,7 @@ export function Collaborations({ userId }: Props): ReactElement {
     <PageHead eyebrow="Pillar 3 · Business" title="Collaborations 🤝" subtitle="Manage partner relationships, briefings and deadlines."
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); }}><Plus size={16}/> New collaboration</button>]} />
 
-    {sorted.length === 0 ? <section className="section-block"><EmptyState emoji="🤝" title="No collaborations yet" note="Partnerships, co-creations and guest spots — track briefings and deadlines in one place."/></section> :
+    {sorted.length === 0 ? <section className="section-block"><EmptyState emoji="🤝" title="No collaborations yet" note="Partnerships, co-creations and guest spots. Track briefings and deadlines in one place."/></section> :
       <section className="section-block">
         <div className="grid grid-2">
           {sorted.map((collab) => (
@@ -57,7 +57,7 @@ export function Collaborations({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Partner / brand *"><input className="input" value={editing.partner_name} onChange={(e) => setEditing({ ...editing, partner_name: e.target.value })}/></Field>
-          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{COLLAB_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{COLLAB_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <Field label="Deadline"><input type="date" className="date-input" value={editing.deadline ?? ''} onChange={(e) => setEditing({ ...editing, deadline: e.target.value || null })}/></Field>
         </FormRow>
         <Field label="Contact info"><input className="input" value={editing.contact_info ?? ''} onChange={(e) => setEditing({ ...editing, contact_info: e.target.value })} placeholder="Email / socials / manager contact"/></Field>

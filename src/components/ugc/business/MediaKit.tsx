@@ -39,12 +39,12 @@ export function MediaKit({ userId }: Props): ReactElement {
 
   const shareCopy = async (): Promise<void> => {
     const cur = profile?.currency || 'USD';
-    const text = `📸 ${profile?.display_name || 'Creator'} — Media Kit\n${profile?.tagline || ''}\n${profile?.bio || ''}\n\nRates from ${formatMoney(Math.min(...(profile?.rates.map((r) => r.price) ?? [0])), cur)}`;
+    const text = `📸 ${profile?.display_name || 'Creator'} · Media Kit\n${profile?.tagline || ''}\n${profile?.bio || ''}\n\nRates from ${formatMoney(Math.min(...(profile?.rates.map((r) => r.price) ?? [0])), cur)}`;
     try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
   };
 
   return <>
-    <PageHead eyebrow="Pillar 3 · Business" title="Media kit 📇" subtitle="The one-pager brands scan — stats refresh from your analytics automatically."
+    <PageHead eyebrow="Pillar 3 · Business" title="Media kit 📇" subtitle="The one-pager brands scan. Stats refresh from your analytics automatically."
       actions={profile ? [
         <button key="share" className="btn soft" onClick={() => void shareCopy()}><ExternalLink size={14}/> Copy share text</button>,
         <button key="edit" className="btn primary" onClick={() => setEditing({ ...profile })}><Pencil size={15}/> Edit kit</button>,
@@ -61,7 +61,7 @@ export function MediaKit({ userId }: Props): ReactElement {
           <Field label="Tagline"><input className="input" value={editing.tagline ?? ''} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} placeholder="e.g. Documenting the soft-life side of creating"/></Field>
         </FormRow>
         <FormRow>
-          <Field label="Rate card currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>)}</select></Field>
+          <Field label="Rate card currency"><select className="select" value={editing.currency ?? 'USD'} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Email"><input type="email" className="input" value={editing.email ?? ''} onChange={(e) => setEditing({ ...editing, email: e.target.value })}/></Field>
@@ -107,14 +107,14 @@ export function MediaKit({ userId }: Props): ReactElement {
 }
 
 function MarketsEmpty(): ReactElement {
-  return <section className="section-block"><EmptyState emoji="📇" title="No media kit yet" note="Build a one-page kit with your rates, stats and past work — then copy it into any brand pitch."/></section>;
+  return <section className="section-block"><EmptyState emoji="📇" title="No media kit yet" note="Build a one-page kit with your rates, stats and past work, then copy it into any brand pitch."/></section>;
 }
 
 function PreviewProfile({ profile, stats }: { profile: MediaKitProfile; stats: { followers: number; engagement: number; avgReach: number } }): ReactElement {
   const cur = profile.currency || 'USD';
   const er = stats.engagement.toFixed(2);
-  const followers = stats.followers ? formatCompact(stats.followers) : '—';
-  const reach = stats.avgReach ? formatCompact(stats.avgReach) : '—';
+  const followers = stats.followers ? formatCompact(stats.followers) : '·';
+  const reach = stats.avgReach ? formatCompact(stats.avgReach) : '·';
   const showRealStats = stats.followers > 0;
   return <div className="mk-preview">
     <div className="mk-hero">
@@ -128,9 +128,9 @@ function PreviewProfile({ profile, stats }: { profile: MediaKitProfile; stats: {
         <div className="mk-stat"><strong>{er}%</strong><span>Engagement</span></div>
         <div className="mk-stat"><strong>{reach}</strong><span>Avg reach</span></div>
       </div>
-      {!showRealStats && <div className="row" style={{ marginTop: 10 }}><Pill color="peach">demo stats — add analytics to auto-fill</Pill></div>}
+      {!showRealStats && <div className="row" style={{ marginTop: 10 }}><Pill color="peach">demo stats. Add analytics to auto-fill</Pill></div>}
       <div className="mk-section-title">About</div>
-      <p>{profile.bio || 'Bio goes here — who you reach and why you are trustworthy.'}</p>
+      <p>{profile.bio || 'Bio goes here. Who you reach and why you are trustworthy.'}</p>
       <div className="mk-divider"/>
       <div className="grid grid-2" style={{ gap: 8 }}>
         {[profile.niche && ['🎯', 'Niche', profile.niche], profile.location && ['📍', 'Location', profile.location], profile.form_factor && ['🎬', 'Form factor', profile.form_factor], profile.availability && ['📅', 'Availability', profile.availability]].filter(Boolean).map((row, i) => {

@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useCollection } from '../../../hooks/useCollection';
-import { PLATFORMS } from '../../../data/options';
+import { PLATFORMS, cap } from '../../../data/options';
 import { CURRENCIES, formatMoney, getBaseCurrency, fromUsd, toUsd } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, StatCard, confirmDelete } from '../shared/primitives';
 import type { AnalyticsEntry } from '../../../types/ugc';
@@ -60,7 +60,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
   };
 
   return <>
-    <PageHead eyebrow="Pillar 4 · Knowledge" title="Growth analytics 📈" subtitle="Track the numbers that actually matter — engagement rate auto-computes for you."
+    <PageHead eyebrow="Pillar 4 · Knowledge" title="Growth analytics 📈" subtitle="Track the numbers that actually matter. Engagement rate auto-computes for you."
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); }}><Plus size={16}/> Log metrics</button>]} />
 
     <div className="grid grid-4">
@@ -83,7 +83,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
 
     <section className="section-block">
       <div className="board-toolbar">
-        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
+        <Field label="Platform"><select className="select" value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)}><option value="all">All platforms</option>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         <div className="spacer"/><span className="hint">{filtered.length} log entries</span>
       </div>
       {filtered.length === 0 ? <EmptyState emoji="📈" title="No metrics yet" note="Log daily or weekly numbers per platform. Engagement rate is computed automatically."/> :
@@ -95,7 +95,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
             <td>{e.views.toLocaleString()}</td>
             <td>{e.likes + e.comments + e.shares + e.saves}</td>
             <td><b style={{ color: erOf(e) >= 3 ? '#43846b' : erOf(e) >= 1 ? '#b4642f' : '#c03a67' }}>{erOf(e).toFixed(2)}%</b></td>
-            <td>{e.revenue ? formatMoney(e.revenue, e.currency ?? 'USD') : '—'}</td>
+            <td>{e.revenue ? formatMoney(e.revenue, e.currency ?? 'USD') : '·'}</td>
             <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" onClick={() => { setEditorId(e.id); setEditing({ ...e }); }} aria-label="Edit entry">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(e.id))} aria-label="Delete entry"><Trash2 size={14}/></button></div></td>
           </tr>
         ))}</tbody></table></div>}
@@ -105,7 +105,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" onClick={() => void save()}>Save metrics</button></div>}>
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
-          <Field label="Platform"><select className="select" value={editing.platform} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
           <Field label="Date"><input type="date" className="date-input" value={editing.date} onChange={(e) => setEditing({ ...editing, date: e.target.value })}/></Field>
         </FormRow>
         <FormRow>

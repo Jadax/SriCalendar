@@ -4,13 +4,13 @@ export interface ChecklistPreset { name: string; category: string; items: string
 
 export const CHECKLIST_PRESETS: ChecklistPreset[] = [
   {
-    name: 'Indoor Shoot — Lighting', category: 'lighting',
+    name: 'Indoor Shoot · Lighting', category: 'lighting',
     items: [
       'Key light at 45° above eye line', 'Fill light softened with diffusion', 'Backlight/hair light separates subject', 'Bounce for shadows', 'Color temperature matched across lights', 'Practical lights add depth in frame', 'Lighting test shots before recording', 'No harsh overhead shadows',
     ],
   },
   {
-    name: 'Indoor Shoot — Audio', category: 'audio',
+    name: 'Indoor Shoot · Audio', category: 'audio',
     items: [
       'Mic battery full', 'Record a 10s room-tone sample', 'Set gain peaking −6 dB', 'Check for fridge/AC hum', 'Pop filter / windscreen on', 'Lav mic hidden or framed out', 'Headphone monitoring during take', 'Backup mic rolling on phone',
     ],
@@ -28,7 +28,7 @@ export const CHECKLIST_PRESETS: ChecklistPreset[] = [
     ],
   },
   {
-    name: 'Talking Head — Camera', category: 'video',
+    name: 'Talking Head · Camera', category: 'video',
     items: [
       'Lens cleaned', 'Camera level on tripod', 'Eyeline at 1/3 line (eye contact)', '4K/vertical ratio decided', 'Frame: headroom + breathing room rule', 'Focus locked on eyes', 'Shutter double of frame rate', 'Batteries charged + spares captured',
     ],

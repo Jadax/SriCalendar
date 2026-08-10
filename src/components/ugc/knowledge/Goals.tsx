@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { GOAL_STATUSES, GOAL_TYPES as FULL_GOAL_TYPES } from '../../../data/options';
+import { GOAL_STATUSES, GOAL_TYPES as FULL_GOAL_TYPES, cap } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, Progress, confirmDelete } from '../shared/primitives';
 import type { Goal } from '../../../types/ugc';
 
@@ -37,13 +37,13 @@ export function Goals({ userId }: Props): ReactElement {
   };
 
   return <>
-    <PageHead eyebrow="Pillar 4 · Knowledge" title="Goals & milestones 🎯" subtitle="Audience, revenue, content and skill — nudge the needle, watch the streak grow."
+    <PageHead eyebrow="Pillar 4 · Knowledge" title="Goals & milestones 🎯" subtitle="Audience, revenue, content and skill. Nudge the needle, watch the streak grow."
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); }}><Plus size={16}/> New goal</button>]} />
 
     <section className="section-block">
       <div className="board-toolbar">
-        <Field label="Type"><select className="select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">All types</option>{FULL_GOAL_TYPES.map((t) => <option key={t}>{t}</option>)}</select></Field>
-        <div className="spacer"/><span className="hint">🏆 {achieved} achieved{achieved === items.length && items.length > 0 ? ' — all your goals done!' : ''}</span>
+        <Field label="Type"><select className="select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">All types</option>{FULL_GOAL_TYPES.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+        <div className="spacer"/><span className="hint">🏆 {achieved} achieved{achieved === items.length && items.length > 0 ? '. All your goals done!' : ''}</span>
         <button className="btn small soft" onClick={() => setEditing(empty())}><Plus size={13}/> Quick goal</button>
       </div>
       {visible.length === 0 ? <EmptyState emoji="🎯" title="No goals yet" note="Set a milestone for followers, revenue, publishing cadence or a skill. One tap nudges it forward."/> :
@@ -73,8 +73,8 @@ export function Goals({ userId }: Props): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" onClick={() => void save()}>Save goal</button></div>}>
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
-          <Field label="Type"><select className="select" value={editing.type} onChange={(e) => setEditing({ ...editing, type: e.target.value })}>{FULL_GOAL_TYPES.map((t) => <option key={t}>{t}</option>)}</select></Field>
-          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{GOAL_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
+          <Field label="Type"><select className="select" value={editing.type} onChange={(e) => setEditing({ ...editing, type: e.target.value })}>{FULL_GOAL_TYPES.map((t) => <option key={t} value={t}>{cap(t)}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{GOAL_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <Field label="Deadline"><input type="date" className="date-input" value={editing.deadline ?? ''} onChange={(e) => setEditing({ ...editing, deadline: e.target.value || null })}/></Field>
         </FormRow>
         <Field label="Name *"><input className="input" value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })}/></Field>

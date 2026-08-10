@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { ExternalLink, Plus, Search, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { KNOWLEDGE_CATEGORIES } from '../../../data/options';
+import { KNOWLEDGE_CATEGORIES, cap } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, cx } from '../shared/primitives';
 import type { KnowledgeItem } from '../../../types/ugc';
@@ -34,7 +34,7 @@ export function KnowledgeBase({ userId }: Props): ReactElement {
   const renewsSoon = (date: string | null): boolean => !!date && new Date(date).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000;
 
   return <>
-    <PageHead eyebrow="Pillar 4 · Knowledge" title="Knowledge base 📚" subtitle="Gear, software, presets, music, b-roll and links — your creator brain in a box."
+    <PageHead eyebrow="Pillar 4 · Knowledge" title="Knowledge base 📚" subtitle="Gear, software, presets, music, b-roll and links. Your creator brain in a box."
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); setTagInput(''); }}><Plus size={16}/> Add resource</button>]} />
 
     <section className="section-block">
@@ -43,7 +43,7 @@ export function KnowledgeBase({ userId }: Props): ReactElement {
         <div className="mini-chips" style={{ marginTop: 0 }}><button className={cx('subtab', catFilter === 'all' && 'active')} onClick={() => setCatFilter('all')}>All</button>{KNOWLEDGE_CATEGORIES.map((c) => <button key={c} className={cx('subtab', catFilter === c && 'active')} onClick={() => setCatFilter(c)}>{c}</button>)}</div>
       </div>
 
-      {visible.length === 0 ? <EmptyState emoji="📚" title="Nothing filed away yet" note="Save the gear you love, the software you swear by, presets, music and templates — with costs and renewal dates."/> :
+      {visible.length === 0 ? <EmptyState emoji="📚" title="Nothing filed away yet" note="Save the gear you love, the software you swear by, presets, music and templates, with costs and renewal dates."/> :
         <div className="grid grid-2">{visible.map((item) => (
           <div key={item.id} className="ugc-card hoverable">
             <div className="card-topbar">
@@ -73,7 +73,7 @@ export function KnowledgeBase({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Title *"><input className="input" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })}/></Field>
-          <Field label="Category"><select className="select" value={editing.category ?? 'software'} onChange={(e) => setEditing({ ...editing, category: e.target.value })}>{KNOWLEDGE_CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></Field>
+          <Field label="Category"><select className="select" value={editing.category ?? 'software'} onChange={(e) => setEditing({ ...editing, category: e.target.value })}>{KNOWLEDGE_CATEGORIES.map((c) => <option key={c} value={c}>{cap(c)}</option>)}</select></Field>
         </FormRow>
         <Field label="Description"><textarea className="textarea" value={editing.description ?? ''} onChange={(e) => setEditing({ ...editing, description: e.target.value })}/></Field>
         <FormRow>

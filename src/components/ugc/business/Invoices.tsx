@@ -75,12 +75,12 @@ export function Invoices({ userId }: Props): ReactElement {
     <PageHead eyebrow="Pillar 3 · Business" title="Invoices 🧾" subtitle="Auto-numbered, deal-linked, live-preview PDFs that get you paid."
       actions={[<button key="add" className="btn primary" onClick={openNew}><FilePlus2 size={16}/> New invoice</button>]} />
 
-    {sorted.length === 0 ? <section className="section-block"><EmptyState emoji="🧾" title="No invoices yet" note="Create one from an accepted deal or from scratch — totals, tax and numbers compute themselves."/></section> :
+    {sorted.length === 0 ? <section className="section-block"><EmptyState emoji="🧾" title="No invoices yet" note="Create one from an accepted deal or from scratch. Totals, tax and numbers compute themselves."/></section> :
       <section className="section-block">
         <div className="table-wrap"><table className="data-table"><thead><tr><th>Number</th><th>Bill to</th><th>Issued</th><th>Due</th><th>Total</th><th>Status</th><th /></tr></thead><tbody>{sorted.map((invoice) => (
           <tr key={invoice.id}>
             <td><strong>{invoice.invoice_number}</strong></td>
-            <td>{invoice.recipient_name || dealById.get(invoice.brand_deal_id ?? '')?.brand_name || '—'}</td>
+            <td>{invoice.recipient_name || dealById.get(invoice.brand_deal_id ?? '')?.brand_name || '·'}</td>
             <td>{invoice.issue_date}</td>
             <td>{invoice.due_date}</td>
             <td>{formatMoney(invoice.total ?? 0, invoice.currency)}</td>
@@ -101,7 +101,7 @@ export function Invoices({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Invoice number"><input className="input" value={draft.invoice_number} onChange={(e) => setDraft({ ...draft, invoice_number: e.target.value })}/></Field>
-          <Field label="Link to brand deal"><select className="select" value={draft.brand_deal_id ?? ''} onChange={(e) => { const id = e.target.value || null; const deal = id ? dealById.get(id) : null; setDraft({ ...draft, brand_deal_id: id, recipient_name: deal?.brand_name ?? draft.recipient_name, recipient_email: deal?.contact_email ?? draft.recipient_email, currency: deal?.currency ?? draft.currency }); }}><option value="">— none —</option>{deals.items.map((d) => <option key={d.id} value={d.id}>{d.brand_name}</option>)}</select></Field>
+          <Field label="Link to brand deal"><select className="select" value={draft.brand_deal_id ?? ''} onChange={(e) => { const id = e.target.value || null; const deal = id ? dealById.get(id) : null; setDraft({ ...draft, brand_deal_id: id, recipient_name: deal?.brand_name ?? draft.recipient_name, recipient_email: deal?.contact_email ?? draft.recipient_email, currency: deal?.currency ?? draft.currency }); }}><option value="">None</option>{deals.items.map((d) => <option key={d.id} value={d.id}>{d.brand_name}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Bill to (company / person)"><input className="input" value={draft.recipient_name ?? ''} onChange={(e) => setDraft({ ...draft, recipient_name: e.target.value })}/></Field>
@@ -113,7 +113,7 @@ export function Invoices({ userId }: Props): ReactElement {
           <Field label="Status"><select className="select" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}><option value="draft">Draft</option><option value="sent">Sent</option><option value="overdue">Overdue</option><option value="paid">Paid</option></select></Field>
         </FormRow>
         <FormRow>
-          <Field label="Currency"><select className="select" value={draft.currency} onChange={(e) => setDraft({ ...draft, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={draft.currency} onChange={(e) => setDraft({ ...draft, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
           <Field label="Income stream"><select className="select" value={draft.stream ?? 'brand-deal'} onChange={(e) => setDraft({ ...draft, stream: e.target.value })}>{INCOME_STREAMS.map((s) => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}</select></Field>
         </FormRow>
 

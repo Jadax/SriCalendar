@@ -38,6 +38,27 @@ export const PLATFORM_META: Record<string, { color: 'mint' | 'coral' | 'lavender
   podcast: { color: 'peach' },
 };
 
+/** Title-cases a stored value for display in dropdowns and pills without changing the stored key. */
+const CAP_OVERRIDES: Record<string, string> = {
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  linkedin: 'LinkedIn',
+  pinterest: 'Pinterest',
+  x: 'X',
+  cta: 'CTA',
+  'b-roll': 'B-roll',
+  'at-risk': 'At-risk',
+  'gear': 'Gear',
+};
+export function cap(value: string): string {
+  if (!value) return value;
+  if (CAP_OVERRIDES[value]) return CAP_OVERRIDES[value];
+  return value
+    .split(/(\s|-)/)
+    .map((word) => (word && /^[a-z]/.test(word) ? word.charAt(0).toUpperCase() + word.slice(1) : word))
+    .join('');
+}
+
 export function escapeRegExp(value: string): string { return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 /** Fills {token} placeholders in a hook template with sensible defaults. */

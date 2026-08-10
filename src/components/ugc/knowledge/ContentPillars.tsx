@@ -35,7 +35,7 @@ export function ContentPillars({ userId }: Props): ReactElement {
   };
 
   return <>
-    <PageHead eyebrow="Pillar 4 · Knowledge" title="Content pillars 🏛️" subtitle="The 3–5 themes every post reinforces — aim for a healthy mix, not a noisy feed."
+    <PageHead eyebrow="Pillar 4 · Knowledge" title="Content pillars 🏛️" subtitle="The 3–5 themes every post reinforces. Aim for a healthy mix, not a noisy feed."
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); }}><Plus size={16}/> New pillar</button>]} />
 
     <section className="section-block">
@@ -47,7 +47,7 @@ export function ContentPillars({ userId }: Props): ReactElement {
       </div>)}</div>
     </section>
 
-    {items.length === 0 ? <section className="section-block"><EmptyState emoji="🏛️" title="No pillars yet" note="Start with Authority, Connection and Growth — or define your own three."/></section> :
+    {items.length === 0 ? <section className="section-block"><EmptyState emoji="🏛️" title="No pillars yet" note="Start with Authority, Connection and Growth, or define your own three."/></section> :
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>Your pillars</h2><span className="hint">mix total: {mixTotal}%</span></div>
         <div className="grid grid-2">

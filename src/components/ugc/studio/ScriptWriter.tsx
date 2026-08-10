@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
-import { Clapperboard, FilePlus2, Film, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { Brain, Clapperboard, ClipboardCopy, FilePlus2, Film, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { HOOK_CATEGORIES, HOOK_TEMPLATES } from '../../../data/hookTemplates';
-import { PLATFORMS } from '../../../data/options';
+import { PLATFORMS, cap } from '../../../data/options';
 import { generateScene, NICHES, type SceneFormula } from '../../../data/sceneFormulas';
+import { buildBrain, type BrainResult } from '../../../lib/scriptBrain';
 import { Teleprompter } from './Teleprompter';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, cx } from '../shared/primitives';
-import type { Script } from '../../../types/ugc';
+import type { HookItem, Script } from '../../../types/ugc';
 
 interface Props { userId: string }
 
@@ -47,21 +48,23 @@ export function ScriptWriter({ userId }: Props): ReactElement {
       </section>
 
       {selected
-        ? <ScriptEditor key={selected.id} script={selected} onDelete={() => { void remove(selected.id); setSelectedId(null); }} />
-        : <section className="section-block"><EmptyState emoji="📝" title="Pick or create a script" note="Open a script to start writing — hooks from the shelf can be dropped straight into the page with one click."/></section>}
+        ? <ScriptEditor key={selected.id} userId={userId} script={selected} onDelete={() => { void remove(selected.id); setSelectedId(null); }} />
+        : <section className="section-block"><EmptyState emoji="📝" title="Pick or create a script" note="Open a script to start writing. Hooks from the shelf can be dropped straight into the page with one click."/></section>}
     </div>
 
     {sceneOpen && selected && <SceneGeneratorModal niche={selected.niche ?? ''} topic={selected.title} onInsert={(block) => { void update(selected.id, { content: `${selected.content}\n\n${block}\n` } as never); setSceneOpen(false); }} onClose={() => setSceneOpen(false)} />}
   </>;
 }
 
-interface EditorProps { script: Script; onDelete: () => void }
+interface EditorProps { script: Script; onDelete: () => void; userId: string }
 
-function ScriptEditor({ script, onDelete }: EditorProps): ReactElement {
+function ScriptEditor({ script, onDelete, userId }: EditorProps): ReactElement {
   const { update } = useCollection('scripts', script.user_id);
+  const { items: myHooks } = useCollection('hook_library', userId);
   const [draft, setDraft] = useState(script.content);
   const [saved, setSaved] = useState(true);
   const [tpOpen, setTpOpen] = useState(false);
+  const [coPilotOpen, setCoPilotOpen] = useState(false);
   const [shelfFilter, setShelfFilter] = useState('All');
   const taRef = useRef<HTMLTextAreaElement>(null);
   const lastSavedRef = useRef('');
@@ -106,7 +109,7 @@ function ScriptEditor({ script, onDelete }: EditorProps): ReactElement {
         <input className="input" style={{ fontSize: 17, fontWeight: 800 }} value={script.title} onChange={(e) => void update(script.id, { title: e.target.value } as never)} aria-label="Script title" />
         <FormRow>
           <Field label="Niche"><input className="input" value={script.niche ?? ''} onChange={(e) => void update(script.id, { niche: e.target.value } as never)} placeholder="beauty, tech…"/></Field>
-          <Field label="Platform"><select className="select" value={script.platform_target ?? ''} onChange={(e) => void update(script.id, { platform_target: e.target.value } as never)}><option value="">Any</option>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={script.platform_target ?? ''} onChange={(e) => void update(script.id, { platform_target: e.target.value } as never)}><option value="">Any</option>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
           <Field label="Status"><select className="select" value={script.status} onChange={(e) => void update(script.id, { status: e.target.value } as never)}><option value="draft">Draft</option><option value="ready">Ready to film</option><option value="filming">Filming</option><option value="published">Published</option></select></Field>
         </FormRow>
       </div>
@@ -116,6 +119,7 @@ function ScriptEditor({ script, onDelete }: EditorProps): ReactElement {
           <span className="word-count" style={{ color: saved ? '#55977e' : '#c07b2f' }}>{saved ? 'Saved ✓' : 'Saving…'}</span>
         </div>
         <button className="btn soft" onClick={() => setTpOpen(true)}><Film size={15}/> Teleprompter</button>
+        <button className="btn primary" onClick={() => setCoPilotOpen(true)}><Brain size={15}/> AI co-pilot</button>
         <button className="btn ghost" onClick={onDelete}><Trash2 size={15}/> Delete</button>
       </div>
     </div>
@@ -135,6 +139,7 @@ function ScriptEditor({ script, onDelete }: EditorProps): ReactElement {
     </div>
 
     {tpOpen && <Teleprompter open={tpOpen} content={draft} title={script.title} onClose={() => setTpOpen(false)} />}
+    {coPilotOpen && <CoPilotModal script={{ ...script, content: draft }} myHooks={myHooks} onInsert={(text) => insertAtCursor(text)} onClose={() => setCoPilotOpen(false)} />}
   </section>;
 }
 
@@ -163,4 +168,78 @@ function SceneGeneratorModal({ niche, topic, onInsert, onClose }: { niche: strin
 
 function sceneBlock(scene: SceneFormula): string {
   return `## SCENE — ${scene.title}\nOpening: ${scene.opening}\nEscalation: ${scene.escalation}\nPayoff: ${scene.payoff}\nB-roll: ${scene.broll.join(', ')}`;
+}
+
+function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; myHooks: HookItem[]; onInsert: (text: string) => void; onClose: () => void }): ReactElement {
+  const [copied, setCopied] = useState('');
+  const brain: BrainResult = useMemo(() => buildBrain({
+    niche: script.niche ?? '',
+    topic: script.title.replace(/^untitled /i, '') === 'script' ? script.title : script.title,
+    platform: script.platform_target ?? 'tiktok',
+    content: script.content ?? '',
+  }, myHooks), [script.title, script.niche, script.platform_target, script.content, myHooks]);
+
+  const copy = async (label: string, text: string): Promise<void> => {
+    try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
+    setCopied(label);
+    window.setTimeout(() => setCopied((c) => (c === label ? '' : c)), 1400);
+  };
+
+  return <Modal title="🧠 AI co-pilot · Script Writer" onClose={onClose} wide
+    footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={onClose}>Close</button></div>}>
+    <div className="grid" style={{ gap: 16 }}>
+      <div className="section-block" style={{ margin: 0 }}>
+        <div className="block-head"><h2 style={{ fontSize: 16 }}>🎣 Best hooks for this script</h2><span className="hint">scored for your platform + niche</span></div>
+        <div className="grid" style={{ gap: 8 }}>
+          {brain.hooks.map((h, i) => <div key={h.text} className="ugc-card" style={{ padding: 12, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <span className="score hot">Top {i + 1}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Pill color={i === 0 ? 'coral' : 'lavender'}>{h.category}</Pill>
+              <p style={{ fontSize: 13, color: '#554b6b', lineHeight: 1.45, margin: '6px 0 4px' }}>{h.text}</p>
+              <p className="muted" style={{ fontSize: 10.5 }}>{h.reason}</p>
+            </div>
+            <button className="btn small soft" style={{ flex: 'none' }} onClick={() => onInsert(`[HOOK ${h.category}] ${h.text}`)}><Plus size={13}/> Insert</button>
+          </div>)}
+        </div>
+      </div>
+
+      <div className="grid grid-2" style={{ gap: 12 }}>
+        <div className="ugc-card">
+          <div className="card-topbar"><strong className="card-title">💬 Caption</strong><button className="icon-btn" onClick={() => void copy('caption', brain.caption)} aria-label="Copy caption"><ClipboardCopy size={13}/></button></div>
+          <p className="muted" style={{ marginTop: 6, fontSize: 12, lineHeight: 1.5 }}>{brain.caption}{copied === 'caption' && <span style={{ color: '#55977e', fontWeight: 700 }}> copied</span>}</p>
+        </div>
+        <div className="ugc-card">
+          <div className="card-topbar"><strong className="card-title">👋 Call to action</strong><button className="icon-btn" onClick={() => void copy('cta', brain.cta)} aria-label="Copy CTA"><ClipboardCopy size={13}/></button></div>
+          <p className="muted" style={{ marginTop: 6, fontSize: 12, lineHeight: 1.5 }}>{brain.cta}{copied === 'cta' && <span style={{ color: '#55977e', fontWeight: 700 }}> copied</span>}</p>
+        </div>
+      </div>
+
+      <div className="ugc-card">
+        <div className="card-topbar"><strong className="card-title">🧱 Best structure arc</strong><Pill color="mint">{brain.structure.name}</Pill></div>
+        <p className="muted" style={{ marginTop: 6, fontSize: 12, lineHeight: 1.6 }}>{brain.structure.body}</p>
+      </div>
+
+      <div className="section-block" style={{ margin: 0 }}>
+        <div className="block-head"><h2 style={{ fontSize: 16 }}>📦 Upload kit</h2><span className="hint">grab the title, tags, description</span></div>
+        <div className="grid" style={{ gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--coral)', marginBottom: 6 }}>Ideal titles</div>
+            <div className="grid" style={{ gap: 6 }}>{brain.titles.map((t) => <div key={t} className="chip" style={{ justifyContent: 'space-between' }}>{t}<button onClick={() => void copy(`title-${t}`, t)} aria-label="Copy title"><ClipboardCopy size={12}/>{copied === `title-${t}` ? ' ✓' : ''}</button></div>)}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--coral)', marginBottom: 6 }}>Tags</div>
+            <div className="mini-chips">{brain.tags.map((t) => <span key={t} className="chip">#{t}</span>)}<button className="icon-btn" style={{ marginLeft: 6 }} onClick={() => void copy('tags', brain.tags.map((t) => `#${t}`).join(' '))} aria-label="Copy tags"><ClipboardCopy size={13}/></button></div>
+          </div>
+          <div>
+            <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}><span style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--coral)' }}>Description</span><button className="btn small ghost" onClick={() => void copy('desc', brain.description)}><ClipboardCopy size={12}/> Copy</button></div>
+            <p className="ugc-card" style={{ fontSize: 12, color: '#554b6b', lineHeight: 1.55 }}>{brain.description}</p>
+          </div>
+          <div>
+            <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--coral)', marginBottom: 6 }}>Editing notes</div>
+            <div className="grid" style={{ gap: 6 }}>{brain.editingNotes.map((n, i) => <p key={i} className="card-sub" style={{ margin: 0, fontSize: 11.5, display: 'flex', gap: 7 }}><span style={{ color: 'var(--coral)' }}>›</span>{n}</p>)}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Modal>;
 }

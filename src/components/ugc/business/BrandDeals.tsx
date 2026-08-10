@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, Table2, Trash2, Wallet } from 'lucide-react';
 import { addMonths, eachDayOfInterval, endOfMonth, format, isSameMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { useCollection } from '../../../hooks/useCollection';
-import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS } from '../../../data/options';
+import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete, cx } from '../shared/primitives';
 import type { BrandDeal } from '../../../types/ugc';
@@ -51,20 +51,20 @@ export function BrandDeals({ userId }: Props): ReactElement {
     {view === 'table' ? (
       <section className="section-block">
         <div className="board-toolbar">
-          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{DEAL_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">All statuses</option>{DEAL_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
           <div className="spacer"/>
           <span className="hint">💧 Pipeline: {formatMoney(items.filter((d) => d.status !== 'declined').reduce((sum, d) => sum + (d.deal_value ?? 0), 0))} total value</span>
         </div>
-        {visible.length === 0 ? <EmptyState emoji="🤝" title="No deals yet" note="Log every pitch — then update the probability and let the pipeline value do the math."/> :
+        {visible.length === 0 ? <EmptyState emoji="🤝" title="No deals yet" note="Log every pitch, then update the probability and let the pipeline value do the math."/> :
           <div className="table-wrap"><table className="data-table"><thead><tr><th>Brand</th><th>Contact</th><th>Value</th><th>Prob.</th><th>Status</th><th>Payment</th><th>Deadline</th><th /></tr></thead><tbody>{visible.map((deal) => (
             <tr key={deal.id}>
               <td><strong>{deal.brand_name}</strong><div className="muted" style={{ fontSize: 10.5 }}>{deal.platform ?? ''}</div></td>
-              <td>{deal.contact_name ? <>{deal.contact_name}<div className="muted" style={{ fontSize: 10.5 }}>{deal.contact_email}</div></> : '—'}</td>
+              <td>{deal.contact_name ? <>{deal.contact_name}<div className="muted" style={{ fontSize: 10.5 }}>{deal.contact_email}</div></> : '·'}</td>
               <td>{formatMoney(deal.deal_value ?? 0, deal.currency)}</td>
               <td>{deal.estimated_probability}%</td>
               <td><Pill color={STATUS_COLOR[deal.status] ?? 'gray'}>{deal.status}</Pill></td>
               <td><Pill color={deal.payment_status === 'paid' ? 'mint' : deal.payment_status === 'partial' ? 'yellow' : 'peach'}>{deal.payment_status}</Pill></td>
-              <td style={{ whiteSpace: 'nowrap' }}>{deal.deadline ?? '—'}{deal.follow_up_date ? <div className="muted" style={{ fontSize: 10.5 }}>follow-up {deal.follow_up_date}</div> : null}</td>
+              <td style={{ whiteSpace: 'nowrap' }}>{deal.deadline ?? '·'}{deal.follow_up_date ? <div className="muted" style={{ fontSize: 10.5 }}>follow-up {deal.follow_up_date}</div> : null}</td>
               <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" onClick={() => { setEditorId(deal.id); setEditing({ ...deal }); }} aria-label="Edit deal">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(deal.id))} aria-label="Delete deal"><Trash2 size={14}/></button></div></td>
             </tr>
           ))}</tbody></table></div>}
@@ -102,7 +102,7 @@ export function BrandDeals({ userId }: Props): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <FormRow>
           <Field label="Brand name *"><input className="input" value={editing.brand_name} onChange={(e) => setEditing({ ...editing, brand_name: e.target.value })}/></Field>
-          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
+          <Field label="Platform"><select className="select" value={editing.platform ?? 'tiktok'} onChange={(e) => setEditing({ ...editing, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Contact name"><input className="input" value={editing.contact_name ?? ''} onChange={(e) => setEditing({ ...editing, contact_name: e.target.value })}/></Field>
@@ -110,13 +110,13 @@ export function BrandDeals({ userId }: Props): ReactElement {
         </FormRow>
         <FormRow>
           <Field label="Deal value"><input type="number" className="input" min={0} value={editing.deal_value ?? 0} onChange={(e) => setEditing({ ...editing, deal_value: Number(e.target.value) })}/></Field>
-          <Field label="Currency"><select className="select" value={editing.currency} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>)}</select></Field>
+          <Field label="Currency"><select className="select" value={editing.currency} onChange={(e) => setEditing({ ...editing, currency: e.target.value })}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}</select></Field>
           <Field label="Estimated probability %"><input type="number" className="input" min={0} max={100} value={editing.estimated_probability} onChange={(e) => setEditing({ ...editing, estimated_probability: Number(e.target.value) })}/></Field>
         </FormRow>
         <FormRow>
-          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{DEAL_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
-          <Field label="Payment"><select className="select" value={editing.payment_status} onChange={(e) => setEditing({ ...editing, payment_status: e.target.value })}>{PAYMENT_STATUSES.map((s) => <option key={s}>{s}</option>)}</select></Field>
-          <Field label="Usage rights"><select className="select" value={editing.rights_period ?? ''} onChange={(e) => setEditing({ ...editing, rights_period: e.target.value || null })}><option value="">— custom —</option>{RIGHTS_PERIODS.map((s) => <option key={s} value={s}>{s}</option>)}</select></Field>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{DEAL_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Payment"><select className="select" value={editing.payment_status} onChange={(e) => setEditing({ ...editing, payment_status: e.target.value })}>{PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{cap(s)}</option>)}</select></Field>
+          <Field label="Usage rights"><select className="select" value={editing.rights_period ?? ''} onChange={(e) => setEditing({ ...editing, rights_period: e.target.value || null })}><option value="">Custom</option>{RIGHTS_PERIODS.map((s) => <option key={s} value={s}>{s}</option>)}</select></Field>
         </FormRow>
         <FormRow>
           <Field label="Pitch date"><input type="date" className="date-input" value={editing.pitch_date ?? ''} onChange={(e) => setEditing({ ...editing, pitch_date: e.target.value || null })}/></Field>

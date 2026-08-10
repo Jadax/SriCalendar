@@ -38,14 +38,14 @@ export function Checklists({ userId }: Props): ReactElement {
   const doneCount = (list: ProductionChecklist): number => list.items.filter((i) => i.checked).length;
 
   return <>
-    <PageHead eyebrow="Pillar 2 · Studio" title="Checklists ✅" subtitle="Run the same pre-shoot, brand, and post-publish rituals every single time — nothing gets missed."
+    <PageHead eyebrow="Pillar 2 · Studio" title="Checklists ✅" subtitle="Run the same pre-shoot, brand, and post-publish rituals every single time. Nothing gets missed."
       actions={[
         <button key="blank" className="btn soft" onClick={() => setBlankOpen(true)}><Plus size={15}/> Blank</button>,
         <button key="preset" className="btn primary" onClick={() => setPickerOpen(true)}><Plus size={16}/> From template</button>,
       ]} />
 
     <section className="section-block">
-      {items.length === 0 ? <EmptyState emoji="✅" title="No checklists yet" note="Start from a battle-tested template — lighting, audio, brand requirements, b-roll and more."/> :
+      {items.length === 0 ? <EmptyState emoji="✅" title="No checklists yet" note="Start from a battle-tested template. Lighting, audio, brand requirements, b-roll and more."/> :
         <div className="grid grid-2">{items.map((list) => {
           const total = list.items.length;
           const done = doneCount(list);

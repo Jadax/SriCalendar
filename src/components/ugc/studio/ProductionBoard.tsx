@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactElement, type ReactNode } from 
 import { DndContext, PointerSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent, type DragOverEvent, type DragStartEvent } from '@dnd-kit/core';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { BOARD_COLUMNS, PLATFORMS, PRIORITIES, PRIORITY_META, PLATFORM_META } from '../../../data/options';
+import { BOARD_COLUMNS, PLATFORMS, PRIORITIES, PRIORITY_META, PLATFORM_META, cap } from '../../../data/options';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete, cx } from '../shared/primitives';
 import type { BoardCard, BoardSubtask } from '../../../types/ugc';
 
@@ -63,7 +63,7 @@ export function ProductionBoard({ userId }: Props): ReactElement {
   };
 
   return <>
-    <PageHead eyebrow="Pillar 2 · Studio" title="Production board 🗂️" subtitle="Move ideas from spark to published — drag cards across the pipeline."
+    <PageHead eyebrow="Pillar 2 · Studio" title="Production board 🗂️" subtitle="Move ideas from spark to published. Drag cards across the pipeline."
       actions={[<button key="add" className="btn primary" onClick={() => setAdding('idea')}><Plus size={16}/> Add card</button>]} />
 
     <DndContext sensors={sensors} onDragStart={onDragStart} onDragOver={onDragOver} onDragEnd={onDragEnd}>
@@ -83,7 +83,7 @@ export function ProductionBoard({ userId }: Props): ReactElement {
       </div>
     </DndContext>
 
-    {items.length === 0 && <section className="section-block"><EmptyState emoji="🗂️" title="Your board is empty" note="Add a card to kick off the pipeline — or move an idea straight here from the Idea Bank."/></section>}
+    {items.length === 0 && <section className="section-block"><EmptyState emoji="🗂️" title="Your board is empty" note="Add a card to kick off the pipeline, or move an idea straight here from the Idea Bank."/></section>}
 
     {activeCard && <CardDetail card={activeCard} onClose={() => setActiveCard(null)} onSave={(patch) => { void update(activeCard.id, patch); }} onDelete={() => { void remove(activeCard.id); setActiveCard(null); }} onAddSubtask={() => addSubtask(activeCard)} />}
   </>;
@@ -126,8 +126,8 @@ function CardDetail({ card, onClose, onSave, onDelete, onAddSubtask }: { card: B
     <div className="grid" style={{ gap: 14 }}>
       <Field label="Title"><input className="input" value={merged.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })}/></Field>
       <FormRow>
-        <Field label="Platform"><select className="select" value={merged.platform ?? 'tiktok'} onChange={(e) => setDraft({ ...draft, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
-        <Field label="Priority"><select className="select" value={merged.priority ?? 'medium'} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>{PRIORITIES.map((p) => <option key={p}>{p}</option>)}</select></Field>
+        <Field label="Platform"><select className="select" value={merged.platform ?? 'tiktok'} onChange={(e) => setDraft({ ...draft, platform: e.target.value })}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
+        <Field label="Priority"><select className="select" value={merged.priority ?? 'medium'} onChange={(e) => setDraft({ ...draft, priority: e.target.value })}>{PRIORITIES.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
         <Field label="Due date"><input type="date" className="date-input" value={merged.due_date ?? ''} onChange={(e) => setDraft({ ...draft, due_date: e.target.value || null })}/></Field>
       </FormRow>
       <FormRow>
@@ -139,7 +139,7 @@ function CardDetail({ card, onClose, onSave, onDelete, onAddSubtask }: { card: B
         <div className="block-head"><h2 style={{ fontSize: 14 }}>Subtasks</h2><button className="btn small soft" onClick={onAddSubtask}><Plus size={13}/> Add</button></div>
         <div className="grid" style={{ gap: 6 }}>
           {merged.subtasks.map((subtask, idx) => <div key={subtask.id} className="row"><input type="checkbox" className="checkbox" checked={subtask.done} onChange={() => setDraft({ ...draft, subtasks: merged.subtasks.map((s, i) => (i === idx ? { ...s, done: !s.done } : s)) })}/><input className="input" value={subtask.text} onChange={(e) => setDraft({ ...draft, subtasks: merged.subtasks.map((s, i) => (i === idx ? { ...s, text: e.target.value } : s)) })}/></div>)}
-          {merged.subtasks.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No subtasks yet — add thumbnail, description, pinned comment steps here.</p>}
+          {merged.subtasks.length === 0 && <p className="muted" style={{ fontSize: 12 }}>No subtasks yet. Add thumbnail, description and pinned comment steps here.</p>}
         </div>
       </div>
     </div>

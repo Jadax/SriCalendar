@@ -3,7 +3,7 @@ import { addMonths, format, startOfMonth } from 'date-fns';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { CheckCircle2, Sparkles } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { PLATFORMS } from '../../../data/options';
+import { PLATFORMS, cap } from '../../../data/options';
 import { CURRENCIES, formatMoney, fromUsd, getBaseCurrency, setBaseCurrency, streamMeta, toUsd } from '../../../utils/money';
 import { EmptyState, Field, FormRow, PageHead, Pill, StatCard } from '../shared/primitives';
 import type { Invoice } from '../../../types/ugc';
@@ -113,12 +113,12 @@ export function Income({ userId }: Props): ReactElement {
   }, [tier, niche, platform, rights, deliverables]);
 
   return <>
-    <PageHead eyebrow="Pillar 3 · Business" title="Income 💗" subtitle="Every stream, every currency, one sweet summary — plus a rate calculator so you never underprice."
+    <PageHead eyebrow="Pillar 3 · Business" title="Income 💗" subtitle="Every stream, every currency, one sweet summary. Plus a rate calculator so you never underprice."
       actions={[
         <div key="cur" className="row" style={{ gap: 8 }}>
           <span className="hint" style={{ display: 'inline-flex', alignItems: 'center' }}>Report in</span>
           <select className="select" style={{ width: 170 }} value={base} onChange={(e) => changeBase(e.target.value)} aria-label="Base currency">
-            {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} — {c.name}</option>)}
+            {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.flag} {c.code} · {c.name}</option>)}
           </select>
         </div>,
       ]} />
@@ -134,7 +134,7 @@ export function Income({ userId }: Props): ReactElement {
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>📊 Last 6 months</h2><span className="hint">issued vs collected</span></div>
         <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={monthly} margin={{ top: 6, right: 8, left: -4, bottom: 0 }}><CartesianGrid strokeDasharray="3 3" stroke="rgba(139,126,200,.18)"/><XAxis dataKey="label" tick={{ fontSize: 10, fill: '#7a7289' }}/><YAxis tick={{ fontSize: 10, fill: '#7a7289' }} /><Tooltip contentStyle={{ borderRadius: 14, border: '1px solid rgba(139,126,200,.2)', fontSize: 12 }} /><Legend/><Bar dataKey="issued" name="Issued" fill="#c9b8f7" radius={[6, 6, 0, 0]}/><Bar dataKey="collected" name="Collected" fill="#f7a8c4" radius={[6, 6, 0, 0]}/></BarChart></ResponsiveContainer></div>
-        <p className="hint" style={{ marginTop: 8 }}>Everything is converted into your base currency — edit deals & invoices to tag the real one.</p>
+        <p className="hint" style={{ marginTop: 8 }}>Everything is converted into your base currency. Edit deals & invoices to tag the real one.</p>
       </section>
 
       <section className="section-block">
@@ -158,7 +158,7 @@ export function Income({ userId }: Props): ReactElement {
         <div className="grid" style={{ gap: 12 }}>
           <FormRow>
             <Field label="Followers"><select className="select" value={tier} onChange={(e) => setTier(e.target.value)}>{TIERS.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}</select></Field>
-            <Field label="Platform"><select className="select" value={platform} onChange={(e) => setPlatform(e.target.value)}>{PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select></Field>
+            <Field label="Platform"><select className="select" value={platform} onChange={(e) => setPlatform(e.target.value)}>{PLATFORMS.map((p) => <option key={p} value={p}>{cap(p)}</option>)}</select></Field>
             <Field label="Niche"><select className="select" value={niche} onChange={(e) => setNiche(e.target.value)}>{NICHES.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}</select></Field>
           </FormRow>
           <FormRow>
@@ -173,14 +173,14 @@ export function Income({ userId }: Props): ReactElement {
               <span style={{ fontSize: 26, fontWeight: 800, color: '#c22f6b' }}>{formatMoney(quote.high, calcCur, 0)}</span>
               <span className="hint">per project</span>
             </div>
-            <p className="hint" style={{ marginTop: 6 }}>≈ {formatMoney(quote.usdLow, 'USD', 0)} – {formatMoney(quote.usdHigh, 'USD', 0)} · usage rights are your biggest lever — don't give them away for free.</p>
+            <p className="hint" style={{ marginTop: 6 }}>≈ {formatMoney(quote.usdLow, 'USD', 0)} – {formatMoney(quote.usdHigh, 'USD', 0)} · usage rights are your biggest lever. Don't give them away for free.</p>
           </div>
         </div>
       </section>
 
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>⏰ Follow up & get paid</h2><span className="hint">overdue or past due</span></div>
-        {stats.overdue.length === 0 ? <EmptyState emoji="🌤️" title="Nothing overdue" note="Sweet — send gentle nudge emails before the due date to keep it that way."/> :
+        {stats.overdue.length === 0 ? <EmptyState emoji="🌤️" title="Nothing overdue" note="Sweet. Send gentle nudge emails before the due date to keep it that way."/> :
           <div className="timeline">
             {stats.overdue.map((i) => <div key={i.id} className="tl-item"><span className="tl-dot">🧾</span><div className="tl-body">
               <strong style={{ fontSize: 13, color: '#5d4f79' }}>{i.invoice_number} · {i.recipient_name}</strong>
@@ -188,7 +188,7 @@ export function Income({ userId }: Props): ReactElement {
               <button className="btn small soft" style={{ marginTop: 6 }} onClick={() => markPaid(i)}><CheckCircle2 size={13}/> Mark paid</button>
             </div></div>)}
           </div>}
-        <p className="hint" style={{ marginTop: 10 }}>💡 Nudge script: "Hey, quick check that the invoice landed — happy to hop on a call this week."</p>
+        <p className="hint" style={{ marginTop: 10 }}>💡 Nudge script: "Hey, quick check that the invoice landed. Happy to hop on a call this week."</p>
       </section>
     </div>
 
@@ -196,11 +196,11 @@ export function Income({ userId }: Props): ReactElement {
       <div className="block-head"><h2 style={{ fontSize: 15 }}><Sparkles size={14}/> Creator income cheat-sheet</h2></div>
       <div className="grid grid-3" style={{ gap: 10 }}>
         <div className="ugc-card"><b style={{ fontSize: 13 }}>🤝 Brand deals</b><p className="card-sub">Start at {formatMoney(150, 'USD', 0)}+/video UGC. Raise 30–50% when you add paid-ads usage rights.</p></div>
-        <div className="ugc-card"><b style={{ fontSize: 13 }}>🛍️ UGC marketplaces</b><p className="card-sub">20–40 videos/mo × 150–400 is a real retainer — treat it like a product, not a favor.</p></div>
-        <div className="ugc-card"><b style={{ fontSize: 13 }}>📦 Products + affiliates</b><p className="card-sub">The two most scalable streams — they don't scale with your time, they scale with your audience.</p></div>
+        <div className="ugc-card"><b style={{ fontSize: 13 }}>🛍️ UGC marketplaces</b><p className="card-sub">20–40 videos/mo × 150–400 is a real retainer. Treat it like a product, not a favor.</p></div>
+        <div className="ugc-card"><b style={{ fontSize: 13 }}>📦 Products + affiliates</b><p className="card-sub">The two most scalable streams. They don't scale with your time, they scale with your audience.</p></div>
         <div className="ugc-card"><b style={{ fontSize: 13 }}>🔁 Repurposing</b><p className="card-sub">One shoot → reel + TikTok + YouTube Short + carousel. More reach, zero extra filming cost.</p></div>
         <div className="ugc-card"><b style={{ fontSize: 13 }}>📄 License rights</b><p className="card-sub">Organic ≠ ads. Whitelisting and ad-use typically command 50–100% more.</p></div>
-        <div className="ugc-card"><b style={{ fontSize: 13 }}>💳 Payment rails</b><p className="card-sub">Invoice in the client's currency, ask for Wise/PayPal/ACH — and always charge in yours when you can.</p></div>
+        <div className="ugc-card"><b style={{ fontSize: 13 }}>💳 Payment rails</b><p className="card-sub">Invoice in the client's currency, ask for Wise/PayPal/ACH, and always charge in yours when you can.</p></div>
       </div>
     </section>
   </>;

@@ -267,6 +267,10 @@
 .stale{opacity:.72}
 .stale-badge{font-size:9px;font-weight:800;color:#b4642f;background:rgba(255,208,184,.45);border-radius:999px;padding:2px 7px}
 
+@media(max-width:900px){
+  .script-layout{grid-template-columns:1fr!important}
+  .script-layout>section:first-child{position:static!important;max-height:none!important}
+}
 @media(max-width:600px){
   .tab-bar{margin:10px 10px 0;border-radius:18px;gap:4px;padding:6px}
   .tab-btn{flex-direction:column;gap:2px;padding:8px 4px;font-size:10px;border-radius:13px}

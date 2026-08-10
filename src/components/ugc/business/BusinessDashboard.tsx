@@ -39,7 +39,7 @@ export function BusinessDashboard({ userId }: Props): ReactElement {
       <StatCard emoji="🚀" label="Published posts" value={String(published)} note="From the production board" />
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>📅 Upcoming deal deadlines</h2></div>
-        {upcoming.length === 0 ? <p className="muted" style={{ fontSize: 12 }}>No upcoming deadlines — enjoy the calm.</p> :
+        {upcoming.length === 0 ? <p className="muted" style={{ fontSize: 12 }}>No upcoming deadlines. Enjoy the calm.</p> :
           <div className="timeline">
             {upcoming.map((d) => <div key={d.id} className="tl-item"><span className="tl-dot">📁</span><div className="tl-body"><strong style={{ fontSize: 13, color: '#5d4f79' }}>{d.brand_name}</strong><p className="card-sub">{d.deadline} · {formatMoneyCompact(d.deal_value ?? 0, d.currency)} · <b>{d.status}</b></p></div></div>)}
           </div>}

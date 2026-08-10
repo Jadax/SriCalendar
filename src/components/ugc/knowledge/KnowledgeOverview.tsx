@@ -47,7 +47,7 @@ export function KnowledgeOverview({ userId }: Props): ReactElement {
     <div className="grid grid-2">
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>🎯 Goals in flight</h2></div>
-        {goals.items.length === 0 ? <p className="muted" style={{ fontSize: 12 }}>No goals yet — set one under the Goals tab.</p> :
+        {goals.items.length === 0 ? <p className="muted" style={{ fontSize: 12 }}>No goals yet. Set one under the Goals tab.</p> :
           <div className="timeline">
             {goals.items.slice(0, 6).map((g) => {
               const pct = g.target ? Math.min(100, (g.current_progress / g.target) * 100) : 0;
