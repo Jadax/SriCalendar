@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
-import { Brain, Clapperboard, ClipboardCopy, FilePlus2, Film, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { Brain, Clapperboard, ClipboardCopy, FilePlus2, Film, Loader2, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { HOOK_CATEGORIES, HOOK_TEMPLATES } from '../../../data/hookTemplates';
 import { PLATFORMS, cap, alpha } from '../../../data/options';
 import { generateScene, NICHES, type SceneFormula } from '../../../data/sceneFormulas';
-import { buildBrain, type BrainResult } from '../../../lib/scriptBrain';
+import { buildBrainSmart, isGeminiConfigured } from '../../../lib/aiBrain';
+import type { BrainResult } from '../../../lib/scriptBrain';
 import { Teleprompter } from './Teleprompter';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, cx } from '../shared/primitives';
 import type { HookItem, Script } from '../../../types/ugc';
@@ -172,12 +173,20 @@ function sceneBlock(scene: SceneFormula): string {
 
 function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; myHooks: HookItem[]; onInsert: (text: string) => void; onClose: () => void }): ReactElement {
   const [copied, setCopied] = useState('');
-  const brain: BrainResult = useMemo(() => buildBrain({
-    niche: script.niche ?? '',
-    topic: script.title.replace(/^untitled /i, '') === 'script' ? script.title : script.title,
-    platform: script.platform_target ?? 'tiktok',
-    content: script.content ?? '',
-  }, myHooks), [script.title, script.niche, script.platform_target, script.content, myHooks]);
+  const [brain, setBrain] = useState<BrainResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const ctrl = new AbortController();
+    setLoading(true);
+    void buildBrainSmart({
+      niche: script.niche ?? '',
+      topic: script.title.replace(/^untitled /i, ''),
+      platform: script.platform_target ?? 'tiktok',
+      content: script.content ?? '',
+    }, myHooks, ctrl.signal).then((result) => { setBrain(result); setLoading(false); }).catch(() => { setBrain(null); setLoading(false); });
+    return () => ctrl.abort();
+  }, [script.title, script.niche, script.platform_target, script.content, myHooks]);
 
   const copy = async (label: string, text: string): Promise<void> => {
     try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
@@ -186,8 +195,8 @@ function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; 
   };
 
   return <Modal title="🧠 AI co-pilot · Script Writer" onClose={onClose} wide
-    footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={onClose}>Close</button></div>}>
-    <div className="grid" style={{ gap: 16 }}>
+    footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>{!isGeminiConfigured && <span className="hint" style={{ marginRight: 'auto' }}>smart fallback engine</span>}<button className="btn ghost" onClick={onClose}>Close</button></div>}>
+    {loading || !brain ? <div className="row" style={{ justifyContent: 'center', padding: '48px 0', gap: 10, color: 'var(--muted)' }}><Loader2 size={18} className="spin"/> Cooking your ideas…</div> : <div className="grid" style={{ gap: 16 }}>
       <div className="section-block" style={{ margin: 0 }}>
         <div className="block-head"><h2 style={{ fontSize: 16 }}>🎣 Best hooks for this script</h2><span className="hint">scored for your platform + niche</span></div>
         <div className="grid" style={{ gap: 8 }}>
@@ -240,6 +249,6 @@ function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; 
           </div>
         </div>
       </div>
-    </div>
+    </div>}
   </Modal>;
 }

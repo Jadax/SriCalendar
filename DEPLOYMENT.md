@@ -59,7 +59,7 @@ Redeploy the latest production deployment. Vite reads these values at build time
 
 ## Release checks
 
-- Email/password registration and Google sign-in return to `/app/today`.
+- Email/password registration and Google sign-in return to `/app/home` (Creator HQ).
 - Anonymous visitors are redirected from `/app/*`.
 - Two test users cannot see or modify each other’s rows.
 - An offline edit remains visible, shows Offline Mode, and synchronizes after reconnection.

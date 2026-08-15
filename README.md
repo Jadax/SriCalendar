@@ -16,6 +16,7 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 📲 Installable phone/desktop app shell with offline launch support
 - 🛡️ Private JSON backup and restore through the in-app Data Vault
 - 🔥 Consecutive-visit streaks, sync state, dark theme, and reduced-motion support
+- 🎬 Video Assistant: drop in a phone clip and a free Gemini call drafts the title, caption, hook, hashtags and tags — clips stay on-device, only sent to Google transiently for analysis
 
 ## Tech stack
 
@@ -50,6 +51,16 @@ For this completed repository, use only `npm install` followed by `npm run dev`;
 
 Never put a Neon database connection string or API key in a `VITE_` variable. Only the public Auth and Data API endpoints belong in browser environment variables; JWT validation plus RLS is the security boundary.
 
+### Video Assistant (optional)
+
+The Studio's Video Assistant auto-generates titles, descriptions, hooks, hashtags and tags from an uploaded clip using Google Gemini's free tier. To enable it:
+
+1. Grab a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey) (no credit card required).
+2. In AI Studio, restrict the key under "API restrictions" to your app's domain(s) — it ships in the client bundle like the Neon endpoints above.
+3. Add it to `.env.local` as `VITE_GEMINI_API_KEY`.
+
+Without a key, clips still record and save locally — only the AI analysis step is unavailable. Video files never leave the device except for the transient analysis upload to Google (auto-deleted from Google's servers within 48 hours; the app also deletes it immediately after a successful response). Clips themselves are stored only in this browser's IndexedDB and are never synced to Neon.
+
 ## Commands
 
 | Command | Purpose |
@@ -64,10 +75,11 @@ Never put a Neon database connection string or API key in a `VITE_` variable. On
 
 Try the app at [sri-calendar.vercel.app](https://sri-calendar.vercel.app). No-login previews of each workspace:
 
-- [Studio](https://sri-calendar.vercel.app/preview/studio) — Idea Bank, Script Writer, Checklists
+- [Home](https://sri-calendar.vercel.app/preview/home) — Creator HQ: daily brief, weekly AI plan, money & analytics pulse
+- [Studio](https://sri-calendar.vercel.app/preview/studio) — Idea Bank, Script Writer, Production Board, Checklists
 - [Business](https://sri-calendar.vercel.app/preview/business) — Income, Brand Deals, Invoices
 - [Knowledge](https://sri-calendar.vercel.app/preview/knowledge) — Goals, Growth Analytics
-- [Calendar](https://sri-calendar.vercel.app/preview/today) — the content calendar
+- [Calendar](https://sri-calendar.vercel.app/preview/today) — the content calendar, now showing production due dates
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for the Neon + Vercel setup.
 

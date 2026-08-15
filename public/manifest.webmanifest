@@ -2,7 +2,7 @@
   "name": "SriCalendar — Create beautifully",
   "short_name": "SriCalendar",
   "description": "A delightful offline-first calendar for content creators.",
-  "start_url": "/app/today",
+  "start_url": "/app/home",
   "display": "standalone",
   "background_color": "#FFF8FB",
   "theme_color": "#FFC1D5",

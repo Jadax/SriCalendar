@@ -1,7 +1,8 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Plus, Table2, Trash2, Wallet } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Mail, Plus, Table2, Trash2, Wallet } from 'lucide-react';
 import { addMonths, eachDayOfInterval, endOfMonth, format, isSameMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { useCollection } from '../../../hooks/useCollection';
+import { draftPitch, draftPitchSmart } from '../../../lib/creatorBrain';
 import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap, alpha } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { alphaBy } from '../../../data/options';
@@ -18,11 +19,25 @@ const STATUS_COLOR: Record<string, 'coral' | 'lavender' | 'yellow' | 'mint' | 'g
 /** PILLAR 3.2 — brand deal tracker with spreadsheet table and deadline calendar. */
 export function BrandDeals({ userId }: Props): ReactElement {
   const { items, add, update, remove } = useCollection('brand_deals', userId);
+  const media = useCollection('media_kit', userId);
   const [view, setView] = useState<ViewMode>('table');
   const [statusFilter, setStatusFilter] = useState('all');
   const [editing, setEditing] = useState<Omit<BrandDeal, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'> | null>(null);
   const [editorId, setEditorId] = useState<string | null>(null);
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
+  const [pitchTarget, setPitchTarget] = useState<BrandDeal | null>(null);
+  const [pitchText, setPitchText] = useState('');
+  const [pitchBusy, setPitchBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  /** Generates a warm, on-brand outreach email for the deal using the media kit. */
+  const openPitch = async (deal: BrandDeal): Promise<void> => {
+    setPitchTarget(deal); setPitchText(''); setCopied(false);
+    setPitchBusy(true);
+    try { setPitchText(await draftPitchSmart(media.items[0] ?? null, deal)); } catch { setPitchText(draftPitch(media.items[0] ?? null, deal)); } finally { setPitchBusy(false); }
+  };
+
+  const copyPitch = async (): Promise<void> => { try { await navigator.clipboard.writeText(pitchText); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* clipboard unavailable */ } };
 
   const visible = useMemo(() => items
     .filter((d) => (statusFilter === 'all' ? true : d.status === statusFilter))
@@ -66,7 +81,7 @@ export function BrandDeals({ userId }: Props): ReactElement {
               <td><Pill color={STATUS_COLOR[deal.status] ?? 'gray'}>{deal.status}</Pill></td>
               <td><Pill color={deal.payment_status === 'paid' ? 'mint' : deal.payment_status === 'partial' ? 'yellow' : 'peach'}>{deal.payment_status}</Pill></td>
               <td style={{ whiteSpace: 'nowrap' }}>{deal.deadline ?? '·'}{deal.follow_up_date ? <div className="muted" style={{ fontSize: 10.5 }}>follow-up {deal.follow_up_date}</div> : null}</td>
-              <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" onClick={() => { setEditorId(deal.id); setEditing({ ...deal }); }} aria-label="Edit deal">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(deal.id))} aria-label="Delete deal"><Trash2 size={14}/></button></div></td>
+              <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" title="Draft outreach email" aria-label="Draft pitch" onClick={() => void openPitch(deal)}><Mail size={14}/></button><button className="icon-btn" onClick={() => { setEditorId(deal.id); setEditing({ ...deal }); }} aria-label="Edit deal">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(deal.id))} aria-label="Delete deal"><Trash2 size={14}/></button></div></td>
             </tr>
           ))}</tbody></table></div>}
       </section>
@@ -128,6 +143,11 @@ export function BrandDeals({ userId }: Props): ReactElement {
         <Field label="Usage rights / contract terms"><textarea className="textarea" value={editing.usage_rights ?? ''} onChange={(e) => setEditing({ ...editing, usage_rights: e.target.value })} placeholder="Whitelisting, exclusivity, ad-use period…"/></Field>
         <Field label="Notes"><textarea className="textarea" value={editing.notes ?? ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })}/></Field>
       </div>
+    </Modal>}
+  {pitchTarget && <Modal title={`Draft pitch for ${pitchTarget.brand_name}`} onClose={() => setPitchTarget(null)} wide
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setPitchTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyPitch()} disabled={!pitchText}>{copied ? 'Copied ✓' : 'Copy email'}</button></div>}>
+      {pitchBusy ? <div className="empty-state"><div className="empty-emoji">✍️</div><p>Drafting your pitch…</p></div> :
+        <textarea className="textarea" style={{ minHeight: 260, whiteSpace: 'pre-wrap', lineHeight: 1.7 }} value={pitchText} onChange={(e) => setPitchText(e.target.value)} aria-label="Pitch email draft"/>}
     </Modal>}
   </>;
 }

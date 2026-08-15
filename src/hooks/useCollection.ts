@@ -26,7 +26,8 @@ export interface UgcRowMap {
 }
 
 export type UgcActions<K extends UgcTableName> = {
-  add: (input: Partial<Omit<UgcRowMap[K], 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'>>) => Promise<void>;
+  /** Creates a row locally and queues the cloud push. Resolves with the new row id. */
+  add: (input: Partial<Omit<UgcRowMap[K], 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'>>) => Promise<string>;
   update: (id: string, patch: Partial<Omit<UgcRowMap[K], 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'>>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   replace: (row: UgcRowMap[K]) => Promise<void>;
@@ -61,11 +62,12 @@ export function useCollection<K extends UgcTableName>(tableName: K, userId?: str
     };
     return {
       add: async (input) => {
-        if (!userId) return;
+        if (!userId) return '';
         const created = now();
         const record = { id: crypto.randomUUID(), user_id: userId, created_at: created, updated_at: created, sync_pending: 1, ...input } as UgcRowMap[K];
         await table.put(record);
         scheduleUgcPush(tableName, record as never);
+        return record.id;
       },
       update: (id, patch) => touch(id, (current) => ({ ...current, ...patch })),
       replace: (row) => {

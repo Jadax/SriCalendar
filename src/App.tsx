@@ -18,5 +18,5 @@ export default function App(): ReactElement {
   if (pathname === '/auth/callback') return <AuthCallback/>;
   if (pathname.startsWith('/preview')) return <AppShell preview/>;
   if (pathname.startsWith('/app/')) return <ProtectedRoute><AppShell/></ProtectedRoute>;
-  return <Navigate to="/app/today" replace/>;
+  return <Navigate to="/app/home" replace/>;
 }

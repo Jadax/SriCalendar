@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Brain, CalendarPlus, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Trash2, Clapperboard } from 'lucide-react';
+import { Brain, CalendarPlus, KanbanSquare, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Trash2, Clapperboard } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { schedulePlatformPost } from '../../../lib/calendarActions';
 import { buildBrain } from '../../../lib/scriptBrain';
@@ -31,6 +31,7 @@ function iceColor(score: number): 'mint' | 'yellow' | 'peach' {
 export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   const { items, add, update, remove } = useCollection('content_ideas', userId);
   const scripts = useCollection('scripts', userId);
+  const board = useCollection('production_board', userId);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState('all');
   const [platformFilter, setPlatformFilter] = useState('all');
@@ -90,6 +91,15 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     setScheduleTarget(null); setScheduleDate('');
   };
 
+  /** Promotes an idea into a production board card — moves it into the build pipeline. */
+  const promoteToBoard = async (idea: ContentIdea): Promise<void> => {
+    await board.add({
+      title: idea.title, column_name: idea.status === 'scripted' ? 'scripting' : 'idea',
+      platform: idea.platform, priority: idea.priority, due_date: null, sponsor: null,
+      video_type: null, subtasks: [], status: idea.status === 'scripted' ? 'scripting' : 'idea',
+    } as never);
+  };
+
   const suggestions = ['3-reel blueprints', 'master them in minutes', 'the underrated setting'];
   const spark = (): void => {
     const topic = prompt('What is your niche or idea?', 'video creation');
@@ -132,6 +142,7 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
         </div>
         <div className="row" style={{ gap: 6 }}>
           <button className="icon-btn" title="Move to Script" aria-label="Move to script" onClick={() => void moveToScript(idea)}><Clapperboard size={15}/></button>
+          <button className="icon-btn" title="Add to production board" aria-label="Add to production board" onClick={() => void promoteToBoard(idea)}><KanbanSquare size={15}/></button>
           <button className="icon-btn" title="Schedule to calendar" aria-label="Schedule idea" onClick={() => { setScheduleTarget(idea); setScheduleDate(new Date().toISOString().slice(0, 10)); }}><CalendarPlus size={15}/></button>
           <button className="icon-btn" title="Edit idea" aria-label="Edit idea" onClick={() => { setEditorId(idea.id); setEditing({ ...idea }); }}><PenLine size={14}/></button>
           <button className="icon-btn" title="Delete idea" aria-label="Delete idea" onClick={() => confirmDelete(() => void remove(idea.id))}><Trash2 size={14}/></button>

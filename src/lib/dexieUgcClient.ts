@@ -3,6 +3,7 @@ import type {
   AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, Goal,
   HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
 } from '../types/ugc';
+import type { VideoAsset } from '../types/video';
 
 export interface PendingDelete { key: string; table: string; id: string; user_id: string; queued_at: string }
 
@@ -22,6 +23,8 @@ class SriCalendarUgcDatabase extends Dexie {
   production_checklists!: Table<ProductionChecklist, string>;
   collaborations!: Table<Collaboration, string>;
   delete_queue!: Table<PendingDelete, string>;
+  /** Device-only clip storage — never pushed to Neon, deliberately absent from UGC_TABLES. */
+  video_assets!: Table<VideoAsset, string>;
 
   constructor() {
     super('SriCalendarUgcDB');
@@ -42,6 +45,7 @@ class SriCalendarUgcDatabase extends Dexie {
       delete_queue: 'key, user_id, table, queued_at',
     };
     this.version(1).stores(stores);
+    this.version(2).stores({ ...stores, video_assets: 'id, user_id, created_at, status' });
   }
 }
 

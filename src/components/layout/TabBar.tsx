@@ -1,9 +1,10 @@
 import type { ReactElement } from 'react';
 import { useLocation, useNavigate } from '../../lib/router';
 
-export type AppTab = 'calendar' | 'studio' | 'business' | 'knowledge';
+export type AppTab = 'home' | 'calendar' | 'studio' | 'business' | 'knowledge';
 
 const TABS: Array<{ id: AppTab; label: string; emoji: string; route: string }> = [
+  { id: 'home', label: 'Home', emoji: '🏠', route: '/app/home' },
   { id: 'calendar', label: 'Calendar', emoji: '📅', route: '/app/today' },
   { id: 'studio', label: 'Studio', emoji: '🎬', route: '/app/studio' },
   { id: 'business', label: 'Business', emoji: '💼', route: '/app/business' },
@@ -12,13 +13,15 @@ const TABS: Array<{ id: AppTab; label: string; emoji: string; route: string }> =
 
 /** Resolves the active pillar from the current application route. */
 export function tabFromPath(pathname: string): AppTab {
+  if (pathname.startsWith('/app/home') || pathname.startsWith('/preview/home')) return 'home';
   if (pathname.startsWith('/app/studio') || pathname.startsWith('/preview/studio')) return 'studio';
   if (pathname.startsWith('/app/business') || pathname.startsWith('/preview/business')) return 'business';
   if (pathname.startsWith('/app/knowledge') || pathname.startsWith('/preview/knowledge')) return 'knowledge';
+  if (pathname === '/app' || pathname === '/preview' || pathname === '/app/' || pathname === '/preview/') return 'home';
   return 'calendar';
 }
 
-/** Persistent four-pillar navigation bar. */
+/** Persistent command-center navigation bar. */
 export function TabBar(): ReactElement {
   const navigate = useNavigate();
   const { pathname } = useLocation();

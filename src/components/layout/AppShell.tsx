@@ -17,10 +17,12 @@ import { CalendarGrid } from '../calendar/CalendarGrid';
 import { WeekView } from '../calendar/WeekView';
 import { DailyPanel } from '../daily/DailyPanel';
 import { StudioPage } from '../ugc/studio/StudioPage';
+import { HomePage } from '../ugc/home/HomePage';
 import { BusinessPage } from '../ugc/business/BusinessPage';
 import { KnowledgePage } from '../ugc/knowledge/KnowledgePage';
 import { Confetti } from '../shared/Confetti';
-import { FirstNameModal } from '../shared/FirstNameModal';
+import { OnboardingWizard } from '../shared/OnboardingWizard';
+import { loadProfile, saveProfile, type OnboardingProfile } from '../../data/onboarding';
 
 /** Hosts the responsive calendar workspace, profile welcome, and daily visit streak. */
 export function AppShell({ preview = false }: { preview?: boolean }): ReactElement {
@@ -33,6 +35,7 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
   const [firstName, setFirstName] = useState<string | null>(preview ? 'Creator' : null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(preview);
+  const [profile, setProfile] = useState<OnboardingProfile | null>(loadProfile());
   useSync(preview ? undefined : userId);
   useUgcSync(preview ? undefined : userId);
 
@@ -78,5 +81,5 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
   };
 
   if (!userId) return <div className="full-loader">Loading…</div>;
-  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace">{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/></main>}{!preview && profileLoaded && !firstName && <FirstNameModal onSave={saveFirstName}/>}</div>;
+  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'home' || appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace">{appTab === 'home' && <HomePage userId={userId}/>}{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/></main>}{!preview && profileLoaded && !profile?.onboarded && <OnboardingWizard userId={userId} initialName={firstName ?? ''} onComplete={(next) => { saveProfile(next); setProfile(next); setFirstName(next.name); void saveFirstName(next.name).catch(() => undefined); }} />}</div>;
 }
