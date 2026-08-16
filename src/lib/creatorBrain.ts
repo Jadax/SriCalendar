@@ -1,6 +1,6 @@
 import { generateText, isGeminiConfigured, type ResponseSchema } from './geminiClient';
 import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_TEMPLATES } from '../data/hookTemplates';
-import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, USAGE_ADDONS } from '../data/creatorIntelligence';
+import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, TRENDS, TREND_REGIONS, USAGE_ADDONS, type Trend } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, Goal, HookItem, Invoice, MediaKitProfile,
@@ -907,4 +907,148 @@ Rules: real human voice, no corporate words, no em dashes, under 120 words, one 
     }),
     fallback,
   );
+}
+
+/* ---------------------------------------------------------------------------
+ * 10. Trend Pulse — "what's hot right now" + "what to work on next"
+ * ------------------------------------------------------------------------- */
+
+/** A trend surfaced for the creator, tagged with heat + viral potential. */
+export interface TrendItem {
+  id: string;
+  niche: string;
+  region: string;
+  title: string;
+  hook: string;
+  angle: string;
+  format: string;
+  momentum: number;
+  direction: 'rising' | 'peaking' | 'falling';
+  virality: number;
+  play: string;
+  hashtags: string[];
+  season?: string;
+}
+
+/** Blended "jump on it now" score — momentum wins, virality caps the ceiling, rising beats peaking. */
+function heatOf(trend: TrendItem): number {
+  const dirBonus = trend.direction === 'rising' ? 6 : trend.direction === 'peaking' ? 3 : 0;
+  return trend.momentum * 0.7 + trend.virality * 0.3 + dirBonus;
+}
+
+export function regionLabelOf(region: string): string {
+  return TREND_REGIONS.find((r) => r.id === region)?.label ?? 'Global';
+}
+
+/** Deterministic radar: the curated watchlist filtered by niches + region, hottest first. */
+export function trendingNow(niches: string[], region: string): TrendItem[] {
+  const list = TRENDS.filter((t) =>
+    (niches.length === 0 || niches.includes(t.niche)) &&
+    (region === 'all' || t.region === region),
+  );
+  return [...list].sort((a, b) => heatOf(b) - heatOf(a));
+}
+
+const TREND_SCHEMA: ResponseSchema = {
+  type: 'OBJECT',
+  properties: {
+    trends: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+      title: { type: 'STRING' }, hook: { type: 'STRING' }, angle: { type: 'STRING' }, format: { type: 'STRING' },
+      momentum: { type: 'NUMBER' }, direction: { type: 'STRING' }, virality: { type: 'NUMBER' }, play: { type: 'STRING' }, hashtags: { type: 'ARRAY', items: { type: 'STRING' } },
+    }, } },
+  },
+  required: ['trends'],
+};
+
+/** Gemini radar: a real-time trend scan for the creator's niches + region, falling back to the catalog. */
+export async function trendingNowSmart(niches: string[], region: string): Promise<TrendItem[]> {
+  const fallback = (): TrendItem[] => trendingNow(niches, region);
+  const regionLabel = regionLabelOf(region);
+  return smartOr(
+    () => generateText(
+      `You are a viral-trend scout for UGC creators. List the top 8 content trends that are genuinely trending RIGHT NOW (2026) for a ${regionLabel} audience, in these niches: ${niches.join(', ') || 'general lifestyle'}.
+For each trend return: a specific platform-ready title, a scroll-stopping hook, a content angle, a format, a momentum score (0-100, how hot it is this week), a direction (rising/peaking/falling), a virality score (0-100 viral potential), a one-line play explaining why it is blowing up, and 3-5 niche hashtags. Prioritise specific, timely, verifiable trends over evergreen advice. No em dashes.`,
+      TREND_SCHEMA,
+    ).then((raw) => {
+      const list = parseArray<Partial<TrendItem>>(raw, 'trends');
+      if (!list.length) throw new Error('bad trend schema');
+      return list.slice(0, 10).map((t, i) => ({
+        id: typeof t.id === 'string' ? t.id : `ai-${i}`,
+        niche: typeof t.niche === 'string' ? t.niche : niches[0] ?? 'lifestyle',
+        region,
+        title: String(t.title ?? 'Untitled trend'),
+        hook: String(t.hook ?? ''),
+        angle: String(t.angle ?? ''),
+        format: String(t.format ?? ''),
+        momentum: Number(t.momentum) || 50,
+        direction: t.direction === 'peaking' || t.direction === 'falling' ? t.direction : 'rising',
+        virality: Number(t.virality) || 50,
+        play: String(t.play ?? ''),
+        hashtags: Array.isArray(t.hashtags) ? t.hashtags.map(String).slice(0, 5) : [],
+      }));
+    }),
+    fallback,
+  );
+}
+
+const EFFORT_COST: Record<string, number> = { quick: 1, medium: 2, big: 3 };
+
+export interface NextPick {
+  idea: ContentIdea;
+  score: number;
+  reasons: string[];
+  matchedTrend?: TrendItem;
+}
+
+const SHORT_FORM = ['tiktok', 'reels', 'instagram', 'shorts', 'youtube'];
+
+/** Heuristic viral-potential score for one idea — ICE + format + freshness + trend fit. */
+export function viralScoreOf(idea: ContentIdea, trends: TrendItem[], region = 'world'): NextPick {
+  const reasons: string[] = [];
+  let score = 0;
+
+  const ice = idea.impact != null && idea.confidence != null
+    ? (idea.impact * idea.confidence) / (EFFORT_COST[idea.effort_level ?? 'quick'] ?? 1)
+    : 0;
+  score += Math.min(40, ice * 3.2);
+  if (ice > 0) reasons.push(`Strong idea score — ICE ${Number(ice.toFixed(1))} puts it at the top of the bank.`);
+
+  if (SHORT_FORM.includes(idea.platform ?? '')) { score += 8; reasons.push('Short-form format is the highest-distribution channel right now.'); }
+
+  if (idea.status === 'idea') score += 5;
+  if (idea.status === 'scripted') { score += 3; reasons.push('Already scripted — filming is one step away.'); }
+
+  const fresh = Date.now() - new Date(`${idea.updated_at ?? idea.created_at}`).getTime();
+  if (fresh < 14 * 86400000) { score += 8; reasons.push('Fresh idea — momentum from recent thinking is still yours.'); }
+  else if (fresh < 45 * 86400000) score += 4;
+
+  if (idea.hook_idea) { score += 5; reasons.push('Has a hook ready — drop it into the camera and go.'); }
+  if (idea.content_angle) score += 3;
+
+  const titleHit = trends.find((t) => tokenOverlap(t.title, idea.title));
+  if (titleHit) {
+    score += 15;
+    reasons.push(`Rides "${titleHit.title}" — trending ${titleHit.direction === 'rising' ? 'and rising' : 'right now'} in ${regionLabelOf(titleHit.region)}.`);
+    return { idea, score: Math.round(Math.min(100, score)), reasons, matchedTrend: titleHit };
+  }
+  if (idea.pillar && trends.some((t) => t.niche === idea.pillar)) {
+    score += 8;
+    reasons.push(`Your ${idea.pillar} ideas sit in a hot niche in ${regionLabelOf(region)} — posting now taps live demand.`);
+  }
+
+  return { idea, score: Math.round(Math.min(100, score)), reasons };
+}
+
+function tokenOverlap(a: string, b: string): boolean {
+  const ta = new Set(a.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 3));
+  return b.toLowerCase().split(/[^a-z0-9]+/).some((w) => w.length > 3 && ta.has(w));
+}
+
+/** Ranks the creator's own open ideas by predicted viral potential — "what to work on next". */
+export function rankIdeasForNext(ideas: ContentIdea[], opts: { region?: string; niches?: string[] } = {}): NextPick[] {
+  const trends = trendingNow(opts.niches ?? [], opts.region ?? 'all');
+  return ideas
+    .filter((i) => i.status === 'idea' || i.status === 'scripted')
+    .map((i) => viralScoreOf(i, trends, opts.region ?? 'world'))
+    .sort((a, b) => b.score - a.score);
 }

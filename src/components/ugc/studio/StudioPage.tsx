@@ -6,8 +6,9 @@ import { ScriptWriter } from './ScriptWriter';
 import { ProductionBoard } from './ProductionBoard';
 import { HookLibrary } from './HookLibrary';
 import { Checklists } from './Checklists';
+import { TrendPulse } from './TrendPulse';
 
-type StudioTab = 'video' | 'ideas' | 'scripts' | 'board' | 'hooks' | 'checklists';
+type StudioTab = 'video' | 'ideas' | 'scripts' | 'board' | 'hooks' | 'checklists' | 'trends';
 
 interface Props { userId: string }
 
@@ -21,6 +22,7 @@ export function StudioPage({ userId }: Props): ReactElement {
       tabs={[
         { id: 'video', label: 'Video Assistant', icon: '🎬' },
         { id: 'ideas', label: 'Idea Bank', icon: '🌱' },
+        { id: 'trends', label: 'Trend Pulse', icon: '🔥' },
         { id: 'scripts', label: 'Script Writer', icon: '📝' },
         { id: 'board', label: 'Production Board', icon: '🗂️' },
         { id: 'hooks', label: 'Hook Library', icon: '🧲' },
@@ -28,6 +30,7 @@ export function StudioPage({ userId }: Props): ReactElement {
       ]} />
     {tab === 'video' && <VideoAssistant userId={userId}/>}
     {tab === 'ideas' && <IdeaBank userId={userId}/>}
+    {tab === 'trends' && <TrendPulse userId={userId}/>}
     {tab === 'scripts' && <ScriptWriter userId={userId}/>}
     {tab === 'board' && <ProductionBoard userId={userId}/>}
     {tab === 'hooks' && <HookLibrary userId={userId}/>}

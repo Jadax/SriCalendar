@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildDailyBrief, buildWeeklyPlan, draftFollowUp, draftPitch, generateCaptions, interpretAnalytics, brainstormIdeas, repurposeIdea, repurposeIdeaSmart, suggestRate,
+  rankIdeasForNext, trendingNow, trendingNowSmart,
   type BrainstormIdea, type TodayContext,
 } from './creatorBrain';
 import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
@@ -321,5 +322,62 @@ describe('creatorBrain · new brief nudges', () => {
     const nudge = buildDailyBrief(baseCtx({ ideas: [idea] })).find((n) => n.id === 'repurpose');
     expect(nudge).toBeDefined();
     expect(nudge!.priority).toBe('low');
+  });
+});
+
+describe('creatorBrain · trend pulse', () => {
+  const daysAgo = (n: number): string => new Date(Date.now() - n * 86400000).toISOString();
+
+  const idea = (p: Partial<ContentIdea> & { id: string }): ContentIdea => ({
+    user_id: 'u', created_at: '2026-01-01', updated_at: daysAgo(3), sync_pending: 0,
+    title: 'test', description: null, platform: 'tiktok', priority: 'medium', effort_level: 'quick', status: 'idea',
+    audience_promise: null, hook_idea: null, content_angle: null, inspiration_source: null,
+    pillar: null, repurpose_plan: null, impact: null, confidence: null, ...p,
+  });
+
+  it('returns region-filtered trends hottest-first', () => {
+    const india = trendingNow(['fitness', 'beauty'], 'india');
+    expect(india.length).toBeGreaterThan(0);
+    expect(india.every((t) => t.region === 'india')).toBe(true);
+    expect(india.every((t) => t.niche === 'fitness' || t.niche === 'beauty')).toBe(true);
+    const heats = india.map((t) => t.momentum * 0.7 + t.virality * 0.3 + (t.direction === 'rising' ? 6 : t.direction === 'peaking' ? 3 : 0));
+    expect(heats).toEqual([...heats].sort((a, b) => b - a));
+  });
+
+  it('returns the full catalog when no filter is applied', () => {
+    expect(trendingNow([], 'all').length).toBeGreaterThan(60);
+  });
+
+  it('AI scan falls back to the catalog without Gemini', async () => {
+    const africa = await trendingNowSmart(['food'], 'africa');
+    expect(africa.length).toBeGreaterThan(0);
+    expect(africa.every((t) => t.region === 'africa')).toBe(true);
+    for (const t of africa) {
+      expect(t.title.length).toBeGreaterThan(0);
+      expect(t.hook.length).toBeGreaterThan(0);
+      expect(t.momentum).toBeGreaterThan(0);
+      expect(t.momentum).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('ranks a fresh short-form idea above a stale long-form one', () => {
+    const fresh = idea({
+      id: 'fresh', title: 'Drugstore serum blind test', platform: 'tiktok', effort_level: 'quick', status: 'idea',
+      hook_idea: 'The cheap serum won', content_angle: 'listicle', pillar: 'beauty', impact: 4, confidence: 4,
+    });
+    const stale = idea({
+      id: 'stale', title: 'Old notebook tour', platform: 'x', effort_level: 'big', status: 'idea',
+      updated_at: daysAgo(90), impact: 1, confidence: 1,
+    });
+    const published = idea({ id: 'pub', title: 'Published reel', platform: 'tiktok', status: 'published', impact: 5, confidence: 5 });
+    const picks = rankIdeasForNext([stale, published, fresh], { region: 'india', niches: ['beauty'] });
+    expect(picks.map((p) => p.idea.id)).toEqual([fresh.id, stale.id]);
+    expect(picks[0]!.score).toBeGreaterThan(picks[1]!.score);
+    expect(picks[0]!.reasons.length).toBeGreaterThan(0);
+    expect(picks.find((p) => p.idea.id === published.id)).toBeUndefined();
+  });
+
+  it('returns an empty ranking when nothing is open', () => {
+    expect(rankIdeasForNext([], { region: 'world', niches: [] })).toEqual([]);
   });
 });
