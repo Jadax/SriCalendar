@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactElement } from 'react';
 import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { neon } from '../../lib/neonClient';
 import { useAuthStore } from '../../store/authStore';
@@ -16,13 +16,14 @@ import { MonthNavigator } from '../calendar/MonthNavigator';
 import { CalendarGrid } from '../calendar/CalendarGrid';
 import { WeekView } from '../calendar/WeekView';
 import { DailyPanel } from '../daily/DailyPanel';
-import { StudioPage } from '../ugc/studio/StudioPage';
-import { HomePage } from '../ugc/home/HomePage';
-import { BusinessPage } from '../ugc/business/BusinessPage';
-import { KnowledgePage } from '../ugc/knowledge/KnowledgePage';
 import { Confetti } from '../shared/Confetti';
 import { OnboardingWizard } from '../shared/OnboardingWizard';
-import { loadProfile, saveProfile, type OnboardingProfile } from '../../data/onboarding';
+import { isOnboardingProfile, loadProfile, saveProfile, type OnboardingProfile } from '../../data/onboarding';
+
+const HomePage = lazy(() => import('../ugc/home/HomePage').then(({ HomePage: Page }) => ({ default: Page })));
+const StudioPage = lazy(() => import('../ugc/studio/StudioPage').then(({ StudioPage: Page }) => ({ default: Page })));
+const BusinessPage = lazy(() => import('../ugc/business/BusinessPage').then(({ BusinessPage: Page }) => ({ default: Page })));
+const KnowledgePage = lazy(() => import('../ugc/knowledge/KnowledgePage').then(({ KnowledgePage: Page }) => ({ default: Page })));
 
 /** Hosts the responsive calendar workspace, profile welcome, and daily visit streak. */
 export function AppShell({ preview = false }: { preview?: boolean }): ReactElement {
@@ -35,22 +36,26 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
   const [firstName, setFirstName] = useState<string | null>(preview ? 'Creator' : null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(preview);
-  const [profile, setProfile] = useState<OnboardingProfile | null>(loadProfile());
+  const [profile, setProfile] = useState<OnboardingProfile | null>(null);
+  const [profileSettings, setProfileSettings] = useState<Record<string, unknown>>({});
   useSync(preview ? undefined : userId);
   useUgcSync(preview ? undefined : userId);
 
   useEffect(() => {
     if (preview) { setStreak(6); setFirstName('Creator'); setProfileLoaded(true); return; }
     if (!user) return;
-    setFirstName(null); setAvatarUrl(null); setProfileLoaded(false);
+    setFirstName(null); setAvatarUrl(null); setProfile(loadProfile(user.id)); setProfileSettings({}); setProfileLoaded(false);
     const today = toDateKey(new Date());
-    void neon.from('profiles').select('username,avatar_url,streak_count,last_visit').eq('id', user.id).maybeSingle().then(async ({ data }) => {
+    void neon.from('profiles').select('username,avatar_url,settings,streak_count,last_visit').eq('id', user.id).maybeSingle().then(async ({ data }) => {
       const previous = data?.last_visit as string | null | undefined;
       const oldCount = Number(data?.streak_count ?? 0);
       const gap = previous ? differenceInCalendarDays(new Date(), parseISO(previous)) : -1;
       const streak = gap === 0 ? Math.max(oldCount, 1) : gap === 1 ? oldCount + 1 : 1;
       setFirstName(data?.username?.trim() || null);
       setAvatarUrl(data?.avatar_url ?? null);
+      const settings = data?.settings && typeof data.settings === 'object' ? data.settings as Record<string, unknown> : {};
+      setProfileSettings(settings);
+      if (isOnboardingProfile(settings.onboarding)) setProfile(settings.onboarding);
       setProfileLoaded(true);
       setStreak(streak);
       if (gap !== 0) await neon.from('profiles').upsert({ id: user.id, streak_count: streak, last_visit: today }, { onConflict: 'id' });
@@ -80,6 +85,16 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
     setAvatarUrl(photo);
   };
 
+  /** Saves completed setup locally and inside the private profile settings for every device. */
+  const saveOnboarding = async (next: OnboardingProfile): Promise<void> => {
+    if (!user) return;
+    saveProfile(user.id, next);
+    const settings = { ...profileSettings, onboarding: next };
+    const { error } = await neon.from('profiles').upsert({ id: user.id, username: next.name, settings }, { onConflict: 'id' });
+    if (error) throw new Error(error.message);
+    setProfileSettings(settings);
+  };
+
   if (!userId) return <div className="full-loader">Loading…</div>;
-  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'home' || appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace">{appTab === 'home' && <HomePage userId={userId}/>}{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/></main>}{!preview && profileLoaded && !profile?.onboarded && <OnboardingWizard userId={userId} initialName={firstName ?? ''} onComplete={(next) => { saveProfile(next); setProfile(next); setFirstName(next.name); void saveFirstName(next.name).catch(() => undefined); }} />}</div>;
+  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'home' || appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace"><Suspense fallback={<div className="ugc-page-loading">Loading your creator workspace ✨</div>}>{appTab === 'home' && <HomePage userId={userId}/>}{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</Suspense></main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/></main>}{!preview && profileLoaded && !profile?.onboarded && <OnboardingWizard userId={userId} initialName={firstName ?? ''} onComplete={(next) => { setProfile(next); setFirstName(next.name); void saveOnboarding(next).catch(() => undefined); }} />}</div>;
 }

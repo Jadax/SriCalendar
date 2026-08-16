@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildDailyBrief, buildWeeklyPlan, draftPitch, interpretAnalytics,
-  type TodayContext,
+  buildDailyBrief, buildWeeklyPlan, draftFollowUp, draftPitch, generateCaptions, interpretAnalytics, brainstormIdeas, repurposeIdea, suggestRate,
+  type BrainstormIdea, type TodayContext,
 } from './creatorBrain';
 import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
 
@@ -159,5 +159,150 @@ describe('creatorBrain · board due surfacing', () => {
     }];
     const nudge = buildDailyBrief(baseCtx({ board })).find((n) => n.id === 'board-due');
     expect(nudge).toBeUndefined();
+  });
+});
+
+describe('creatorBrain · rate intelligence', () => {
+  const input = { tier: 'beginner', deliverable: 'short', usage: 'organic', bundle: 'single', followers: 5000 };
+
+  it('returns an ordered band with a mid', () => {
+    const r = suggestRate(input);
+    expect(r.band.low).toBeLessThan(r.mid);
+    expect(r.mid).toBeLessThan(r.band.high);
+    expect(r.perDeliverable).toContain('per deliverable');
+  });
+
+  it('scales up with audience size', () => {
+    const small = suggestRate({ ...input, followers: 800 });
+    const big = suggestRate({ ...input, followers: 120000 });
+    expect(big.band.low).toBeGreaterThan(small.band.low);
+    expect(big.band.high).toBeGreaterThan(small.band.high);
+  });
+
+  it('charges more for ad rights and long-form, discounts bundles', () => {
+    const base = suggestRate(input).band.low;
+    expect(suggestRate({ ...input, usage: 'perpetual' }).band.low).toBeGreaterThan(base);
+    expect(suggestRate({ ...input, deliverable: 'long' }).band.low).toBeGreaterThan(base);
+    expect(suggestRate({ ...input, bundle: 'pack' }).band.low).toBeLessThan(base);
+  });
+
+  it('lists the tier as a pricing driver', () => {
+    expect(suggestRate(input).drivers.join(' ')).toContain('Just starting');
+  });
+});
+
+describe('creatorBrain · brainstorm', () => {
+  it('returns the requested number of concrete ideas', () => {
+    const ideas = brainstormIdeas({ topic: 'morning routines', niche: 'lifestyle', pillars: [], count: 5, avoid: [] });
+    expect(ideas).toHaveLength(5);
+    for (const idea of ideas) {
+      expect(idea.title.length).toBeGreaterThan(0);
+      expect(idea.hook.length).toBeGreaterThan(0);
+      expect(idea.promise.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('returns nothing instead of hanging when every title is avoided', () => {
+    const first = brainstormIdeas({ topic: 'skincare', niche: 'beauty', pillars: [], count: 8, avoid: [] });
+    const avoided = brainstormIdeas({ topic: 'skincare', niche: 'beauty', pillars: [], count: 8, avoid: first.map((f) => f.title) });
+    expect(avoided).toHaveLength(0);
+  });
+
+  it('is deterministic for the same topic', () => {
+    const a = brainstormIdeas({ topic: 'budget travel', niche: 'travel', pillars: [], count: 3, avoid: [] });
+    const b = brainstormIdeas({ topic: 'budget travel', niche: 'travel', pillars: [], count: 3, avoid: [] });
+    expect(a.map((i) => i.title)).toEqual(b.map((i) => i.title));
+  });
+});
+
+describe('creatorBrain · captions', () => {
+  const input = { title: 'The 30-day glow-up', hook: 'I fixed my skin in a month', promise: 'One routine, zero products', niche: 'beauty', platform: 'tiktok' };
+
+  it('returns 3 caption variants plus hashtags, first comment and CTA', () => {
+    const c = generateCaptions(input);
+    expect(c.captions).toHaveLength(3);
+    expect(c.hashtags.length).toBeGreaterThanOrEqual(3);
+    expect(c.firstComment.length).toBeGreaterThan(0);
+    expect(c.cta.length).toBeGreaterThan(0);
+  });
+
+  it('uses niche hashtags for beauty content', () => {
+    expect(generateCaptions(input).hashtags.join(' ')).toContain('skincare');
+  });
+
+  it('is deterministic', () => {
+    expect(generateCaptions(input)).toEqual(generateCaptions(input));
+  });
+});
+
+describe('creatorBrain · repurposing', () => {
+  it('stretches one idea into 4 cross-platform formats', () => {
+    const idea: ContentIdea = {
+      id: 'i', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
+      title: '5 makeup mistakes', description: null, platform: 'tiktok', priority: 'high', effort_level: 'medium',
+      audience_promise: 'Fix your base routine', hook_idea: 'Nobody told you about mistake #3', content_angle: 'listicle',
+      inspiration_source: null, pillar: 'beauty', repurpose_plan: null, status: 'published', impact: 4, confidence: 4,
+    };
+    const variants = repurposeIdea(idea);
+    expect(variants).toHaveLength(4);
+    expect(new Set(variants.map((v) => v.angle)).size).toBe(4);
+    for (const v of variants) {
+      expect(v.platform.length).toBeGreaterThan(0);
+      expect(v.repurpose_plan.length).toBeGreaterThan(0);
+      expect(v.hook).toContain('mistake #3');
+    }
+  });
+});
+
+describe('creatorBrain · follow-up outreach', () => {
+  it('writes a warm nudge naming the brand and deliverables', () => {
+    const deal: BrandDeal = {
+      id: 'd', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
+      brand_name: 'GlowLab', contact_name: null, contact_email: null, deal_value: 850, estimated_probability: 60,
+      currency: 'USD', deliverables: '3 UGC reels', usage_rights: null, rights_period: null, deadline: null,
+      pitch_date: '2026-07-20', follow_up_date: null, payment_status: 'pending', status: 'contacted', platform: 'tiktok', notes: null,
+    };
+    const email = draftFollowUp(mediaKit({ display_name: 'Ari' }), deal);
+    expect(email).toContain('GlowLab');
+    expect(email).toContain('3 UGC reels');
+    expect(email).toContain('Ari');
+    expect(email).not.toContain('—');
+  });
+});
+
+describe('creatorBrain · new brief nudges', () => {
+  it('prompts a creator with no rate card to set rates', () => {
+    const nudge = buildDailyBrief(baseCtx({ mediaKit: mediaKit({ rates: [] }) })).find((n) => n.id === 'rates');
+    expect(nudge).toBeDefined();
+    expect(nudge!.action?.to).toBe('/app/business');
+  });
+
+  it('skips the rates nudge once a price exists', () => {
+    const ctx = baseCtx({ mediaKit: mediaKit({ rates: [{ id: 'r', name: 'Reel', price: 400, includes: '', negotiable: true }] }) });
+    expect(buildDailyBrief(ctx).find((n) => n.id === 'rates')).toBeUndefined();
+  });
+
+  it('flags deals missing a price', () => {
+    const deal: BrandDeal = {
+      id: 'd', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
+      brand_name: 'GlowLab', contact_name: null, contact_email: null, deal_value: 0, estimated_probability: 60,
+      currency: 'USD', deliverables: '1 reel', usage_rights: null, rights_period: null, deadline: null,
+      pitch_date: null, follow_up_date: null, payment_status: 'pending', status: 'cold', platform: 'tiktok', notes: null,
+    };
+    const nudge = buildDailyBrief(baseCtx({ deals: [deal] })).find((n) => n.id === 'price-it');
+    expect(nudge).toBeDefined();
+    expect(nudge!.body).toContain('GlowLab');
+  });
+
+  it('suggests repurposing published ideas', () => {
+    const idea: ContentIdea = {
+      id: 'i', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
+      title: 'Wins', description: null, platform: 'tiktok', priority: 'high', effort_level: 'quick',
+      audience_promise: null, hook_idea: null, content_angle: null, inspiration_source: null,
+      pillar: null, repurpose_plan: null, status: 'published', impact: 3, confidence: 3,
+    };
+    const nudge = buildDailyBrief(baseCtx({ ideas: [idea] })).find((n) => n.id === 'repurpose');
+    expect(nudge).toBeDefined();
+    expect(nudge!.priority).toBe('low');
   });
 });

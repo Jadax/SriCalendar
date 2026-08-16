@@ -20,10 +20,16 @@ CREATE TABLE IF NOT EXISTS public.content_ideas (
   inspiration_source TEXT,
   pillar TEXT,
   repurpose_plan TEXT,
+  impact INTEGER,
+  confidence INTEGER,
   status TEXT NOT NULL DEFAULT 'idea',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Safe upgrade for projects that ran an earlier version of this schema.
+ALTER TABLE public.content_ideas ADD COLUMN IF NOT EXISTS impact INTEGER;
+ALTER TABLE public.content_ideas ADD COLUMN IF NOT EXISTS confidence INTEGER;
 
 CREATE TABLE IF NOT EXISTS public.scripts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

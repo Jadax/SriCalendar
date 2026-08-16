@@ -25,7 +25,8 @@
 3. Enable **Grant public schema access to authenticated users**. This creates the `authenticated` role permissions expected by the schema.
 4. Copy the public Data API endpoint. It ends with `/neondb/rest/v1` and becomes `VITE_NEON_DATA_API_URL`.
 5. Open Neon’s SQL Editor, select the production branch/database, paste all of [`neon/schema.sql`](neon/schema.sql), and run it once.
-6. Verify `profiles` and `daily_data` exist and that RLS is enabled on both.
+6. Paste all of [`neon/ugc_schema.sql`](neon/ugc_schema.sql) into the same SQL Editor and run it once. This creates the Creator HQ, Studio, Business, and Knowledge tables and safely upgrades Idea Bank scoring columns.
+7. Verify `profiles`, `daily_data`, `content_ideas`, and `invoices` exist and that RLS is enabled on every public app table.
 
 Neon’s Data API validates the Neon Auth JWT and exposes its subject through `auth.user_id()`. Every SriCalendar policy compares that value with the row owner.
 
@@ -65,5 +66,6 @@ Redeploy the latest production deployment. Vite reads these values at build time
 - An offline edit remains visible, shows Offline Mode, and synchronizes after reconnection.
 - A historical date retains the exact tasks, completion states, notes, stickers, and posts.
 - Data Vault export and restore work before any schema migration.
+- Creator HQ can add an idea and it remains after a refresh; the new data is visible on another signed-in device after syncing.
 
 Keep the JSON Data Vault backup even though Neon Free includes a short restore window. Portable backups protect against accidental project or account changes and make future migrations straightforward.

@@ -6,12 +6,13 @@ import { Invoices } from './Invoices';
 import { MediaKit } from './MediaKit';
 import { Collaborations } from './Collaborations';
 import { Income } from './Income';
+import { RateCalculator } from './RateCalculator';
 
-type BusinessTab = 'dashboard' | 'income' | 'deals' | 'invoices' | 'media' | 'collabs';
+type BusinessTab = 'dashboard' | 'income' | 'deals' | 'rates' | 'invoices' | 'media' | 'collabs';
 
 interface Props { userId: string }
 
-/** PILLAR 3 — Business: income, deals, invoices, media kit and partner management. */
+/** PILLAR 3 — Business: income, deals, pricing, invoices, media kit and partner management. */
 export function BusinessPage({ userId }: Props): ReactElement {
   const [tab, setTab] = useState<BusinessTab>('dashboard');
   return <div className="ugc-page">
@@ -22,6 +23,7 @@ export function BusinessPage({ userId }: Props): ReactElement {
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'income', label: 'Income', icon: '💗' },
         { id: 'deals', label: 'Brand Deals', icon: '🤝' },
+        { id: 'rates', label: 'Rates', icon: '🧮' },
         { id: 'invoices', label: 'Invoices', icon: '🧾' },
         { id: 'media', label: 'Media Kit', icon: '📇' },
         { id: 'collabs', label: 'Collabs', icon: '✨' },
@@ -29,6 +31,7 @@ export function BusinessPage({ userId }: Props): ReactElement {
     {tab === 'dashboard' && <BusinessDashboard userId={userId}/>}
     {tab === 'income' && <Income userId={userId}/>}
     {tab === 'deals' && <BrandDeals userId={userId}/>}
+    {tab === 'rates' && <RateCalculator userId={userId}/>}
     {tab === 'invoices' && <Invoices userId={userId}/>}
     {tab === 'media' && <MediaKit userId={userId}/>}
     {tab === 'collabs' && <Collaborations userId={userId}/>}

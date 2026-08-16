@@ -9,7 +9,7 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 📅 Month and creator-focused week views with permanent historical dates
 - ✅ Sortable daily tasks, animated completion, swipe deletion, and final-task confetti
 - 📝 Auto-saving notes and a platform content planner
-- 🌸 24 delightful stickers and automatic seasonal decoration
+- 🌸 36 creator-life mood stickers, profile photo upload, and automatic seasonal decoration
 - ⚡ Instant IndexedDB reads, optimistic offline writes, and background cloud reconciliation
 - 🔐 Neon Auth email/password and Google OAuth with owner-only Row Level Security
 - 📱 Mobile bottom sheet and roomy desktop side panel
@@ -17,6 +17,7 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 🛡️ Private JSON backup and restore through the in-app Data Vault
 - 🔥 Consecutive-visit streaks, sync state, dark theme, and reduced-motion support
 - 🎬 Video Assistant: drop in a phone clip and a free Gemini call drafts the title, caption, hook, hashtags and tags — clips stay on-device, only sent to Google transiently for analysis
+- 🏠 Creator HQ, Studio, Business, and Knowledge workspaces for ideas, scripts, shoots, invoices, deals, goals, and analytics
 
 ## Tech stack
 
@@ -45,7 +46,7 @@ For this completed repository, use only `npm install` followed by `npm run dev`;
 
 1. Copy `.env.example` to `.env.local`.
 2. Enable Neon Auth and the Data API, then add `VITE_NEON_AUTH_URL` and `VITE_NEON_DATA_API_URL`.
-3. Run [`neon/schema.sql`](neon/schema.sql) in the Neon SQL Editor after enabling the Data API authenticated-role grants.
+3. Run [`neon/schema.sql`](neon/schema.sql), then [`neon/ugc_schema.sql`](neon/ugc_schema.sql), in the Neon SQL Editor after enabling the Data API authenticated-role grants.
 4. In Neon Auth, enable Email and Google and allow `http://localhost:5173` plus `https://sri-calendar.vercel.app`.
 5. Start the app with `npm run dev`.
 

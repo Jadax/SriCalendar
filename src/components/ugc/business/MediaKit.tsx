@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Download, ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { alphaBy } from '../../../data/options';
@@ -44,11 +44,26 @@ export function MediaKit({ userId }: Props): ReactElement {
     try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
   };
 
+  const downloadPdf = async (): Promise<void> => {
+    if (!profile) return;
+    try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { MediaKitPdf } = await import('./MediaKitPdf');
+      const blob = await pdf(MediaKitPdf({ profile, stats })).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = `${(profile.display_name || 'media-kit').replace(/\s+/g, '-').toLowerCase()}-media-kit.pdf`;
+      document.body.appendChild(link); link.click(); link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch { /* keep the on-screen preview as fallback */ }
+  };
+
   return <>
     <PageHead eyebrow="Pillar 3 · Business" title="Media kit 📇" subtitle="The one-pager brands scan. Stats refresh from your analytics automatically."
       actions={profile ? [
+        <button key="pdf" className="btn primary" onClick={() => void downloadPdf()}><Download size={14}/> One-pager PDF</button>,
         <button key="share" className="btn soft" onClick={() => void shareCopy()}><ExternalLink size={14}/> Copy share text</button>,
-        <button key="edit" className="btn primary" onClick={() => setEditing({ ...profile })}><Pencil size={15}/> Edit kit</button>,
+        <button key="edit" className="btn soft" onClick={() => setEditing({ ...profile })}><Pencil size={15}/> Edit kit</button>,
       ] : [<button key="create" className="btn primary" onClick={() => setEditing(emptyProfile())}><Plus size={15}/> Create media kit</button>]} />
 
     {profile ? <section className="section-block"><PreviewProfile profile={profile} stats={stats} /></section> :

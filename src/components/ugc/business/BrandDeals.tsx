@@ -1,8 +1,8 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Mail, Plus, Table2, Trash2, Wallet } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Mail, Plus, Reply, Table2, Trash2, Wallet } from 'lucide-react';
 import { addMonths, eachDayOfInterval, endOfMonth, format, isSameMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { useCollection } from '../../../hooks/useCollection';
-import { draftPitch, draftPitchSmart } from '../../../lib/creatorBrain';
+import { draftFollowUp, draftFollowUpSmart, draftPitch, draftPitchSmart } from '../../../lib/creatorBrain';
 import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap, alpha } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { alphaBy } from '../../../data/options';
@@ -29,6 +29,10 @@ export function BrandDeals({ userId }: Props): ReactElement {
   const [pitchText, setPitchText] = useState('');
   const [pitchBusy, setPitchBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [followTarget, setFollowTarget] = useState<BrandDeal | null>(null);
+  const [followText, setFollowText] = useState('');
+  const [followBusy, setFollowBusy] = useState(false);
+  const [followCopied, setFollowCopied] = useState(false);
 
   /** Generates a warm, on-brand outreach email for the deal using the media kit. */
   const openPitch = async (deal: BrandDeal): Promise<void> => {
@@ -38,6 +42,15 @@ export function BrandDeals({ userId }: Props): ReactElement {
   };
 
   const copyPitch = async (): Promise<void> => { try { await navigator.clipboard.writeText(pitchText); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* clipboard unavailable */ } };
+
+  /** Drafts a gentle nudge that keeps a pitched-but-quiet deal warm. */
+  const openFollow = async (deal: BrandDeal): Promise<void> => {
+    setFollowTarget(deal); setFollowText(''); setFollowCopied(false);
+    setFollowBusy(true);
+    try { setFollowText(await draftFollowUpSmart(media.items[0] ?? null, deal)); } catch { setFollowText(draftFollowUp(media.items[0] ?? null, deal)); } finally { setFollowBusy(false); }
+  };
+
+  const copyFollow = async (): Promise<void> => { try { await navigator.clipboard.writeText(followText); setFollowCopied(true); setTimeout(() => setFollowCopied(false), 1600); } catch { /* clipboard unavailable */ } };
 
   const visible = useMemo(() => items
     .filter((d) => (statusFilter === 'all' ? true : d.status === statusFilter))
@@ -81,7 +94,7 @@ export function BrandDeals({ userId }: Props): ReactElement {
               <td><Pill color={STATUS_COLOR[deal.status] ?? 'gray'}>{deal.status}</Pill></td>
               <td><Pill color={deal.payment_status === 'paid' ? 'mint' : deal.payment_status === 'partial' ? 'yellow' : 'peach'}>{deal.payment_status}</Pill></td>
               <td style={{ whiteSpace: 'nowrap' }}>{deal.deadline ?? '·'}{deal.follow_up_date ? <div className="muted" style={{ fontSize: 10.5 }}>follow-up {deal.follow_up_date}</div> : null}</td>
-              <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" title="Draft outreach email" aria-label="Draft pitch" onClick={() => void openPitch(deal)}><Mail size={14}/></button><button className="icon-btn" onClick={() => { setEditorId(deal.id); setEditing({ ...deal }); }} aria-label="Edit deal">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(deal.id))} aria-label="Delete deal"><Trash2 size={14}/></button></div></td>
+              <td><div className="row" style={{ gap: 6 }}><button className="icon-btn" title="Draft outreach email" aria-label="Draft pitch" onClick={() => void openPitch(deal)}><Mail size={14}/></button>{deal.pitch_date && deal.status !== 'declined' && <button className="icon-btn" title="Draft follow-up" aria-label="Draft follow-up" onClick={() => void openFollow(deal)}><Reply size={14}/></button>}<button className="icon-btn" onClick={() => { setEditorId(deal.id); setEditing({ ...deal }); }} aria-label="Edit deal">✏️</button><button className="icon-btn" onClick={() => confirmDelete(() => void remove(deal.id))} aria-label="Delete deal"><Trash2 size={14}/></button></div></td>
             </tr>
           ))}</tbody></table></div>}
       </section>
@@ -148,6 +161,12 @@ export function BrandDeals({ userId }: Props): ReactElement {
       footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setPitchTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyPitch()} disabled={!pitchText}>{copied ? 'Copied ✓' : 'Copy email'}</button></div>}>
       {pitchBusy ? <div className="empty-state"><div className="empty-emoji">✍️</div><p>Drafting your pitch…</p></div> :
         <textarea className="textarea" style={{ minHeight: 260, whiteSpace: 'pre-wrap', lineHeight: 1.7 }} value={pitchText} onChange={(e) => setPitchText(e.target.value)} aria-label="Pitch email draft"/>}
+    </Modal>}
+  {followTarget && <Modal title={`Follow-up for ${followTarget.brand_name}`} onClose={() => setFollowTarget(null)} wide
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setFollowTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyFollow()} disabled={!followText}>{followCopied ? 'Copied ✓' : 'Copy email'}</button></div>}>
+      {followBusy ? <div className="empty-state"><div className="empty-emoji">🔁</div><p>Drafting a gentle nudge…</p></div> :
+        <textarea className="textarea" style={{ minHeight: 220, whiteSpace: 'pre-wrap', lineHeight: 1.7 }} value={followText} onChange={(e) => setFollowText(e.target.value)} aria-label="Follow-up email draft"/>}
+      <p className="hint" style={{ fontSize: 11.5, marginTop: 8 }}>Pitched {followTarget.pitch_date ?? 'recently'} — a warm nudge ~3–5 days later keeps deals alive without feeling pushy. Set a follow-up date in the deal so this never slips.</p>
     </Modal>}
   </>;
 }

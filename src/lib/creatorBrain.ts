@@ -1,6 +1,6 @@
 import { generateText, isGeminiConfigured, type ResponseSchema } from './geminiClient';
-import { HOOK_TEMPLATES } from '../data/hookTemplates';
-import { BEST_TIMES, HOOK_SCIENCE } from '../data/creatorIntelligence';
+import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_TEMPLATES } from '../data/hookTemplates';
+import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, USAGE_ADDONS } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, Goal, HookItem, Invoice, MediaKitProfile,
@@ -101,24 +101,27 @@ function nicheOf(ctx: TodayContext): string {
   return ctx.mediaKit?.niche ?? ctx.hooks.find((h) => h.niche)?.niche ?? ctx.pillars[0]?.name ?? '';
 }
 
+/** Fills {token} placeholders in a hook template with sensible defaults (shared pool + topic/niche). */
+const BRAIN_FILLS: Record<string, string> = {
+  n: '30', number: '30', days: '30', time: 'a weekend', amount: '$100', step: 'one tiny step',
+  metric: 'watch time', thing: 'technique', format: 'short video', result: 'the result', tool: 'free tool',
+  price: '$50/mo', guide: 'guide', minutes: '3', outcome: 'growth', tiny: 'small',
+  resource: 'a phone camera', unexpected: 'something clicked', event: 'small win', word: 'SOUND OFF',
+  platform: 'the algorithm', week: 'this week', month: 'this month', trend: 'that trend',
+  hours: '24', seconds: '3', year: 'year', deliverable: 'editorial', workflow: 'workflow', process: 'process',
+  framework: 'framework', expert: 'pro', role: 'creator', challenge: 'challenge', method: 'method',
+  total: '30', action: 'start', trick: 'trick', secret: 'secret', sneaky: 'small', detail: 'detail',
+  setting: 'mode', feature: 'feature', warning: 'warning', creator: 'creator', normal: 'everyday',
+  example: 'video', session: 'shoot', score: 'score', feed: 'feeds', tip: 'tip', rule: 'rule',
+  project: 'project', frequency: 'every week', secrets: 'secrets', steps: '3', smallest: 'smallest',
+  biggest: 'biggest', risk: 'a risk', start: 'the start', achievement: 'the goal', clip: 'clip',
+  lonely: 'lonely', emotion: 'that feeling', routine: 'routine', objection: 'excuses', solution: 'solution',
+};
 function fillTemplate(text: string, topic: string, niche: string): string {
   return text
     .replace(/\{topic\}/g, topic)
     .replace(/\{niche\}/g, niche || topic)
-    .replace(/\{n\}/g, '30')
-    .replace(/\{number\}/g, '3')
-    .replace(/\{days\}/g, '30')
-    .replace(/\{seconds\}/g, '3')
-    .replace(/\{minutes\}/g, '3')
-    .replace(/\{steps\}/g, '3')
-    .replace(/\{step\}/g, 'one tiny step')
-    .replace(/\{tool\}/g, 'free tool')
-    .replace(/\{time\}/g, 'a weekend')
-    .replace(/\{amount\}/g, '$100')
-    .replace(/\{price\}/g, '$50/mo')
-    .replace(/\{month\}/g, 'this month')
-    .replace(/\{week\}/g, 'this week')
-    .replace(/\{word\}/g, 'SOUND OFF')
+    .replace(/\{([a-zA-Z]+)\}/g, (_all, key: string) => BRAIN_FILLS[key] ?? key)
     .replace(/\{[a-zA-Z _-]+\}/g, 'that thing');
 }
 
@@ -273,6 +276,36 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
       title: 'Start capturing ideas',
       body: 'The Idea Bank is empty. Jot down 3 sparks today — even rough ones count.',
       action: { label: 'Spark an idea', to: '/app/studio' },
+    });
+  }
+
+  const hasRates = (ctx.mediaKit?.rates ?? []).some((r) => r.name && r.price > 0);
+  if (!hasRates) {
+    nudges.push({
+      id: 'rates', emoji: '🏷️', priority: 'medium',
+      title: 'Your rate card is empty',
+      body: 'Brands ask for rates first. Set a confident baseline with the pricing tool — you can negotiate down, never up.',
+      action: { label: 'Set your rates', to: '/app/business' },
+    });
+  }
+
+  const unpriced = ctx.deals.filter((d) => d.status !== 'declined' && (d.deal_value == null || d.deal_value <= 0));
+  if (unpriced.length > 0) {
+    nudges.push({
+      id: 'price-it', emoji: '💵', priority: 'medium',
+      title: `${unpriced.length} deal${unpriced.length === 1 ? '' : 's'} need${unpriced.length === 1 ? 's' : ''} a price`,
+      body: `"${unpriced[0]?.brand_name ?? 'A deal'}" has no value yet. Give every pipeline deal a number so the money math works.`,
+      action: { label: 'Price your deals', to: '/app/business' },
+    });
+  }
+
+  const published = ctx.ideas.filter((i) => i.status === 'published');
+  if (published.length > 0) {
+    nudges.push({
+      id: 'repurpose', emoji: '↻', priority: 'low',
+      title: `${published.length} published idea${published.length === 1 ? '' : 's'} ripe for repurposing`,
+      body: 'One strong post can become a thread, a carousel and a clip. Stretch your best work instead of starting cold.',
+      action: { label: 'Repurpose', to: '/app/studio' },
     });
   }
 
@@ -551,6 +584,298 @@ export async function draftPitchSmart(mediaKit: MediaKitProfile | null, deal: Br
 Creator: ${mediaKit?.display_name ?? 'unknown'} · niche: ${mediaKit?.niche ?? 'general'} · availability: ${mediaKit?.availability ?? 'open to work'}
 Rate card: ${mediaKit?.rates?.map((r) => `${r.name} at ${r.price}`).join('; ') ?? 'none'}
 Rules: real human voice, no corporate words, no em dashes, under 180 words, end with a clear call to action.`,
+      { type: 'OBJECT', properties: { email: { type: 'STRING' } }, required: ['email'] },
+    ).then((raw) => {
+      const parsed = JSON.parse(raw) as { email?: string };
+      return parsed.email ?? fallback();
+    }),
+    fallback,
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * 5. Rate intelligence — "what should I charge" (Collabstr-style pricing help)
+ * ------------------------------------------------------------------------- */
+
+export interface RateInput {
+  /** Experience tier id from RATE_TIERS (creatorIntelligence). */
+  tier: string;
+  /** Deliverable key: short | reel | photo | long | bundle. */
+  deliverable: string;
+  /** Usage-rights id from USAGE_ADDONS. */
+  usage: string;
+  /** Bundle id from PACKAGE_TIERS. */
+  bundle: string;
+  followers: number;
+  niche?: string;
+}
+
+export interface RateSuggestion {
+  band: { low: number; high: number };
+  mid: number;
+  perDeliverable: string;
+  drivers: string[];
+  addons: Array<{ label: string; note: string; pct: number }>;
+}
+
+/** Computes a defensible USD rate band from tier × followers × deliverable × usage × bundle. */
+export function suggestRate(input: RateInput): RateSuggestion {
+  const tier = RATE_TIERS.find((t) => t.id === input.tier) ?? RATE_TIERS[0]!;
+  const usage = USAGE_ADDONS.find((u) => u.id === input.usage) ?? USAGE_ADDONS[0]!;
+  const pack = PACKAGE_TIERS.find((p) => p.id === input.bundle) ?? PACKAGE_TIERS[0]!;
+  const band = FOLLOWERS_BANDS.find((b) => input.followers >= b.min && input.followers <= b.max) ?? FOLLOWERS_BANDS[0]!;
+  const deliverable = DELIVERABLE_LABELS[input.deliverable] ?? DELIVERABLE_LABELS.short!;
+  const multiplier = band.factor * deliverable.factor * (1 + usage.pct) * (1 - pack.discount);
+  const low = Math.round(tier.min * multiplier);
+  const high = Math.round(tier.max * multiplier);
+  const mid = Math.round((low + high) / 2);
+  const addons = USAGE_ADDONS.map((u) => ({ label: u.label, note: u.note, pct: u.pct }));
+  const drivers = [
+    `Base tier: ${tier.label} ($${tier.min}–$${tier.max})`,
+    `Audience factor: ${band.label} followers ×${band.factor}`,
+    `Deliverable: ${deliverable.label} ×${deliverable.factor}`,
+    `Usage rights: ${usage.label} +${Math.round(usage.pct * 100)}%`,
+    pack.discount > 0 ? `Bundle: ${pack.label} −${Math.round(pack.discount * 100)}%` : 'Bundle: single video',
+  ];
+  return {
+    band: { low, high },
+    mid,
+    perDeliverable: `$${low.toLocaleString()}–$${high.toLocaleString()} per deliverable`,
+    drivers,
+    addons,
+  };
+}
+
+export async function suggestRateSmart(input: RateInput): Promise<RateSuggestion> {
+  const fallback = (): RateSuggestion => suggestRate(input);
+  return smartOr(
+    () => generateText(
+      `A UGC creator is pricing a project. Experience tier: ${input.tier}, followers: ${input.followers}, deliverable: ${input.deliverable}, usage: ${input.usage}, niche: ${input.niche ?? 'general'}, bundle: ${input.bundle}.
+Return a realistic 2026 USD rate band: a low, a high, a mid, a short "perDeliverable" summary line, 2-4 plain-English "drivers" (what justifies the number), and up to 5 "addons" as {label, note, pct}. Be honest and data-driven, not inflating.`,
+      { type: 'OBJECT', properties: { band: { type: 'OBJECT', properties: { low: { type: 'NUMBER' }, high: { type: 'NUMBER' } } }, mid: { type: 'NUMBER' }, perDeliverable: { type: 'STRING' }, drivers: { type: 'ARRAY', items: { type: 'STRING' } }, addons: { type: 'ARRAY', items: { type: 'OBJECT', properties: { label: { type: 'STRING' }, note: { type: 'STRING' }, pct: { type: 'NUMBER' } } } } }, required: ['band', 'mid', 'perDeliverable', 'drivers'] },
+    ).then((raw) => {
+      const parsed = JSON.parse(raw) as RateSuggestion;
+      if (!parsed.band || !parsed.band.low) throw new Error('bad rate schema');
+      return parsed;
+    }),
+    fallback,
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * 6. Brainstorm — "give me content ideas" (AI ideation, offline + Gemini)
+ * ------------------------------------------------------------------------- */
+
+export interface BrainstormIdea {
+  title: string;
+  hook: string;
+  angle: string;
+  promise: string;
+  pillar: string;
+  platform: string;
+}
+
+export interface BrainstormInput {
+  topic: string;
+  niche: string;
+  pillars: string[];
+  count: number;
+  avoid: string[];
+}
+
+const ANGLES = ['myth-bust', 'POV', 'behind the scenes', 'day in the life', 'speed tutorial', 'hot take', 'storytime', 'before/after', 'challenge', 'react', 'listicle', 'secret reveal'] as const;
+const PLATFORMS_ROTATE = ['tiktok', 'instagram', 'youtube', 'shorts', 'reels', 'instagram'] as const;
+
+const ANGLE_PROMISES: Record<string, string> = {
+  'myth-bust': 'Destroys the most common {topic} myth with receipts.',
+  'POV': 'Puts the viewer inside the {topic} experience.',
+  'behind the scenes': 'Shows the real process nobody films.',
+  'day in the life': 'One honest day, three tiny wins in {topic}.',
+  'speed tutorial': 'The {topic} fix in 60 seconds, zero fluff.',
+  'hot take': 'An unpopular {topic} opinion with evidence.',
+  'storytime': 'A personal {topic} story with a payoff.',
+  'before/after': 'The painful before, the single change, the after.',
+  'challenge': 'A {days}-day {topic} challenge the audience can join.',
+  'react': 'Reacting to the wildest {topic} takes online.',
+  'listicle': '{number} {topic} lessons in one scroll.',
+  'secret reveal': 'The {topic} detail almost everyone misses.',
+};
+
+/** Generates `count` concrete, non-duplicate content ideas from a topic. */
+export function brainstormIdeas(input: BrainstormInput): BrainstormIdea[] {
+  const niche = input.niche || 'creator';
+  const pillars = input.pillars.length ? input.pillars : ['Education', 'Connection', 'Trends & growth'];
+  const out: BrainstormIdea[] = [];
+  let attempts = 0;
+  for (let i = 0; i < input.count && attempts < input.count * 40; i += 1) {
+    attempts += 1;
+    const seed = seededHash(`${input.topic.toLowerCase()}::${i}`);
+    const angle = ANGLES[seed % ANGLES.length]!;
+    const template = HOOK_TEMPLATES[(seed + i * 7) % HOOK_TEMPLATES.length]!;
+    const hook = fillTemplate(template.text, input.topic, niche);
+    const pillar = pillars[seed % pillars.length] ?? pillars[0]!;
+    const title = `${capFirst(input.topic)}: ${angle} that actually performs`;
+    const unique = `${title}::${angle}::${hook}`;
+    if (out.some((o) => `${o.title}::${o.angle}::${o.hook}` === unique) || input.avoid.some((a) => a.toLowerCase() === title.toLowerCase())) { i -= 1; continue; }
+    out.push({
+      title,
+      hook,
+      angle,
+      promise: fillTemplate(ANGLE_PROMISES[angle] ?? 'A {topic} idea that pays off in one watch.', input.topic, niche),
+      pillar,
+      platform: PLATFORMS_ROTATE[seed % PLATFORMS_ROTATE.length]!,
+    });
+  }
+  return out.slice(0, input.count);
+}
+
+const BRAINSTORM_SCHEMA: ResponseSchema = {
+  type: 'OBJECT',
+  properties: {
+    ideas: { type: 'ARRAY', items: { type: 'OBJECT', properties: { title: { type: 'STRING' }, hook: { type: 'STRING' }, angle: { type: 'STRING' }, promise: { type: 'STRING' }, pillar: { type: 'STRING' }, platform: { type: 'STRING' } }, } },
+  },
+  required: ['ideas'],
+};
+
+export async function brainstormIdeasSmart(input: BrainstormInput): Promise<BrainstormIdea[]> {
+  const fallback = (): BrainstormIdea[] => brainstormIdeas(input);
+  return smartOr(
+    () => generateText(
+      `Act as a world-class UGC content strategist. Brainstorm ${input.count} specific, non-generic content ideas about "${input.topic}" for a ${input.niche || 'general'} creator.
+Pillars to cover: ${input.pillars.join(', ') || 'Education, Connection, Trends & growth'}.
+Avoid these existing titles: ${input.avoid.join('; ') || 'none'}.
+Return ${input.count} ideas, each with: title (platform-ready, under 90 chars), a scroll-stopping first-line hook, a content angle, a one-line audience promise, the pillar, and a platform (tiktok, instagram, youtube, shorts, reels). Be concrete and honest — no generic filler.`,
+      BRAINSTORM_SCHEMA,
+    ).then((raw) => parseArray<BrainstormIdea>(raw, 'ideas').slice(0, input.count)),
+    fallback,
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * 7. Caption generator — "publish-ready captions + hashtags" 
+ * ------------------------------------------------------------------------- */
+
+export interface CaptionSet {
+  captions: string[];
+  hashtags: string[];
+  firstComment: string;
+  cta: string;
+}
+
+export interface CaptionInput {
+  title: string;
+  hook: string;
+  promise: string;
+  niche: string;
+  platform: string;
+}
+
+/** Builds publish-ready caption variants, niche hashtags, a first comment and a CTA. */
+export function generateCaptions(input: CaptionInput): CaptionSet {
+  const niche = input.niche || 'creator';
+  const topic = input.title || input.hook || 'this';
+  const hookClean = input.hook ? input.hook.replace(/[?.!]+$/, '') : 'the truth about this';
+  const captions = [
+    fillTemplate(CAPTION_TEMPLATES[Math.floor(seededHash(`${topic}::0`) % CAPTION_TEMPLATES.length)]!, topic, niche),
+    fillTemplate(CAPTION_TEMPLATES[Math.floor(seededHash(`${topic}::1`) % CAPTION_TEMPLATES.length)]!, topic, niche),
+    input.promise ? `${input.promise} Full breakdown in the video — ${hookClean.toLowerCase()}.` : `I've been holding this one back. ${capFirst(hookClean)}.`,
+  ];
+  const pool = NICHE_HASHTAGS[niche.toLowerCase()] ?? NICHE_HASHTAGS.lifestyle!;
+  const platformTag = platformTagOf(input.platform);
+  const generic = ['ugc', 'contentcreator', 'creatorlife', 'shortform'];
+  const hashtags = [...new Set([...pool, platformTag, ...generic])].slice(0, 9);
+  const cta = fillTemplate(CTA_TEMPLATES[Math.floor(seededHash(`${topic}::2`) % CTA_TEMPLATES.length)]!, topic, niche);
+  const firstComment = `What did I miss? Drop your biggest ${input.promise ? input.promise.toLowerCase().slice(0, 40) : niche} question below — I read every comment.`;
+  return { captions, hashtags, firstComment, cta };
+}
+
+function platformTagOf(platform: string): string {
+  if (platform === 'tiktok') return 'tiktok';
+  if (platform === 'instagram' || platform === 'reels') return 'reels';
+  if (platform === 'youtube' || platform === 'shorts') return 'youtubeshorts';
+  return 'socialmedia';
+}
+
+const CAPTION_SCHEMA: ResponseSchema = {
+  type: 'OBJECT',
+  properties: {
+    captions: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 ready-to-post caption variants.' },
+    hashtags: { type: 'ARRAY', items: { type: 'STRING' }, description: '6-9 hashtags, no # symbol, lowercase.' },
+    firstComment: { type: 'STRING', description: 'An engagement-pulling first comment.' },
+    cta: { type: 'STRING', description: 'One clear call to action.' },
+  },
+  required: ['captions', 'hashtags', 'firstComment', 'cta'],
+};
+
+export async function generateCaptionsSmart(input: CaptionInput): Promise<CaptionSet> {
+  const fallback = (): CaptionSet => generateCaptions(input);
+  return smartOr(
+    () => generateText(
+      `Write publish-ready captions for a ${input.platform || 'social'} post titled "${input.title}" (hook: "${input.hook}") for a ${input.niche || 'general'} creator.
+Return 3 caption variants (varied tone — educational, story, bold), 6-9 niche hashtags without # or spaces, an engagement-pulling first comment, and one clear call to action. No em dashes, no corporate speak.`,
+      CAPTION_SCHEMA,
+    ).then((raw) => {
+      const parsed = JSON.parse(raw) as CaptionSet;
+      if (!parsed.captions?.length) throw new Error('bad caption schema');
+      return parsed;
+    }),
+    fallback,
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * 8. Repurposing — "stretch one strong post into many" (Opus-Clip-style)
+ * ------------------------------------------------------------------------- */
+
+export interface RepurposeVariant {
+  title: string;
+  hook: string;
+  angle: string;
+  platform: string;
+  repurpose_plan: string;
+}
+
+/** Turns one idea into 4 cross-platform variants that reuse the same source. */
+export function repurposeIdea(idea: ContentIdea): RepurposeVariant[] {
+  const topic = idea.title || 'this topic';
+  const niche = idea.pillar || 'creator';
+  const hook = idea.hook_idea || fillTemplate(HOOK_TEMPLATES[0]!.text, topic, niche);
+  const clean = hook.replace(/[?.!]+$/, '');
+  return [
+    { title: `${topic} — the 3 takeaways`, hook: `${clean} — here are the 3 takeaways.`, angle: 'listicle', platform: 'x', repurpose_plan: 'thread: pull 3 punchy lines from the video.' },
+    { title: `${topic} — swipe-save edition`, hook: `${clean}. Save this one.`, angle: 'carousel', platform: 'instagram', repurpose_plan: 'carousel: 5 slides, one idea per slide.' },
+    { title: `${topic} — 30-second clip`, hook: `${clean} (best 30 seconds).`, angle: 'shorts', platform: 'youtube', repurpose_plan: 'shorts: cut the single best segment, add captions.' },
+    { title: `${topic} — full breakdown`, hook: `${clean} — the complete breakdown.`, angle: 'long-form', platform: 'youtube', repurpose_plan: 'long-form: expand into a 5-minute tutorial.' },
+  ];
+}
+
+/* ---------------------------------------------------------------------------
+ * 9. Follow-up outreach — "a gentle nudge that keeps deals warm"
+ * ------------------------------------------------------------------------- */
+
+/** Writes a short follow-up for a deal that was pitched but went quiet. */
+export function draftFollowUp(mediaKit: MediaKitProfile | null, deal: BrandDeal | null): string {
+  const name = mediaKit?.display_name?.trim() || 'I';
+  const brand = deal?.brand_name ?? 'your brand';
+  const deliverables = deal?.deliverables ?? 'the project';
+  const pitchedOn = deal?.pitch_date ? `back on ${deal.pitch_date}` : 'a while ago';
+  const tone = deal?.status === 'negotiating' ? 'keeping the conversation moving' : 'checking in';
+  return `Hi ${brand} team,
+
+Quick follow-up on the ${deliverables} opportunity I sent over ${pitchedOn}, just ${tone} and making sure it didn't get buried.
+
+Happy to send samples, a rate card, or jump on a 10-minute call this week if that's easier.
+
+Warmly,
+${name}`;
+}
+
+export async function draftFollowUpSmart(mediaKit: MediaKitProfile | null, deal: BrandDeal | null): Promise<string> {
+  const fallback = (): string => draftFollowUp(mediaKit, deal);
+  return smartOr(
+    () => generateText(
+      `Write a short, warm follow-up email from UGC creator ${mediaKit?.display_name ?? 'a creator'} to ${deal?.brand_name ?? 'a brand'} about ${deal?.deliverables ?? 'a project'}, pitched ${deal?.pitch_date ?? 'recently'} (deal status: ${deal?.status ?? 'unknown'}).
+Rules: real human voice, no corporate words, no em dashes, under 120 words, one clear next step.`,
       { type: 'OBJECT', properties: { email: { type: 'STRING' } }, required: ['email'] },
     ).then((raw) => {
       const parsed = JSON.parse(raw) as { email?: string };

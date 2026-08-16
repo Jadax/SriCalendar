@@ -1,8 +1,10 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Brain, CalendarPlus, KanbanSquare, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Trash2, Clapperboard } from 'lucide-react';
+import { Brain, CalendarPlus, KanbanSquare, LayoutGrid, List, MoreHorizontal, PenLine, Plus, Quote, Repeat, Sparkles, Trash2, Clapperboard } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { schedulePlatformPost } from '../../../lib/calendarActions';
 import { buildBrain } from '../../../lib/scriptBrain';
+import { brainstormIdeasSmart, generateCaptionsSmart, repurposeIdea, type BrainstormIdea, type CaptionSet } from '../../../lib/creatorBrain';
+import { NICHES } from '../../../data/creatorIntelligence';
 import { fillTemplate, PLATFORMS, PRIORITIES, EFFORT_LEVELS, IDEA_STATUSES, PRIORITY_META, EFFORT_META, PLATFORM_META, cap, alpha } from '../../../data/options';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { ContentIdea } from '../../../types/ugc';
@@ -42,6 +44,19 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   const [editorId, setEditorId] = useState<string | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<ContentIdea | null>(null);
   const [scheduleDate, setScheduleDate] = useState('');
+  const [bsOpen, setBsOpen] = useState(false);
+  const [bsTopic, setBsTopic] = useState('');
+  const [bsNiche, setBsNiche] = useState('lifestyle');
+  const [bsCount, setBsCount] = useState(5);
+  const [bsBusy, setBsBusy] = useState(false);
+  const [bsIdeas, setBsIdeas] = useState<BrainstormIdea[]>([]);
+  const [bsPicked, setBsPicked] = useState<Set<number>>(new Set());
+  const [capFor, setCapFor] = useState<ContentIdea | null>(null);
+  const [capSet, setCapSet] = useState<CaptionSet | null>(null);
+  const [capBusy, setCapBusy] = useState(false);
+  const [repurposeFor, setRepurposeFor] = useState<ContentIdea | null>(null);
+  const [repurposeBusy, setRepurposeBusy] = useState(false);
+  const [flash, setFlash] = useState('');
 
   const visible = useMemo(() => {
     const filtered = items
@@ -100,6 +115,53 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     } as never);
   };
 
+  const runBrainstorm = async (): Promise<void> => {
+    if (!bsTopic.trim()) return;
+    setBsBusy(true);
+    setBsIdeas([]); setBsPicked(new Set());
+    try {
+      const avoid = items.filter((i) => i.title).map((i) => i.title);
+      setBsIdeas(await brainstormIdeasSmart({ topic: bsTopic.trim(), niche: bsNiche, pillars: items.map((i) => i.pillar ?? '').filter(Boolean), count: bsCount, avoid }));
+    } catch { setBsIdeas([]); }
+    finally { setBsBusy(false); }
+  };
+
+  const saveBrainstormPicked = async (): Promise<void> => {
+    if (bsPicked.size === 0) return;
+    const chosen = bsIdeas.filter((_, i) => bsPicked.has(i));
+    for (const idea of chosen) {
+      await add({
+        title: idea.title, description: idea.promise, platform: idea.platform, priority: 'medium', effort_level: 'medium', status: 'idea',
+        audience_promise: idea.promise, hook_idea: idea.hook, content_angle: idea.angle, inspiration_source: '🧠 AI brainstorm', pillar: idea.pillar, repurpose_plan: '',
+        impact: 3, confidence: 3,
+      } as never);
+    }
+    setBsOpen(false); setBsIdeas([]); setBsPicked(new Set()); setFlash(`Saved ${chosen.length} brainstorm idea${chosen.length === 1 ? '' : 's'}. They're in your bank with ICE 4.5 to score later.`);
+  };
+
+  const loadCaptions = async (idea: ContentIdea): Promise<void> => {
+    setCapFor(idea); setCapSet(null); setCapBusy(true);
+    try { setCapSet(await generateCaptionsSmart({ title: idea.title, hook: idea.hook_idea ?? '', promise: idea.audience_promise ?? '', niche: idea.pillar ?? 'lifestyle', platform: idea.platform ?? 'tiktok' })); }
+    catch { setCapSet(null); }
+    finally { setCapBusy(false); }
+  };
+
+  const runRepurpose = async (): Promise<void> => {
+    if (!repurposeFor) return;
+    setRepurposeBusy(true);
+    try {
+      for (const v of repurposeIdea(repurposeFor)) {
+        await add({
+          title: v.title, description: v.repurpose_plan, platform: v.platform, priority: 'medium', effort_level: 'medium', status: 'idea',
+          audience_promise: 'A fresh format from your strongest work.', hook_idea: v.hook, content_angle: v.angle, inspiration_source: `↻ repurposed from “${repurposeFor.title.slice(0, 40)}”`, pillar: repurposeFor.pillar ?? '', repurpose_plan: v.repurpose_plan,
+          impact: 3, confidence: 3,
+        } as never);
+      }
+      setFlash(`Repurposed “${repurposeFor.title.slice(0, 40)}” into a thread, carousel, short & long-form. All saved as ideas.`);
+      setRepurposeFor(null);
+    } finally { setRepurposeBusy(false); }
+  };
+
   const suggestions = ['3-reel blueprints', 'master them in minutes', 'the underrated setting'];
   const spark = (): void => {
     const topic = prompt('What is your niche or idea?', 'video creation');
@@ -143,6 +205,8 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
         <div className="row" style={{ gap: 6 }}>
           <button className="icon-btn" title="Move to Script" aria-label="Move to script" onClick={() => void moveToScript(idea)}><Clapperboard size={15}/></button>
           <button className="icon-btn" title="Add to production board" aria-label="Add to production board" onClick={() => void promoteToBoard(idea)}><KanbanSquare size={15}/></button>
+          <button className="icon-btn" title="Captions & hashtags" aria-label="Generate captions" onClick={() => void loadCaptions(idea)}><Quote size={15}/></button>
+          <button className="icon-btn" title="Repurpose into 4 formats" aria-label="Repurpose idea" onClick={() => setRepurposeFor(idea)}><Repeat size={15}/></button>
           <button className="icon-btn" title="Schedule to calendar" aria-label="Schedule idea" onClick={() => { setScheduleTarget(idea); setScheduleDate(new Date().toISOString().slice(0, 10)); }}><CalendarPlus size={15}/></button>
           <button className="icon-btn" title="Edit idea" aria-label="Edit idea" onClick={() => { setEditorId(idea.id); setEditing({ ...idea }); }}><PenLine size={14}/></button>
           <button className="icon-btn" title="Delete idea" aria-label="Delete idea" onClick={() => confirmDelete(() => void remove(idea.id))}><Trash2 size={14}/></button>
@@ -154,9 +218,12 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   return <>
     <PageHead eyebrow="Pillar 2 · Studio" title="Idea bank 🌱" subtitle="Capture sparks, keep a reason-for-existence, and never lose an angle again."
       actions={[
+        <button key="brainstorm" className="btn soft" onClick={() => setBsOpen(true)}><Sparkles size={15}/> Brainstorm</button>,
         <button key="spark" className="btn soft" onClick={spark}><span>✨</span> Spark an idea</button>,
         <button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(emptyIdea()); }}><Plus size={16}/> New idea</button>,
       ]} />
+
+    {flash && <div className="flash-banner" role="status" onClick={() => setFlash('')}>{flash} <span className="muted">· tap to dismiss</span></div>}
 
     <section className="section-block">
       <div className="board-toolbar">
@@ -210,6 +277,69 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
       <div className="grid" style={{ gap: 14 }}>
         <Field label="Publish date"><input type="date" className="date-input" value={scheduleDate} onChange={(e) => setScheduleDate(e.target.value)}/></Field>
         <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.55 }}>This will open the calendar day and attach a scheduled <b>{scheduleTarget.platform ?? 'tiktok'}</b> post so you can see it on your content grid.</p>
+      </div>
+    </Modal>}
+
+    {bsOpen && <Modal title="🧠 Brainstorm content ideas" onClose={() => setBsOpen(false)} wide
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+        <button className="btn ghost" onClick={() => setBsOpen(false)}>Close</button>
+        <button className="btn primary" disabled={bsBusy || bsPicked.size === 0} onClick={() => void saveBrainstormPicked()}>Save {bsPicked.size > 0 ? `${bsPicked.size} idea${bsPicked.size === 1 ? '' : 's'}` : ''} to bank</button>
+      </div>}>
+      <div className="grid" style={{ gap: 14 }}>
+        <FormRow>
+          <Field label="Topic *"><input className="input" value={bsTopic} onChange={(e) => setBsTopic(e.target.value)} placeholder="e.g. 'morning routines for creators', 'budget skincare'…"/></Field>
+          <Field label="Niche"><select className="select" value={bsNiche} onChange={(e) => setBsNiche(e.target.value)}>{NICHES.map((n) => <option key={n} value={n}>{cap(n)}</option>)}</select></Field>
+          <Field label="How many"><select className="select" value={bsCount} onChange={(e) => setBsCount(Number(e.target.value))}><option value={3}>3</option><option value={5}>5</option><option value={8}>8</option></select></Field>
+        </FormRow>
+        <button className="btn soft" onClick={() => void runBrainstorm()} disabled={!bsTopic.trim() || bsBusy}><Sparkles size={14}/> {bsBusy ? 'Brainstorming…' : 'Generate ideas'}</button>
+        {bsBusy && <p className="hint" style={{ fontSize: 12 }}>Reading your existing ideas to avoid duplicates…</p>}
+        {bsIdeas.length === 0 && !bsBusy && <EmptyState emoji="💭" title="Pick a topic, hit generate" note="You'll get concrete, platform-ready angles — not generic filler."/>}
+        <div className="grid" style={{ gap: 10 }}>
+          {bsIdeas.map((idea, i) => {
+            const picked = bsPicked.has(i);
+            return <label key={`${idea.title}-${i}`} className={cx('bs-option', picked && 'picked')}>
+              <input type="checkbox" checked={picked} onChange={() => { const next = new Set(bsPicked); if (picked) next.delete(i); else next.add(i); setBsPicked(next); }}/>
+              <div className="bs-option-body">
+                <strong>{idea.title}</strong>
+                <span className="muted">🎣 {idea.hook}</span>
+                <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+                  <Pill color="lavender">{idea.platform}</Pill><Pill color="sky">{idea.angle}</Pill><Pill color="mint">{idea.pillar}</Pill>
+                </div>
+              </div>
+            </label>;
+          })}
+        </div>
+      </div>
+    </Modal>}
+
+    {capFor && <Modal title={`Captions & hashtags — "${capFor.title.slice(0, 44)}"`} onClose={() => { setCapFor(null); setCapSet(null); }} wide
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => { setCapFor(null); setCapSet(null); }}>Close</button><button className="btn primary" disabled={!capSet} onClick={() => { void navigator.clipboard?.writeText([...capSet?.captions ?? [], '', `Hashtags: ${(capSet?.hashtags ?? []).map((h) => `#${h}`).join(' ')}`, '', capSet?.firstComment ?? '', capSet?.cta ?? ''].join('\n')).catch(() => undefined); }}>Copy all</button></div>}>
+      <div className="grid" style={{ gap: 14 }}>
+        {capBusy && <p className="hint" style={{ fontSize: 12 }}>Writing captions…</p>}
+        {!capBusy && capSet && <>
+          {capSet.captions.map((c) => <div key={c.slice(0, 24)} className="caption-block"><p>{c}</p><button className="btn ghost btn-sm" onClick={() => void navigator.clipboard?.writeText(c).catch(() => undefined)}>Copy</button></div>)}
+          <div>
+            <div className="hint" style={{ fontSize: 11.5, marginBottom: 6 }}>Hashtags (tap to copy):</div>
+            <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>{capSet.hashtags.map((h) => <button key={h} className="chip-input" onClick={() => void navigator.clipboard?.writeText(`#${h}`).catch(() => undefined)}>#{h}</button>)}</div>
+          </div>
+          <div className="caption-block"><div className="hint" style={{ fontSize: 11.5, marginBottom: 4 }}>First comment (engagement boost)</div><p>{capSet.firstComment}</p></div>
+          <div className="caption-block"><div className="hint" style={{ fontSize: 11.5, marginBottom: 4 }}>Call to action</div><p>{capSet.cta}</p></div>
+        </>}
+      </div>
+    </Modal>}
+
+    {repurposeFor && <Modal title={`↻ Repurpose "${repurposeFor.title.slice(0, 44)}"`} onClose={() => setRepurposeFor(null)} wide
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setRepurposeFor(null)}>Cancel</button><button className="btn primary" disabled={repurposeBusy} onClick={() => void runRepurpose()}><Repeat size={15}/> {repurposeBusy ? 'Saving…' : 'Save all 4 as ideas'}</button></div>}>
+      <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.55, marginBottom: 10 }}>One strong post becomes four formats. Each variant is saved as a new idea tied to this source — stretch your best work, don't start cold.</p>
+      <div className="grid" style={{ gap: 10 }}>
+        {repurposeIdea(repurposeFor).map((v) => <div className="bs-option" key={v.title}>
+          <div className="bs-option-body">
+            <div className="row" style={{ gap: 6 }}><Pill color="sky">{v.angle}</Pill><Pill color="lavender">{v.platform}</Pill></div>
+            <strong>{v.title}</strong>
+            <span className="muted">🎣 {v.hook}</span>
+            <span className="hint" style={{ fontSize: 11.5 }}>📋 {v.repurpose_plan}</span>
+          </div>
+        </div>)}
       </div>
     </Modal>}
   </>;

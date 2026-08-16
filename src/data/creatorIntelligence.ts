@@ -117,3 +117,35 @@ export const HOOK_WHY: Record<string, string> = {
 
 /** Plain-English niches with content ideas per pillar (used by onboarding + brain). */
 export const NICHES = ['fitness', 'beauty', 'fashion', 'food', 'travel', 'tech', 'parenting', 'finance', 'gaming', 'lifestyle'] as const;
+
+/** Hashtag pools per niche for the caption generator (platform-agnostic base + niche). */
+export const NICHE_HASHTAGS: Record<string, string[]> = {
+  fitness: ['fitnessjourney', 'homeworkout', 'gymtok', 'fitlife', 'wellness', 'workoutmotivation', 'fitnessreels'],
+  beauty: ['skincare', 'beautytok', 'makeuptransformation', 'glowup', 'cleanbeauty', 'makeupforbeginners', 'beautyroutine'],
+  fashion: ['fashiontok', 'outfitideas', 'styleinspo', 'ootd', 'thriftflip', 'fashionhacks', 'wardrobeessentials'],
+  food: ['foodtok', 'easyrecipes', 'homecooking', 'foodies', 'mealprep', 'cookinghacks', 'comfortfood'],
+  travel: ['traveltok', 'hiddengems', 'travelvlog', 'bucketlist', 'solotravel', 'itinerary', 'traveltips'],
+  tech: ['techreview', 'gadgets', 'techlife', 'productivity', 'technews', 'smartphone', 'techtips'],
+  parenting: ['momlife', 'parentinghacks', 'toddlerlife', 'momsoftiktok', 'familylife', 'momhacks', 'raisingkids'],
+  finance: ['moneytok', 'personalfinance', 'budgeting', 'savingmoney', 'financialliteracy', 'sidehustle', 'investing'],
+  gaming: ['gaming', 'gamer', 'gamergirl', 'indiegames', 'gamingcommunity', 'streamer', 'gameplay'],
+  lifestyle: ['lifestyle', 'dailyvlog', 'aesthetic', 'selfimprovement', 'routine', 'mondaymotivation', 'lifestylecreator'],
+};
+
+/** Deliverable types the rate calculator reasons over (2026 market bands). */
+export const DELIVERABLE_LABELS: Record<string, { label: string; factor: number; note: string }> = {
+  short: { label: 'Short-form video (15–60s)', factor: 1, note: 'Reels/TikTok — the UGC workhorse.' },
+  reel: { label: 'Short-form video (15–60s)', factor: 1, note: 'Reels/TikTok — the UGC workhorse.' },
+  photo: { label: 'Photo set / static (3–5)', factor: 0.6, note: 'Feed posts, thumbnails, product close-ups.' },
+  long: { label: 'Long-form video (3+ min)', factor: 2.5, note: 'Tutorials, unboxings, YouTube-style.' },
+  bundle: { label: 'Multi-video bundle', factor: 3.5, note: 'Volume locks in value — see bundle discount.' },
+};
+
+/** Follower-band multipliers used on top of the experience tier. */
+export const FOLLOWERS_BANDS = [
+  { min: 0, max: 999, label: '< 1K', factor: 0.8 },
+  { min: 1000, max: 9999, label: '1K–10K', factor: 1 },
+  { min: 10000, max: 49999, label: '10K–50K', factor: 1.5 },
+  { min: 50000, max: 199999, label: '50K–200K', factor: 2.2 },
+  { min: 200000, max: Infinity, label: '200K+', factor: 3 },
+];

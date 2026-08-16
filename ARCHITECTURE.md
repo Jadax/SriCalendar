@@ -48,6 +48,11 @@ The client creates its profile on first visit. The insert policy accepts it only
 - `src/store`: small UI/session/navigation state only
 - `src/components`: presentation and user interactions
 - `neon/schema.sql`: repeatable database schema, grants, policies, and indexes
+- `neon/ugc_schema.sql`: repeatable Creator HQ, Studio, Business, and Knowledge schema, grants, policies, and indexes
+
+## Creator workspace synchronization
+
+The Creator HQ, Studio, Business, and Knowledge workspaces use the same offline-first approach in a separate Dexie database. Each collection stores a complete row locally, marks it `sync_pending`, and debounces a Neon upsert. Deletes are placed in a durable local queue until cloud confirmation. The user’s onboarding choices live in both the local cache and their private `profiles.settings` JSON, so a new phone does not repeat setup or duplicate starter content.
 
 Sensitive content is never persisted in Zustand. Daily content stays in IndexedDB and owner-protected Neon rows.
 

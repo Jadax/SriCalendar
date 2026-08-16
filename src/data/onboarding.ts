@@ -9,17 +9,26 @@ export interface OnboardingProfile {
   onboarded: boolean;
 }
 
-const PROFILE_KEY = 'sri_onboarding_profile_v1';
+/** Narrows an unknown stored settings value to a complete onboarding profile. */
+export function isOnboardingProfile(value: unknown): value is OnboardingProfile {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.name === 'string' && Array.isArray(candidate.niches) && typeof candidate.goal === 'number' && typeof candidate.experience === 'string' && candidate.onboarded === true;
+}
 
-export function loadProfile(): OnboardingProfile | null {
+const PROFILE_KEY = 'sri_onboarding_profile_v2';
+
+/** Reads this user's local onboarding fallback without leaking it to another account on the same device. */
+export function loadProfile(userId: string): OnboardingProfile | null {
   try {
-    const raw = localStorage.getItem(PROFILE_KEY);
+    const raw = localStorage.getItem(`${PROFILE_KEY}:${userId}`);
     return raw ? (JSON.parse(raw) as OnboardingProfile) : null;
   } catch { return null; }
 }
 
-export function saveProfile(profile: OnboardingProfile): void {
-  localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+/** Saves this user's local onboarding fallback for instant offline startup. */
+export function saveProfile(userId: string, profile: OnboardingProfile): void {
+  localStorage.setItem(`${PROFILE_KEY}:${userId}`, JSON.stringify(profile));
 }
 
 export const GOAL_OPTIONS = [
