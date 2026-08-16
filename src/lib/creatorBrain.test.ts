@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildDailyBrief, buildWeeklyPlan, draftFollowUp, draftPitch, generateCaptions, interpretAnalytics, brainstormIdeas, repurposeIdea, suggestRate,
+  buildDailyBrief, buildWeeklyPlan, draftFollowUp, draftPitch, generateCaptions, interpretAnalytics, brainstormIdeas, repurposeIdea, repurposeIdeaSmart, suggestRate,
   type BrainstormIdea, type TodayContext,
 } from './creatorBrain';
 import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
@@ -250,6 +250,23 @@ describe('creatorBrain · repurposing', () => {
       expect(v.platform.length).toBeGreaterThan(0);
       expect(v.repurpose_plan.length).toBeGreaterThan(0);
       expect(v.hook).toContain('mistake #3');
+    }
+  });
+
+  it('smart repurposing falls back to the offline 4-variant engine without Gemini', async () => {
+    const idea: ContentIdea = {
+      id: 'i', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
+      title: '5 makeup mistakes', description: null, platform: 'tiktok', priority: 'high', effort_level: 'medium',
+      audience_promise: 'Fix your base routine', hook_idea: 'Nobody told you about mistake #3', content_angle: 'listicle',
+      inspiration_source: null, pillar: 'beauty', repurpose_plan: null, status: 'published', impact: 4, confidence: 4,
+    };
+    const variants = await repurposeIdeaSmart(idea);
+    expect(variants).toHaveLength(4);
+    expect(variants.some((v) => v.platform === 'x')).toBe(true);
+    expect(variants.some((v) => v.platform === 'instagram')).toBe(true);
+    for (const v of variants) {
+      expect(v.title.length).toBeGreaterThan(0);
+      expect(v.hook.length).toBeGreaterThan(0);
     }
   });
 });

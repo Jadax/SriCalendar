@@ -3,7 +3,7 @@ import { Brain, CalendarPlus, KanbanSquare, LayoutGrid, List, MoreHorizontal, Pe
 import { useCollection } from '../../../hooks/useCollection';
 import { schedulePlatformPost } from '../../../lib/calendarActions';
 import { buildBrain } from '../../../lib/scriptBrain';
-import { brainstormIdeasSmart, generateCaptionsSmart, repurposeIdea, type BrainstormIdea, type CaptionSet } from '../../../lib/creatorBrain';
+import { brainstormIdeasSmart, generateCaptionsSmart, repurposeIdea, repurposeIdeaSmart, type BrainstormIdea, type CaptionSet, type RepurposeVariant } from '../../../lib/creatorBrain';
 import { NICHES } from '../../../data/creatorIntelligence';
 import { fillTemplate, PLATFORMS, PRIORITIES, EFFORT_LEVELS, IDEA_STATUSES, PRIORITY_META, EFFORT_META, PLATFORM_META, cap, alpha } from '../../../data/options';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
@@ -56,6 +56,8 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   const [capBusy, setCapBusy] = useState(false);
   const [repurposeFor, setRepurposeFor] = useState<ContentIdea | null>(null);
   const [repurposeBusy, setRepurposeBusy] = useState(false);
+  const [repSet, setRepSet] = useState<RepurposeVariant[] | null>(null);
+  const [repBusy, setRepBusy] = useState(false);
   const [flash, setFlash] = useState('');
 
   const visible = useMemo(() => {
@@ -150,16 +152,25 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     if (!repurposeFor) return;
     setRepurposeBusy(true);
     try {
-      for (const v of repurposeIdea(repurposeFor)) {
+      const variants = repSet ?? repurposeIdea(repurposeFor);
+      for (const v of variants) {
         await add({
           title: v.title, description: v.repurpose_plan, platform: v.platform, priority: 'medium', effort_level: 'medium', status: 'idea',
           audience_promise: 'A fresh format from your strongest work.', hook_idea: v.hook, content_angle: v.angle, inspiration_source: `↻ repurposed from “${repurposeFor.title.slice(0, 40)}”`, pillar: repurposeFor.pillar ?? '', repurpose_plan: v.repurpose_plan,
           impact: 3, confidence: 3,
         } as never);
       }
-      setFlash(`Repurposed “${repurposeFor.title.slice(0, 40)}” into a thread, carousel, short & long-form. All saved as ideas.`);
+      setFlash(`Repurposed “${repurposeFor.title.slice(0, 40)}” into ${variants.length} formats, all saved as ideas.`);
       setRepurposeFor(null);
     } finally { setRepurposeBusy(false); }
+  };
+
+  const openRepurpose = (idea: ContentIdea): void => {
+    setRepurposeFor(idea); setRepSet(null); setRepBusy(true);
+    void repurposeIdeaSmart(idea)
+      .then(setRepSet)
+      .catch(() => setRepSet(repurposeIdea(idea)))
+      .finally(() => setRepBusy(false));
   };
 
   const suggestions = ['3-reel blueprints', 'master them in minutes', 'the underrated setting'];
@@ -206,7 +217,7 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
           <button className="icon-btn" title="Move to Script" aria-label="Move to script" onClick={() => void moveToScript(idea)}><Clapperboard size={15}/></button>
           <button className="icon-btn" title="Add to production board" aria-label="Add to production board" onClick={() => void promoteToBoard(idea)}><KanbanSquare size={15}/></button>
           <button className="icon-btn" title="Captions & hashtags" aria-label="Generate captions" onClick={() => void loadCaptions(idea)}><Quote size={15}/></button>
-          <button className="icon-btn" title="Repurpose into 4 formats" aria-label="Repurpose idea" onClick={() => setRepurposeFor(idea)}><Repeat size={15}/></button>
+          <button className="icon-btn" title="Repurpose into 4 formats" aria-label="Repurpose idea" onClick={() => openRepurpose(idea)}><Repeat size={15}/></button>
           <button className="icon-btn" title="Schedule to calendar" aria-label="Schedule idea" onClick={() => { setScheduleTarget(idea); setScheduleDate(new Date().toISOString().slice(0, 10)); }}><CalendarPlus size={15}/></button>
           <button className="icon-btn" title="Edit idea" aria-label="Edit idea" onClick={() => { setEditorId(idea.id); setEditing({ ...idea }); }}><PenLine size={14}/></button>
           <button className="icon-btn" title="Delete idea" aria-label="Delete idea" onClick={() => confirmDelete(() => void remove(idea.id))}><Trash2 size={14}/></button>
@@ -329,10 +340,11 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
     </Modal>}
 
     {repurposeFor && <Modal title={`↻ Repurpose "${repurposeFor.title.slice(0, 44)}"`} onClose={() => setRepurposeFor(null)} wide
-      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setRepurposeFor(null)}>Cancel</button><button className="btn primary" disabled={repurposeBusy} onClick={() => void runRepurpose()}><Repeat size={15}/> {repurposeBusy ? 'Saving…' : 'Save all 4 as ideas'}</button></div>}>
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setRepurposeFor(null)}>Cancel</button><button className="btn primary" disabled={repurposeBusy} onClick={() => void runRepurpose()}><Repeat size={15}/> {repurposeBusy ? 'Saving…' : `Save all ${repSet?.length ?? 4} as ideas`}</button></div>}>
       <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.55, marginBottom: 10 }}>One strong post becomes four formats. Each variant is saved as a new idea tied to this source — stretch your best work, don't start cold.</p>
+      {repBusy && <p className="hint" style={{ fontSize: 12 }}>Stretching your post into 4 formats…</p>}
       <div className="grid" style={{ gap: 10 }}>
-        {repurposeIdea(repurposeFor).map((v) => <div className="bs-option" key={v.title}>
+        {(repSet ?? repurposeIdea(repurposeFor)).map((v) => <div className="bs-option" key={v.title}>
           <div className="bs-option-body">
             <div className="row" style={{ gap: 6 }}><Pill color="sky">{v.angle}</Pill><Pill color="lavender">{v.platform}</Pill></div>
             <strong>{v.title}</strong>

@@ -849,6 +849,30 @@ export function repurposeIdea(idea: ContentIdea): RepurposeVariant[] {
   ];
 }
 
+const REPURPOSE_SCHEMA: ResponseSchema = {
+  type: 'OBJECT',
+  properties: {
+    variants: { type: 'ARRAY', items: { type: 'OBJECT', properties: { title: { type: 'STRING' }, hook: { type: 'STRING' }, angle: { type: 'STRING' }, platform: { type: 'STRING' }, repurpose_plan: { type: 'STRING' } }, } },
+  },
+  required: ['variants'],
+};
+
+export async function repurposeIdeaSmart(idea: ContentIdea): Promise<RepurposeVariant[]> {
+  const fallback = (): RepurposeVariant[] => repurposeIdea(idea);
+  return smartOr(
+    () => generateText(
+      `Act as a UGC repurposing strategist. A creator already posted "${idea.title}"${idea.hook_idea ? ` with the hook "${idea.hook_idea}"` : ''}${idea.pillar ? ` for the ${idea.pillar} niche` : ''}.
+Stretch that single source into exactly 4 distinct cross-platform variants: one X thread, one Instagram carousel, one YouTube short, one YouTube long-form. For each, return a platform-ready title, a scroll-stopping hook, a clear angle, the platform, and a one-line repurpose plan. Be concrete, no generic filler, no em dashes.`,
+      REPURPOSE_SCHEMA,
+    ).then((raw) => {
+      const variants = parseArray<RepurposeVariant>(raw, 'variants');
+      if (!variants.length) throw new Error('bad repurpose schema');
+      return variants.slice(0, 4);
+    }),
+    fallback,
+  );
+}
+
 /* ---------------------------------------------------------------------------
  * 9. Follow-up outreach — "a gentle nudge that keeps deals warm"
  * ------------------------------------------------------------------------- */
