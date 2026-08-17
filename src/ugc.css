@@ -103,7 +103,7 @@
 .empty-state small{font-size:11px;max-width:260px;line-height:1.5}
 
 /* ---- Modal ---- */
-.modal-backdrop{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:rgba(74,68,88,.3);backdrop-filter:blur(10px);overflow-y:auto}
+.modal-backdrop{position:fixed;inset:0;z-index:120;display:grid;place-items:center;place-content:safe center;padding:18px;background:rgba(74,68,88,.3);backdrop-filter:blur(10px);overflow-y:auto;overscroll-behavior:contain}
 .modal{width:min(100%,560px);background:color-mix(in srgb,var(--card,#fff) 97%,var(--pink));border:1px solid rgba(255,255,255,.85);border-radius:26px;box-shadow:0 24px 80px rgba(74,68,88,.25);padding:26px;max-height:88vh;overflow-y:auto;position:relative}
 .modal.wide{width:min(100%,820px)}
 .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px}
@@ -112,7 +112,7 @@
 .modal-close{position:absolute;right:16px;top:16px;width:32px;height:32px;border:0;border-radius:50%;background:rgba(203,183,255,.3);display:grid;place-items:center;cursor:pointer;color:#6a5a82}
 .modal-close:hover{background:rgba(245,79,134,.22)}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(139,126,200,.14)}
-@media(max-width:520px){.modal{padding:22px 16px;align-items:end}.modal-backdrop{align-items:end}}
+@media(max-width:520px){.modal{padding:22px 16px;align-items:end}.modal-backdrop{align-items:end;place-content:safe end}}
 
 /* ---- Kanban board ---- */
 .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:12px;scrollbar-width:thin;align-items:flex-start}
