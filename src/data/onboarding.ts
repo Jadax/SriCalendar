@@ -186,5 +186,9 @@ export function starterMediaKit(niches: string[], experience: string): Omit<Medi
     availability: 'Accepts new brand work',
     form_factor: 'vertical 9:16',
     currency: 'USD',
+    social_instagram: '',
+    social_tiktok: '',
+    social_youtube: '',
+    social_x: '',
   };
 }

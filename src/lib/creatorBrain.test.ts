@@ -10,7 +10,7 @@ const mediaKit = (p: Partial<MediaKitProfile> = {}): MediaKitProfile => ({
   id: 'mk', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
   display_name: null, tagline: null, bio: null, email: null, location: null, niche: null,
   audience_demographics: {}, rates: [], past_collabs: [], availability: null, form_factor: null,
-  currency: 'USD', ...p,
+  currency: 'USD', social_instagram: null, social_tiktok: null, social_youtube: null, social_x: null, ...p,
 });
 
 const baseCtx = (overrides: Partial<TodayContext> = {}): TodayContext => ({

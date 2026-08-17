@@ -10,7 +10,7 @@ interface Props { userId: string }
 
 const emptyRates = (): RateCard => ({ id: crypto.randomUUID(), name: '', price: 0, includes: '', negotiable: true });
 const emptyCollab = (): PastCollab => ({ id: crypto.randomUUID(), brand: '', format: '', year: '' });
-const emptyProfile = (): MediaKitProfile => ({ id: '', user_id: '', display_name: '', tagline: '', bio: '', email: '', location: '', niche: '', form_factor: 'Long-form + Shorts', audience_demographics: {}, rates: [emptyRates()], past_collabs: [], availability: '2 videos per month', currency: 'USD', created_at: '', updated_at: '', sync_pending: 0 });
+const emptyProfile = (): MediaKitProfile => ({ id: '', user_id: '', display_name: '', tagline: '', bio: '', email: '', location: '', niche: '', form_factor: 'Long-form + Shorts', audience_demographics: {}, rates: [emptyRates()], past_collabs: [], availability: '2 videos per month', currency: 'USD', social_instagram: '', social_tiktok: '', social_youtube: '', social_x: '', created_at: '', updated_at: '', sync_pending: 0 });
 
 /** PILLAR 3.4 — one-page media kit with self-updating stats and a shareable preview. */
 export function MediaKit({ userId }: Props): ReactElement {
@@ -40,7 +40,8 @@ export function MediaKit({ userId }: Props): ReactElement {
 
   const shareCopy = async (): Promise<void> => {
     const cur = profile?.currency || 'USD';
-    const text = `📸 ${profile?.display_name || 'Creator'} · Media Kit\n${profile?.tagline || ''}\n${profile?.bio || ''}\n\nRates from ${formatMoney(Math.min(...(profile?.rates.map((r) => r.price) ?? [0])), cur)}`;
+    const socials = [profile?.social_instagram && `IG: ${profile.social_instagram}`, profile?.social_tiktok && `TikTok: ${profile.social_tiktok}`, profile?.social_youtube && `YT: ${profile.social_youtube}`, profile?.social_x && `X: ${profile.social_x}`].filter(Boolean).join(' · ');
+    const text = `📸 ${profile?.display_name || 'Creator'} · Media Kit\n${profile?.tagline || ''}\n${profile?.bio || ''}\n\n${socials ? `${socials}\n\n` : ''}Rates from ${formatMoney(Math.min(...(profile?.rates.map((r) => r.price) ?? [0])), cur)}`;
     try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
   };
 
@@ -88,6 +89,15 @@ export function MediaKit({ userId }: Props): ReactElement {
           <Field label="Form factor"><input className="input" value={editing.form_factor ?? ''} onChange={(e) => setEditing({ ...editing, form_factor: e.target.value })} placeholder="Long-form + Shorts"/></Field>
           <Field label="Availability"><input className="input" value={editing.availability ?? ''} onChange={(e) => setEditing({ ...editing, availability: e.target.value })} placeholder="2 videos / month"/></Field>
         </FormRow>
+        <div>
+          <div className="block-head"><h2 style={{ fontSize: 14 }}>Social links</h2></div>
+          <div className="grid grid-2" style={{ gap: 8 }}>
+            <Field label="Instagram"><input className="input" value={editing.social_instagram ?? ''} onChange={(e) => setEditing({ ...editing, social_instagram: e.target.value })} placeholder="@yourname or full URL"/></Field>
+            <Field label="TikTok"><input className="input" value={editing.social_tiktok ?? ''} onChange={(e) => setEditing({ ...editing, social_tiktok: e.target.value })} placeholder="@yourname or full URL"/></Field>
+            <Field label="YouTube"><input className="input" value={editing.social_youtube ?? ''} onChange={(e) => setEditing({ ...editing, social_youtube: e.target.value })} placeholder="@channel or full URL"/></Field>
+            <Field label="X / Twitter"><input className="input" value={editing.social_x ?? ''} onChange={(e) => setEditing({ ...editing, social_x: e.target.value })} placeholder="@handle or full URL"/></Field>
+          </div>
+        </div>
         <Field label="Bio"><textarea className="textarea" value={editing.bio ?? ''} onChange={(e) => setEditing({ ...editing, bio: e.target.value })} placeholder="Who you are, who you reach, why you are trustworthy…"/></Field>
         <Field label="Audience demographics"><textarea className="textarea" rows={2} value={demographicsText(editing)} onChange={(e) => setEditing({ ...editing, audience_demographics: parseDemographics(e.target.value) })} placeholder="Age: 18–34 · Gender: 60% female · Geo: US/UK · Interests: beauty, wellness"/></Field>
 
@@ -158,6 +168,14 @@ function PreviewProfile({ profile, stats }: { profile: MediaKitProfile; stats: {
       {(profile.rates ?? []).filter((r) => r.name).length > 0 && <><div className="mk-section-title">Rates</div><div className="mk-list">{(profile.rates ?? []).filter((r) => r.name).map((r) => <div key={r.id} className="mk-item"><div><b>{r.name}</b>{r.includes ? <div className="muted" style={{ fontSize: 10.5 }}>{r.includes}</div> : null}</div><div><b>{formatMoney(r.price, cur)}</b> {r.negotiable ? <span className="muted" style={{ fontSize: 10 }}>nego</span> : null}</div></div>)}</div></>}
       {(profile.past_collabs ?? []).filter((c) => c.brand).length > 0 && <><div className="mk-section-title">Past collabs</div><div className="mk-list">{(profile.past_collabs ?? []).filter((c) => c.brand).map((c) => <div key={c.id} className="mk-item"><b>{c.brand}</b><div className="muted">{c.format} · {c.year}</div></div>)}</div></>}
       <div className="mk-contact">{profile.email ? `📧 ${profile.email}` : 'hello@example.com'}</div>
+      {(profile.social_instagram || profile.social_tiktok || profile.social_youtube || profile.social_x) && (
+        <div className="mk-social">
+          {profile.social_instagram && <a className="mk-social-link" href={profile.social_instagram.startsWith('http') ? profile.social_instagram : `https://instagram.com/${profile.social_instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer">📷 Instagram</a>}
+          {profile.social_tiktok && <a className="mk-social-link" href={profile.social_tiktok.startsWith('http') ? profile.social_tiktok : `https://tiktok.com/${profile.social_tiktok.replace('@', '')}`} target="_blank" rel="noopener noreferrer">🎵 TikTok</a>}
+          {profile.social_youtube && <a className="mk-social-link" href={profile.social_youtube.startsWith('http') ? profile.social_youtube : `https://youtube.com/@${profile.social_youtube.replace('@', '')}`} target="_blank" rel="noopener noreferrer">▶️ YouTube</a>}
+          {profile.social_x && <a className="mk-social-link" href={profile.social_x.startsWith('http') ? profile.social_x : `https://x.com/${profile.social_x.replace('@', '')}`} target="_blank" rel="noopener noreferrer">𝕏 X</a>}
+        </div>
+      )}
     </div>
   </div>;
 }

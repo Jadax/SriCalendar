@@ -1,7 +1,7 @@
 import { useMemo, type ReactElement } from 'react';
 import { useCollection } from '../../../hooks/useCollection';
 import { EmptyState, PageHead, Pill, SectionBlock } from '../shared/primitives';
-import type { BoardCard } from '../../../types/ugc';
+import type { BoardCard, MediaKitProfile } from '../../../types/ugc';
 
 interface Props { userId: string }
 
@@ -29,6 +29,8 @@ const COLUMN_TO_STEP: Record<string, string> = Object.fromEntries(WORKFLOW_STEPS
 /** PILLAR 3 — How I Work: visual workflow timeline for brands (stolen from ugcbylinda.com). */
 export function HowIWork({ userId }: Props): ReactElement {
   const { items: board } = useCollection('production_board', userId);
+  const mk = useCollection('media_kit', userId);
+  const profile = mk.items[0] as MediaKitProfile | undefined;
 
   const stats = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -119,5 +121,14 @@ export function HowIWork({ userId }: Props): ReactElement {
           note="As you move content through your Production Board, this page will show real-time stats — how many items are in each step, your average turnaround, and more." />
       </SectionBlock>
     )}
+
+    <div className="cta-card">
+      <h3>Let's work together!</h3>
+      <p>{profile?.bio?.slice(0, 120) || 'Creating content that educates, entertains, and drives results.'} {profile?.availability ? `· ${profile.availability}` : ''}</p>
+      <div className="row" style={{ gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {profile?.email && <a className="btn primary" href={`mailto:${profile.email}`}>📧 {profile.email}</a>}
+        <span className="hint" style={{ fontSize: 11, alignSelf: 'center' }}>24-hour response rate</span>
+      </div>
+    </div>
   </div>;
 }

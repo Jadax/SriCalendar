@@ -22,6 +22,19 @@ const PLATFORM_COLORS: Record<string, 'coral' | 'mint' | 'lavender' | 'yellow' |
   tiktok: 'coral', instagram: 'lavender', youtube: 'mint', x: 'sky', facebook: 'yellow',
 };
 
+const NICHE_PHILOSOPHY: Record<string, string> = {
+  fitness: 'Workouts, gym content, and wellness routines that inspire movement.',
+  beauty: 'Skincare, makeup, and beauty routines that educate and empower.',
+  fashion: 'OOTD, styling tips, and hauls that build personal style.',
+  food: 'Recipes, reviews, and food hacks that bring people to the table.',
+  travel: 'Vlogs, guides, and travel tips for the curious explorer.',
+  tech: 'Reviews, unboxing, and tech tips that demystify gadgets.',
+  parenting: 'Parenting tips, hacks, and family moments that resonate.',
+  finance: 'Budgeting, saving, and investing content that builds wealth.',
+  gaming: 'Gameplay, reviews, and streams that entertain and connect.',
+  lifestyle: 'Daily vlogs, routines, and lifestyle content that inspires.',
+};
+
 /** PILLAR 2 — Portfolio Gallery: visual showcase of published work by niche (stolen from ugcbylinda.com). */
 export function PortfolioGallery({ userId }: Props): ReactElement {
   const { items: board } = useCollection('production_board', userId);
@@ -81,6 +94,12 @@ export function PortfolioGallery({ userId }: Props): ReactElement {
 
     <SectionBlock title={nicheFilter === 'all' ? 'All published work' : `${nicheFilter} portfolio`}
       hint={`${filtered.length} piece${filtered.length !== 1 ? 's' : ''}${nicheFilter !== 'all' ? ` in ${nicheFilter}` : ''}`}>
+
+      {nicheFilter !== 'all' && NICHE_PHILOSOPHY[nicheFilter] && (
+        <p className="muted" style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 14, fontStyle: 'italic' }}>
+          💡 {NICHE_PHILOSOPHY[nicheFilter]}
+        </p>
+      )}
 
       {filtered.length === 0 ? (
         <EmptyState emoji="🎨" title="No published work yet"

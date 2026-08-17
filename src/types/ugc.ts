@@ -125,6 +125,10 @@ export interface MediaKitProfile extends UgcRow {
   form_factor: string | null;
   /** Currency used for the whole rate card (defaults to USD). */
   currency: string | null;
+  social_instagram: string | null;
+  social_tiktok: string | null;
+  social_youtube: string | null;
+  social_x: string | null;
 }
 
 export interface KnowledgeItem extends UgcRow {
