@@ -463,6 +463,16 @@
 .dark .workflow-step-header strong{color:#e5d9ff}
 .dark .workflow-step-icon{background:linear-gradient(135deg,rgba(203,183,255,.15),rgba(245,79,134,.1));border-color:rgba(203,183,255,.2)}
 
+/* Portfolio Spotlight (alternate view) */
+.portfolio-spotlight{display:flex;flex-direction:column;gap:14px}
+.portfolio-spotlight-card{background:linear-gradient(145deg,rgba(255,248,252,.94),rgba(248,240,255,.86));border:1px solid rgba(255,255,255,.92);border-radius:16px;box-shadow:0 6px 20px rgba(187,104,143,.08);padding:18px;display:flex;flex-direction:column;gap:8px;transition:transform .15s,box-shadow .15s}
+.portfolio-spotlight-card.featured{border-color:rgba(245,79,134,.3);box-shadow:0 8px 28px rgba(245,79,134,.12)}
+.portfolio-spotlight-card:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(187,104,143,.14)}
+.portfolio-spotlight-number{font-size:11px;font-weight:800;color:#9b7ce1;letter-spacing:.5px}
+.dark .portfolio-spotlight-card{background:linear-gradient(145deg,rgba(60,54,75,.6),rgba(52,48,66,.5));border-color:rgba(255,255,255,.08)}
+.dark .portfolio-spotlight-card.featured{border-color:rgba(245,79,134,.4)}
+@media(max-width:420px){.portfolio-spotlight{gap:10px}}
+
 /* Media Kit social links */
 .mk-social{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .mk-social-link{font-size:12px;font-weight:600;color:#7a6a95;background:rgba(203,183,255,.12);border-radius:999px;padding:5px 12px;text-decoration:none;transition:background .15s}

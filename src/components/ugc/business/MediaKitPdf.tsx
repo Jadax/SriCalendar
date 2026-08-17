@@ -53,6 +53,15 @@ export function MediaKitPdf({ profile, stats }: { profile: MediaKitProfile; stat
         {profile.availability ? <View style={styles.kvItem}><Text style={styles.kvLabel}>Availability</Text><Text style={styles.kvValue}>{profile.availability}</Text></View> : null}
         {profile.email ? <View style={styles.kvItem}><Text style={styles.kvLabel}>Email</Text><Text style={styles.kvValue}>{profile.email}</Text></View> : null}
       </View>
+      {(profile.social_instagram || profile.social_tiktok || profile.social_youtube || profile.social_x) ? <>
+        <Text style={styles.sectionTitle}>Social</Text>
+        <View style={styles.kv}>
+          {profile.social_instagram ? <View style={styles.kvItem}><Text style={styles.kvLabel}>Instagram</Text><Text style={styles.kvValue}>{profile.social_instagram}</Text></View> : null}
+          {profile.social_tiktok ? <View style={styles.kvItem}><Text style={styles.kvLabel}>TikTok</Text><Text style={styles.kvValue}>{profile.social_tiktok}</Text></View> : null}
+          {profile.social_youtube ? <View style={styles.kvItem}><Text style={styles.kvLabel}>YouTube</Text><Text style={styles.kvValue}>{profile.social_youtube}</Text></View> : null}
+          {profile.social_x ? <View style={styles.kvItem}><Text style={styles.kvLabel}>X</Text><Text style={styles.kvValue}>{profile.social_x}</Text></View> : null}
+        </View>
+      </> : null}
       {(profile.rates ?? []).filter((r) => r.name).length > 0 ? <>
         <Text style={styles.sectionTitle}>Rates</Text>
         {(profile.rates ?? []).filter((r) => r.name).map((r) => <View key={r.id} style={styles.row}>

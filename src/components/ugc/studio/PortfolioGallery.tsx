@@ -40,6 +40,7 @@ export function PortfolioGallery({ userId }: Props): ReactElement {
   const { items: board } = useCollection('production_board', userId);
   const { items: ideas } = useCollection('content_ideas', userId);
   const [nicheFilter, setNicheFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'grid' | 'spotlight'>('grid');
 
   const entries = useMemo<PortfolioEntry[]>(() => {
     const published = board
@@ -80,15 +81,21 @@ export function PortfolioGallery({ userId }: Props): ReactElement {
       subtitle={`Your published work at a glance. ${entries.length} piece${entries.length !== 1 ? 's' : ''} live.`} />
 
     <div className="section-block" style={{ marginBottom: 18 }}>
-      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        <button className={cx('niche-chip', nicheFilter === 'all' && 'active')} onClick={() => setNicheFilter('all')}>
-          All ({entries.length})
-        </button>
-        {NICHES.filter((n) => (nicheCounts[n] ?? 0) > 0).map((n) => (
-          <button key={n} className={cx('niche-chip', nicheFilter === n && 'active')} onClick={() => setNicheFilter(n)}>
-            {n} ({nicheCounts[n] ?? 0})
+      <div className="row" style={{ gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+          <button className={cx('niche-chip', nicheFilter === 'all' && 'active')} onClick={() => setNicheFilter('all')}>
+            All ({entries.length})
           </button>
-        ))}
+          {NICHES.filter((n) => (nicheCounts[n] ?? 0) > 0).map((n) => (
+            <button key={n} className={cx('niche-chip', nicheFilter === n && 'active')} onClick={() => setNicheFilter(n)}>
+              {n} ({nicheCounts[n] ?? 0})
+            </button>
+          ))}
+        </div>
+        <div className="subtabs" style={{ width: 'auto' }}>
+          <button className={cx('subtab', viewMode === 'grid' && 'active')} onClick={() => setViewMode('grid')}>📋 Grid</button>
+          <button className={cx('subtab', viewMode === 'spotlight' && 'active')} onClick={() => setViewMode('spotlight')}>✨ Spotlight</button>
+        </div>
       </div>
     </div>
 
@@ -104,6 +111,26 @@ export function PortfolioGallery({ userId }: Props): ReactElement {
       {filtered.length === 0 ? (
         <EmptyState emoji="🎨" title="No published work yet"
           note="Move content through your Production Board to 'Published' or mark ideas as published — they'll show up here as your visual portfolio." />
+      ) : viewMode === 'spotlight' ? (
+        <div className="portfolio-spotlight">
+          {filtered.slice(0, 6).map((e, i) => (
+            <div key={e.id} className={cx('portfolio-spotlight-card', i === 0 && 'featured')}>
+              <div className="portfolio-spotlight-number">#{i + 1}</div>
+              <div className="portfolio-card-header">
+                <Pill color={PLATFORM_COLORS[e.platform || ''] || 'gray'}>{e.platform || 'ugc'}</Pill>
+                <Pill color="gray">{e.niche}</Pill>
+                {i === 0 && <Pill color="coral">✨ featured</Pill>}
+              </div>
+              <h4 className="portfolio-card-title">{e.title}</h4>
+              {e.hook && <p className="portfolio-card-hook">"{e.hook.slice(0, 120)}{e.hook.length > 120 ? '…' : ''}"</p>}
+              {e.brand && <span className="portfolio-card-brand">🤝 {e.brand}</span>}
+              <div className="portfolio-card-footer">
+                <span className="hint" style={{ fontSize: 11 }}>{new Date(e.date).toLocaleDateString()}</span>
+                <span className="hint" style={{ fontSize: 11 }}>{e.source === 'board' ? 'board' : 'idea'}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="portfolio-grid">
           {filtered.map((e) => (

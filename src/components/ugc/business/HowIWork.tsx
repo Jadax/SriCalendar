@@ -1,4 +1,5 @@
-import { useMemo, type ReactElement } from 'react';
+import { useMemo, useState, type ReactElement } from 'react';
+import { Copy } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { EmptyState, PageHead, Pill, SectionBlock } from '../shared/primitives';
 import type { BoardCard, MediaKitProfile } from '../../../types/ugc';
@@ -44,10 +45,17 @@ export function HowIWork({ userId }: Props): ReactElement {
   const totalPublished = board.filter((c: BoardCard) => c.column_name === 'published').length;
   const totalActive = board.filter((c: BoardCard) => !['published', 'repurposed'].includes(c.column_name)).length;
   const totalDeals = board.length;
+  const [copied, setCopied] = useState(false);
+
+  const shareWorkflow = async (): Promise<void> => {
+    const text = `⚙️ How I Work\n\n${WORKFLOW_STEPS.map((s, i) => `${i + 1}. ${s.icon} ${s.label} (${s.turnaround})\n   ${s.description}`).join('\n\n')}\n\n⏱ Total turnaround: 5–7 days\n📧 ${profile?.email || 'hello@example.com'}`;
+    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ }
+  };
 
   return <div className="ugc-page">
     <PageHead eyebrow="Business · Process" title="How I Work ⚙️"
-      subtitle="Your production workflow — share this with brands to show how you operate." />
+      subtitle="Your production workflow — share this with brands to show how you operate."
+      actions={[<button key="share" className="btn soft" onClick={() => void shareWorkflow()}><Copy size={14}/> {copied ? 'Copied!' : 'Share workflow'}</button>]} />
 
     <SectionBlock title="Workflow" hint="each step includes a turnaround time">
       <div className="workflow-timeline">
