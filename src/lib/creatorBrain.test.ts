@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildDailyBrief, buildWeeklyPlan, draftFollowUp, draftPitch, generateCaptions, interpretAnalytics, brainstormIdeas, repurposeIdea, repurposeIdeaSmart, suggestRate,
-  rankIdeasForNext, trendingNow, trendingNowSmart,
-  type BrainstormIdea, type TodayContext,
+  rankIdeasForNext, trendingNow, trendingNowSmart, regionalBenchmark, hashtagPack,
+  type BrainstormIdea, type TodayContext, type Trend,
 } from './creatorBrain';
 import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
 
@@ -379,5 +379,53 @@ describe('creatorBrain · trend pulse', () => {
 
   it('returns an empty ranking when nothing is open', () => {
     expect(rankIdeasForNext([], { region: 'world', niches: [] })).toEqual([]);
+  });
+
+  it('returns india benchmark with INR currency', () => {
+    const b = regionalBenchmark('india');
+    expect(b).not.toBeNull();
+    expect(b!.currency).toBe('INR');
+    expect(b!.symbol).toBe('\u20B9');
+    expect(b!.rows.length).toBe(4);
+    expect(b!.rows[0]!.low).toBeGreaterThan(0);
+    expect(b!.rows[0]!.high).toBeGreaterThan(b!.rows[0]!.low);
+  });
+
+  it('returns null for unknown region', () => {
+    expect(regionalBenchmark('atlantis')).toBeNull();
+  });
+
+  it('all 5 regions have benchmarks', () => {
+    const regions = ['india', 'africa', 'us', 'uk', 'world'] as const;
+    for (const r of regions) {
+      const b = regionalBenchmark(r);
+      expect(b).not.toBeNull();
+      expect(b!.rows.length).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('hashtagPack merges trend + region tags', () => {
+    const t: Trend = { id: 'test', niche: 'beauty', region: 'india', title: 'Test', hook: 'Hook', angle: 'angle', format: 'reel', momentum: 80, direction: 'rising', virality: 70, play: 'Play', hashtags: ['skincare', 'reels'] };
+    const pack = hashtagPack(t);
+    expect(pack.hashtags).toContain('skincare');
+    expect(pack.hashtags).toContain('reels');
+    expect(pack.hashtags.some((h) => ['viralindia', 'reelsindia', 'trendingindia', 'instagrowth'].includes(h))).toBe(true);
+    expect(pack.hashtags.length).toBeLessThanOrEqual(12);
+    expect(pack.caption).toContain('Hook');
+    expect(pack.caption).toContain('#');
+  });
+
+  it('hashtagPack deduplicates overlapping tags', () => {
+    const t: Trend = { id: 'test', niche: 'food', region: 'world', title: 'Test', hook: 'H', angle: 'A', format: 'video', momentum: 50, direction: 'rising', virality: 40, play: 'P', hashtags: ['fyp', 'food'] };
+    const pack = hashtagPack(t);
+    const fypCount = pack.hashtags.filter((h) => h === 'fyp').length;
+    expect(fypCount).toBe(1);
+  });
+
+  it('hashtagPack falls back to world tags for unknown region', () => {
+    const t = { id: 'test', niche: 'tech', region: 'atlantis', title: 'T', hook: 'H', angle: 'A', format: 'V', momentum: 60, direction: 'rising', virality: 50, play: 'P', hashtags: ['tech'] } as unknown as Trend;
+    const pack = hashtagPack(t);
+    expect(pack.hashtags).toContain('fyp');
+    expect(pack.hashtags).toContain('viral');
   });
 });

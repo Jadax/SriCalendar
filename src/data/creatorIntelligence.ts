@@ -267,3 +267,53 @@ export const TRENDS: Trend[] = [
   { id: 'uk-food-1', niche: 'food', region: 'uk', title: 'A week of dinners for £25', hook: 'A week of dinners for £25 — full plan.', angle: 'cost of living', format: 'meal prep', momentum: 74, direction: 'rising', virality: 66, play: 'Budget meal plans answer the cost-of-living squeeze.', hashtags: ['budgetmeals', 'mealprep', 'ukfood'] },
   { id: 'uk-lifestyle-1', niche: 'lifestyle', region: 'uk', title: 'The rain-proof routine', hook: 'Rain-proof your routine — 5 changes that changed my mood.', angle: 'weather survival', format: 'tips', momentum: 70, direction: 'rising', virality: 60, play: 'British weather hacks are endlessly relatable.', hashtags: ['ukweather', 'lifestyle', 'dailyroutine'] },
 ];
+
+/* ---------------------------------------------------------------------------
+ * Regional benchmarks — "what top UGC creators charge in your market"
+ * Based on 2026 marketplace data across Billo, JoinBrands, Collabstr and Insense.
+ * ------------------------------------------------------------------------- */
+
+export interface RegionalBenchmarkRow { label: string; low: number; high: number }
+export interface RegionalBenchmark { region: TrendRegion; currency: string; symbol: string; note: string; rows: RegionalBenchmarkRow[] }
+
+export const REGIONAL_BENCHMARKS: RegionalBenchmark[] = [
+  { region: 'india', currency: 'INR', symbol: '\u20B9', note: 'Volume-first market. Quote packages, not singles — brands expect bundles.', rows: [
+    { label: 'Single short video (15-60s)', low: 800, high: 2500 },
+    { label: '3-video bundle', low: 2000, high: 6000 },
+    { label: 'Paid-ad rights (90 days)', low: 400, high: 1500 },
+    { label: 'Monthly retainer (4-8 videos)', low: 8000, high: 25000 },
+  ]},
+  { region: 'africa', currency: 'USD', symbol: '$', note: 'Fast-growing scene. International clients pay 2-3x local rates.', rows: [
+    { label: 'Single short video (15-60s)', low: 50, high: 200 },
+    { label: '3-video bundle', low: 120, high: 450 },
+    { label: 'Paid-ad rights (90 days)', low: 25, high: 100 },
+    { label: 'Monthly retainer (4-8 videos)', low: 400, high: 1500 },
+  ]},
+  { region: 'us', currency: 'USD', symbol: '$', note: 'Highest pay, most competition. Paid-ad rights are the profit lever.', rows: [
+    { label: 'Single short video (15-60s)', low: 200, high: 800 },
+    { label: '3-video bundle', low: 500, high: 2000 },
+    { label: 'Paid-ad rights (90 days)', low: 100, high: 400 },
+    { label: 'Monthly retainer (4-8 videos)', low: 2500, high: 10000 },
+  ]},
+  { region: 'uk', currency: 'GBP', symbol: '\u00A3', note: 'Strong budgets, style-heavy brands. Cost-of-living angles win.', rows: [
+    { label: 'Single short video (15-60s)', low: 150, high: 600 },
+    { label: '3-video bundle', low: 400, high: 1500 },
+    { label: 'Paid-ad rights (90 days)', low: 75, high: 300 },
+    { label: 'Monthly retainer (4-8 videos)', low: 2000, high: 8000 },
+  ]},
+  { region: 'world', currency: 'USD', symbol: '$', note: 'Blended benchmark for international or remote clients.', rows: [
+    { label: 'Single short video (15-60s)', low: 100, high: 500 },
+    { label: '3-video bundle', low: 250, high: 1200 },
+    { label: 'Paid-ad rights (90 days)', low: 50, high: 250 },
+    { label: 'Monthly retainer (4-8 videos)', low: 1000, high: 5000 },
+  ]},
+];
+
+/** Region-aware hashtag packs layered on top of a trend's own tags. */
+export const REGION_HASHTAGS: Record<TrendRegion, string[]> = {
+  india: ['viralindia', 'reelsindia', 'trendingindia', 'instagrowth'],
+  africa: ['africatiktok', 'trendinginafrica', 'africancreators'],
+  us: ['usatiktok', 'trendingnow', 'creatorus'],
+  uk: ['ukcreator', 'trendinguk', 'britishcreator'],
+  world: ['fyp', 'trending', 'viral', 'creatorcommunity'],
+};

@@ -1,6 +1,7 @@
 import { generateText, isGeminiConfigured, type ResponseSchema } from './geminiClient';
 import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_TEMPLATES } from '../data/hookTemplates';
-import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, TRENDS, TREND_REGIONS, USAGE_ADDONS, type Trend } from '../data/creatorIntelligence';
+import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, REGIONAL_BENCHMARKS, REGION_HASHTAGS, TRENDS, TREND_REGIONS, USAGE_ADDONS, type RegionalBenchmark, type Trend, type TrendRegion } from '../data/creatorIntelligence';
+export type { Trend, RegionalBenchmark } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, Goal, HookItem, Invoice, MediaKitProfile,
@@ -1051,4 +1052,21 @@ export function rankIdeasForNext(ideas: ContentIdea[], opts: { region?: string; 
     .filter((i) => i.status === 'idea' || i.status === 'scripted')
     .map((i) => viralScoreOf(i, trends, opts.region ?? 'world'))
     .sort((a, b) => b.score - a.score);
+}
+
+/* ---------------------------------------------------------------------------
+ * 10.5 Regional benchmarks + hashtag packs — "charge for your market"
+ * ------------------------------------------------------------------------- */
+
+/** Returns the regional rate benchmark for a given region, or null if unknown. */
+export function regionalBenchmark(region: string): RegionalBenchmark | null {
+  return REGIONAL_BENCHMARKS.find((b) => b.region === region) ?? null;
+}
+
+/** Builds a region-aware hashtag pack + caption starter from a trend. */
+export function hashtagPack(t: TrendItem): { hashtags: string[]; caption: string } {
+  const regionTags = REGION_HASHTAGS[(t.region as TrendRegion)] ?? REGION_HASHTAGS.world;
+  const hashtags = [...new Set([...t.hashtags, ...regionTags])].slice(0, 12);
+  const caption = `${t.hook}\n\n${t.angle} \u2014 ${t.play}\n\n${hashtags.map((h) => `#${h}`).join(' ')}`;
+  return { hashtags, caption };
 }

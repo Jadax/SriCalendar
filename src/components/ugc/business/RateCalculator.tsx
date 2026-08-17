@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Copy } from 'lucide-react';
-import { suggestRate, suggestRateSmart, isGeminiConfigured as brainGemini, type RateSuggestion } from '../../../lib/creatorBrain';
-import { DELIVERABLE_LABELS, FOLLOWERS_BANDS, PACKAGE_TIERS, PLATFORM_LADDER, RATE_TIERS, USAGE_ADDONS } from '../../../data/creatorIntelligence';
+import { suggestRate, suggestRateSmart, isGeminiConfigured as brainGemini, regionalBenchmark, type RateSuggestion } from '../../../lib/creatorBrain';
+import { DELIVERABLE_LABELS, FOLLOWERS_BANDS, PACKAGE_TIERS, PLATFORM_LADDER, RATE_TIERS, TREND_REGIONS, USAGE_ADDONS } from '../../../data/creatorIntelligence';
 import { alphaBy } from '../../../data/options';
 import { cap } from '../../../data/options';
 import { EmptyState, Field, FormRow, PageHead, Pill, SectionBlock } from '../shared/primitives';
@@ -23,6 +23,8 @@ export function RateCalculator(_props: Props): ReactElement {
   const [smartBusy, setSmartBusy] = useState(false);
   const [smart, setSmart] = useState<RateSuggestion | null>(null);
   const [copied, setCopied] = useState(false);
+  const [benchRegion, setBenchRegion] = useState('india');
+  const bench = useMemo(() => regionalBenchmark(benchRegion), [benchRegion]);
 
   const suggestion = useMemo<RateSuggestion>(() => smart ?? suggestRate({ tier, deliverable, usage, bundle, followers, niche }), [tier, deliverable, usage, bundle, followers, niche, smart]);
 
@@ -92,6 +94,24 @@ export function RateCalculator(_props: Props): ReactElement {
     <SectionBlock title="Where to find work" hint="the marketplace ladder — join in order">
       {PLATFORM_LADDER.length === 0 ? <EmptyState emoji="🤝" title="No marketplaces configured" note="Add the platforms you apply on and track each stage."/> :
         <div className="table-wrap"><table className="data-table"><thead><tr><th>Platform</th><th>Join</th><th>Best for</th><th>Note</th></tr></thead><tbody>{PLATFORM_LADDER.map((p) => <tr key={p.name}><td><strong>{p.name}</strong></td><td><Pill color={p.stage === 'Day 1' ? 'mint' : p.stage.startsWith('After') ? 'yellow' : 'sky'}>{p.stage}</Pill></td><td>{p.what}</td><td className="muted">{p.note}</td></tr>)}</tbody></table></div>}
+    </SectionBlock>
+
+    <SectionBlock title="Regional rate benchmarks" hint="what top UGC creators charge per region">
+      <div className="subtabs" style={{ width: 'auto', marginBottom: 14 }}>
+        {TREND_REGIONS.map((r) => (
+          <button key={r.id} className={`subtab ${benchRegion === r.id ? 'active' : ''}`} onClick={() => setBenchRegion(r.id)}>
+            {r.flag} {r.label}
+          </button>
+        ))}
+      </div>
+      {bench ? (
+        <>
+          <p className="hint" style={{ fontSize: 12, marginBottom: 12 }}>💡 {bench.note}</p>
+          <div className="table-wrap"><table className="data-table"><thead><tr><th>Deliverable</th><th>{bench.symbol} low</th><th>{bench.symbol} high</th></tr></thead><tbody>{bench.rows.map((row) => <tr key={row.label}><td>{row.label}</td><td><strong>{bench.symbol}{row.low.toLocaleString()}</strong></td><td>{bench.symbol}{row.high.toLocaleString()}</td></tr>)}</tbody></table></div>
+        </>
+      ) : (
+        <EmptyState emoji="📊" title="No benchmarks for this region" note="Select a region to see market rate ranges." />
+      )}
     </SectionBlock>
   </div>;
 }
