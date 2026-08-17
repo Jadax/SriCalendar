@@ -7,12 +7,13 @@ import { ProductionBoard } from './ProductionBoard';
 import { HookLibrary } from './HookLibrary';
 import { Checklists } from './Checklists';
 import { TrendPulse } from './TrendPulse';
+import { PortfolioGallery } from './PortfolioGallery';
 
-type StudioTab = 'video' | 'ideas' | 'scripts' | 'board' | 'hooks' | 'checklists' | 'trends';
+type StudioTab = 'video' | 'ideas' | 'scripts' | 'board' | 'hooks' | 'checklists' | 'trends' | 'portfolio';
 
 interface Props { userId: string }
 
-/** PILLAR 2 — Studio: video ingest/AI-tagging, ideation, scripting, production, hook library and checklists. */
+/** PILLAR 2 — Studio: video ingest/AI-tagging, ideation, scripting, production, hook library, checklists, and portfolio. */
 export function StudioPage({ userId }: Props): ReactElement {
   const [tab, setTab] = useState<StudioTab>('video');
   return <div className="ugc-page">
@@ -27,6 +28,7 @@ export function StudioPage({ userId }: Props): ReactElement {
         { id: 'board', label: 'Production Board', icon: '🗂️' },
         { id: 'hooks', label: 'Hook Library', icon: '🧲' },
         { id: 'checklists', label: 'Checklists', icon: '✅' },
+        { id: 'portfolio', label: 'Portfolio', icon: '✨' },
       ]} />
     {tab === 'video' && <VideoAssistant userId={userId}/>}
     {tab === 'ideas' && <IdeaBank userId={userId}/>}
@@ -35,5 +37,6 @@ export function StudioPage({ userId }: Props): ReactElement {
     {tab === 'board' && <ProductionBoard userId={userId}/>}
     {tab === 'hooks' && <HookLibrary userId={userId}/>}
     {tab === 'checklists' && <Checklists userId={userId}/>}
+    {tab === 'portfolio' && <PortfolioGallery userId={userId}/>}
   </div>;
 }
