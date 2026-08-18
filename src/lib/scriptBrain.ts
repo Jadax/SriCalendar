@@ -1,6 +1,8 @@
 import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_CATEGORIES, HOOK_CATEGORY_META, HOOK_TEMPLATES, SCRIPT_STRUCTURES } from '../data/hookTemplates';
+import { NICHE_HASHTAGS } from '../data/creatorIntelligence';
 import { PLATFORMS } from '../data/options';
-import type { HookItem, Script } from '../types/ugc';
+import { generateCaptions } from './creatorBrain';
+import type { HookItem } from '../types/ugc';
 
 export interface BrainContext {
   niche: string;
@@ -144,6 +146,277 @@ export function buildBrain(ctx: BrainContext, myHooks: HookItem[]): BrainResult 
   const editingNotes = buildEditingNotes(platform, ctx.content);
 
   return { hooks, caption, cta, structure, titles, tags, description, editingNotes };
+}
+
+/* ---------------------------------------------------------------------------
+ * 5-Beat UGC Script Generator — full spoken script from hook + topic
+ * ------------------------------------------------------------------------- */
+
+/** The 5-beat UGC script structure. */
+export interface ScriptBeat {
+  beat: string;
+  timing: string;
+  dialogue: string;
+  visual: string;
+  onScreen: string;
+}
+
+export interface FullScript {
+  beats: ScriptBeat[];
+  totalWords: number;
+  estimatedSeconds: number;
+  title: string;
+  hook: string;
+  caption: string;
+  cta: string;
+  hashtags: string[];
+  editingNotes: string[];
+}
+
+/** Niche-specific beat modifiers — what to say in each beat. */
+const NICHE_BEAT_GUIDES: Record<string, { problem: string; solution: string; proof: string; cta: string }> = {
+  beauty: {
+    problem: 'Name the specific skin/hair problem. "My foundation separated by noon" not "my skin was bad".',
+    solution: 'Introduce the product as a friend explaining, not a salesperson. "So I found this..."',
+    proof: 'Show the product on your face/hair. Zoom into the texture. Compare before/after.',
+    cta: 'Follow for more {niche} tips and save this for your next routine.',
+  },
+  fitness: {
+    problem: 'Name the specific fitness frustration. "I was stuck at the same weight for 3 months".',
+    solution: 'Introduce the workout/supplement as a discovery. "Then I tried this..."',
+    proof: 'Show yourself doing the exercise. Mention specific numbers: reps, weight, days.',
+    cta: 'Follow for more {niche} wins. Tag someone who needs this.',
+  },
+  food: {
+    problem: 'Name the daily dinner struggle. "It is 6pm and I have no idea what to cook".',
+    solution: 'Introduce the recipe as a shortcut. "This 15-minute recipe changed my weeknights".',
+    proof: 'Show the finished dish. Zoom into the texture. Take a bite on camera.',
+    cta: 'Save this recipe and follow for easy {niche} dinners.',
+  },
+  fashion: {
+    problem: 'Name the outfit frustration. "I stare at a full closet and have nothing to wear".',
+    solution: 'Introduce the styling trick as a discovery. "Then I learned this one rule".',
+    proof: 'Show the full outfit. Turn around. Show the details up close.',
+    cta: 'Follow for more {niche} inspo. Tag your go-to style twin.',
+  },
+  tech: {
+    problem: 'Name the tech frustration. "My phone dies at 3pm every single day".',
+    solution: 'Introduce the tool/setting as a discovery. "This one setting changed everything".',
+    proof: 'Screen-record the result. Show the before/after metrics.',
+    cta: 'Save this and follow for honest {niche} takes.',
+  },
+  travel: {
+    problem: 'Name the travel frustration. "I spent 6 hours planning a 2-day trip".',
+    solution: 'Introduce the itinerary/hack as a shortcut. "This template does it in 5 minutes".',
+    proof: 'Show the actual places. Name specific restaurants, streets, prices.',
+    cta: 'Save this for your next trip and follow for {niche} hacks.',
+  },
+  parenting: {
+    problem: 'Name the parenting moment. "The 3pm meltdown that happens every school day".',
+    solution: 'Introduce the technique/product as a parent-to-parent tip. "A mum friend told me this".',
+    proof: 'Show the result. "It worked in 20 seconds" — be specific about time.',
+    cta: 'Follow for more {niche} tips and tag a parent who needs this.',
+  },
+  finance: {
+    problem: 'Name the money frustration. "I earn decent money but have nothing at the end of the month".',
+    solution: 'Introduce the budgeting hack as a discovery. "Then I set up this one transfer".',
+    proof: 'Show the actual numbers on screen. "I saved R2,000 in 30 days".',
+    cta: 'Save this and follow for more {niche} tips.',
+  },
+  gaming: {
+    problem: 'Name the gaming frustration. "I keep losing the same fight over and over".',
+    solution: 'Introduce the setting/strategy as a discovery. "This one change fixed it".',
+    proof: 'Show the gameplay clip. Show the settings screen. Show the result.',
+    cta: 'Follow for more {niche} plays and comment your best clip.',
+  },
+  lifestyle: {
+    problem: 'Name the daily frustration. "My mornings are chaotic and I leave the house stressed".',
+    solution: 'Introduce the routine/hack as a discovery. "This 10-minute reset changed my mornings".',
+    proof: 'Show yourself doing the routine. Show the calm result.',
+    cta: 'Follow for more {niche} tips and try this tomorrow morning.',
+  },
+};
+
+const NICHE_HOOK_STARTERS: Record<string, string[]> = {
+  beauty: [
+    'If your {product} is not working, watch this.',
+    'Stop using {product} like this. It is making your skin worse.',
+    'The {ingredient} your dermatologist wishes you knew about.',
+    'I tested {product} for 30 days. Here is the honest truth.',
+    'Your skincare routine is missing this one step.',
+  ],
+  fitness: [
+    'If you are not seeing results, this is why.',
+    'I tried {workout} for 30 days. The results surprised me.',
+    'The {exercise} mistake that is killing your gains.',
+    'Stop doing {exercise} like this. Do this instead.',
+    'This 10-minute workout replaced my 1-hour gym session.',
+  ],
+  food: [
+    'If you are tired of the same dinner rotation, try this.',
+    'This {recipe} takes 15 minutes and feeds 4 people.',
+    'I stopped ordering takeout after learning this recipe.',
+    'The {ingredient} hack that makes everything taste better.',
+    'This is the easiest {dish} you will ever make.',
+  ],
+  fashion: [
+    'If your outfits never look right, the problem is the fit.',
+    'This {item} goes with everything in your closet.',
+    'The styling rule that changed how I get dressed.',
+    'Stop wearing {item} like this. Try this instead.',
+    'This {item} looks expensive but costs under R{price}.',
+  ],
+  tech: [
+    'If your {device} is slow, this one setting fixes it.',
+    'This free {tool} does what paid ones charge for.',
+    'The {setting} nobody changes. Fix this now.',
+    'I replaced 5 apps with this one {tool}.',
+    'Your {device} can do this. You just do not know it yet.',
+  ],
+  travel: [
+    'If you are planning a trip, save this first.',
+    'This {destination} itinerary costs under R{price} total.',
+    'The {destination} hack nobody tells you at the airport.',
+    'I found a spot that looks like {place} but costs nothing.',
+    'Skip the tourist traps. Go here instead.',
+  ],
+  parenting: [
+    'If your {child} does this, try this one sentence.',
+    'The {age}-year-old hack that ended our bedtime battle.',
+    'Stop fighting screen time. Try this instead.',
+    'This one routine saved my sanity as a {parent_type}.',
+    'The lunchbox trick that comes back empty every time.',
+  ],
+  finance: [
+    'If you are broke at the end of the month, fix this one thing.',
+    'I tracked my spending for 90 days. Here is what shocked me.',
+    'The {habit} that saved me R{amount} in 30 days.',
+    'Stop doing this with your {account}. It is losing you money.',
+    'This {strategy} pays within 30 days of starting.',
+  ],
+  gaming: [
+    'If you keep losing, this {setting} change fixes it.',
+    'This {strategy} is why I climbed from {rank} to {rank2}.',
+    'The {game} update that changed everything. Nobody noticed.',
+    'Stop playing like this. Do this instead.',
+    'This free {tool} gave me an unfair advantage.',
+  ],
+  lifestyle: [
+    'If your mornings are chaotic, try this 10-minute reset.',
+    'This routine changed how I start every day.',
+    'The {habit} that stuck after I stopped overthinking it.',
+    'If you feel stuck, start with this one tiny change.',
+    'This is the honest version of a {day} routine.',
+  ],
+};
+
+/** Generate a full 5-beat UGC script from a topic + niche. */
+export function buildFullScript(ctx: BrainContext, myHooks: HookItem[]): FullScript {
+  const platform = PLATFORMS.includes(ctx.platform as never) ? ctx.platform : 'tiktok';
+  const niche = ctx.niche || 'lifestyle';
+  const topic = ctx.topic || niche;
+  const seed = seededHash(`${topic}${niche}${platform}`);
+
+  // Pick hook from templates
+  const nicheHooks = NICHE_HOOK_STARTERS[niche] ?? NICHE_HOOK_STARTERS.lifestyle!;
+  const hookTemplate = nicheHooks[seed % nicheHooks.length]!;
+  const hook = smartFill(hookTemplate, ctx);
+
+  // Pick niche beat guide
+  const guide = NICHE_BEAT_GUIDES[niche] ?? NICHE_BEAT_GUIDES.lifestyle!;
+
+  const beats: ScriptBeat[] = [
+    {
+      beat: 'HOOK',
+      timing: '0-3s',
+      dialogue: hook,
+      visual: 'Face to camera, mid-action or surprised expression. Cut within 1.3 seconds.',
+      onScreen: hook,
+    },
+    {
+      beat: 'PROBLEM',
+      timing: '3-7s',
+      dialogue: `${guide.problem.slice(0, 80)}`,
+      visual: 'Close-up or b-roll of the problem. Relatable, not staged.',
+      onScreen: 'the problem in 3 words',
+    },
+    {
+      beat: 'SOLUTION',
+      timing: '7-12s',
+      dialogue: `So ${guide.solution.slice(0, 80)}`,
+      visual: 'Product in hand or on screen. Show it naturally, not posed.',
+      onScreen: productOnScreen(niche),
+    },
+    {
+      beat: 'PROOF',
+      timing: '12-20s',
+      dialogue: guide.proof.slice(0, 100),
+      visual: 'Before/after or live demo. Zoom into the result.',
+      onScreen: 'the proof on screen',
+    },
+    {
+      beat: 'CTA',
+      timing: '25-30s',
+      dialogue: guide.cta.replace('{niche}', niche),
+      visual: 'Back to face, confident delivery. End on a smile or nod.',
+      onScreen: 'Follow + Save',
+    },
+  ];
+
+  const totalWords = beats.reduce((s, b) => s + b.dialogue.split(/\s+/).length, 0);
+  const estimatedSeconds = Math.round((totalWords / 140) * 60);
+
+  // Build hashtags
+  const pool = NICHE_HASHTAGS[niche.toLowerCase()] ?? NICHE_HASHTAGS.lifestyle!;
+  const platformTag = platform === 'tiktok' ? 'tiktok' : platform === 'instagram' || platform === 'reels' ? 'reels' : 'shorts';
+  const hashtags = [...new Set([...pool, platformTag, 'ugc', 'creator'])].slice(0, 8);
+
+  // Build caption
+  const captionSet = generateCaptions({ title: topic, hook, promise: guide.solution.slice(0, 60), niche, platform });
+
+  // Editing notes
+  const editingNotes = [
+    'Cut every 3-5 seconds. Never let a single shot hold longer than 5s.',
+    'Add on-beat captions. Keep them readable, not tiny.',
+    'Open with the most intense visual frame — pattern interrupt in 1.3 seconds.',
+    'Loop the ending back to the opening frame to boost replays.',
+    `Film for ${platform === 'youtube' ? 'YouTube' : 'TikTok/Reels'} — ${platform === 'youtube' ? '16:9 or 9:16' : '9:16 vertical'}.`,
+    'Hold a clean clip at the start for text overlay.',
+    niche === 'beauty' ? 'Film in natural light. Show product texture up close.' :
+    niche === 'fitness' ? 'Film the exercise from 2 angles. Show form, not just effort.' :
+    niche === 'food' ? 'Film the finished dish first. Zoom into steam, texture, bite.' :
+    niche === 'fashion' ? 'Film the full outfit, then the details. Show movement.' :
+    niche === 'tech' ? 'Screen-record the demo. Show the settings, then the result.' :
+    'Keep it natural. UGC works because it feels real, not polished.',
+  ];
+
+  return {
+    beats,
+    totalWords,
+    estimatedSeconds,
+    title: topic,
+    hook,
+    caption: captionSet.captions[0] ?? '',
+    cta: captionSet.cta,
+    hashtags,
+    editingNotes,
+  };
+}
+
+function productOnScreen(niche: string): string {
+  const map: Record<string, string> = {
+    beauty: 'Product name + close-up of texture/application',
+    fitness: 'Exercise form + rep counter overlay',
+    food: 'Ingredient laydown + timer overlay',
+    fashion: 'Outfit mirror shot + price tags',
+    tech: 'Screen recording + setting highlighted',
+    travel: 'Location pin + cost overlay',
+    parenting: 'Before/after moment + time stamp',
+    finance: 'Number on screen + account balance',
+    gaming: 'Gameplay clip + settings overlay',
+    lifestyle: 'Routine shot + time stamp',
+  };
+  return map[niche] ?? 'Product on screen with text overlay';
 }
 
 function seededHash(input: string): number {

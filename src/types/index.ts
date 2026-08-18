@@ -4,7 +4,11 @@ export type ViewMode = 'month' | 'week';
 export type SyncState = 'synced' | 'syncing' | 'offline';
 
 export interface Task { id: string; text: string; completed: boolean; order: number }
-export interface PlatformPost { id: string; platform: Platform; title: string; status: PostStatus; notes: string; idea_id?: string | null; script_id?: string | null; board_card_id?: string | null }
+export interface PlatformPost {
+  id: string; platform: Platform; title: string; status: PostStatus; notes: string;
+  idea_id?: string | null; script_id?: string | null; board_card_id?: string | null;
+  caption?: string; content_type?: string; schedule_date?: string;
+}
 export interface DailyData {
   id: string;
   user_id: string;

@@ -561,3 +561,52 @@
 .tip-card h4{font-size:13px;font-weight:700;color:var(--heading);margin:0 0 8px}
 .tip-card ul{margin:0;padding-left:16px}
 .tip-card li{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:3px}
+
+/* Pipeline overview */
+.pipeline-overview{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.pipeline-stage-card{flex:1;min-width:120px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;position:relative}
+.pipeline-stage-card.has-items{border-color:rgba(155,124,225,.25)}
+.pipeline-stage-header{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.pipeline-stage-icon{font-size:18px}
+.pipeline-stage-label{font-size:12px;font-weight:700;color:var(--heading);display:block}
+.pipeline-stage-count{font-size:11px;color:var(--hint)}
+.pipeline-bar{height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+.pipeline-bar-fill{height:100%;border-radius:2px;transition:width .3s}
+.pipeline-arrow{position:absolute;right:-12px;top:50%;transform:translateY(-50%);color:var(--hint);z-index:1}
+@media(max-width:768px){.pipeline-overview{flex-direction:column}.pipeline-arrow{display:none}}
+
+/* Pipeline actions */
+.pipeline-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:768px){.pipeline-actions{grid-template-columns:1fr}}
+.pipeline-action-card{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s}
+.pipeline-action-card:hover{border-color:rgba(155,124,225,.3)}
+.pipeline-action-card strong{font-size:12.5px;color:var(--heading)}
+
+/* Pipeline items */
+.pipeline-items{display:flex;flex-direction:column;gap:8px}
+.pipeline-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:8px;gap:8px}
+.pipeline-item-info{flex:1;min-width:0}
+.pipeline-item-info strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Weekly planner */
+.planner-controls{padding:4px 0}
+.planner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.planner-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;transition:border-color .15s}
+.planner-card.scheduling{opacity:.6;pointer-events:none}
+.planner-card-header{display:flex;align-items:center;justify-content:space-between}
+.planner-card-topic{font-size:13.5px;font-weight:700;color:var(--heading);line-height:1.35}
+.planner-card-hook{font-size:11.5px;color:var(--muted);line-height:1.5;font-style:italic;margin:4px 0 0}
+
+/* Live trends */
+.live-trends-grid{display:flex;flex-wrap:wrap;gap:6px}
+.live-trend-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;font-size:11.5px;color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.live-trend-source{flex-shrink:0}
+.live-trend-title{overflow:hidden;text-overflow:ellipsis}
+.live-trend-link{color:var(--accent);flex-shrink:0;margin-left:2px}
+
+/* Trend detail */
+.trend-detail-box{margin-top:12px;padding:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px}
+
+/* Date picker */
+.date-picker-mini{position:relative}
+.date-picker-dropdown{position:absolute;top:100%;right:0;z-index:50;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);min-width:200px}

@@ -41,6 +41,14 @@ export interface Script extends UgcRow {
   status: string;
   word_count: number;
   runtime_seconds: number;
+  platform?: string;
+  hook?: string;
+  structure?: string;
+  script_body?: string;
+  caption?: string;
+  tags?: string[];
+  board_card_id?: string | null;
+  source_idea_id?: string | null;
 }
 
 export interface HookItem extends UgcRow {
