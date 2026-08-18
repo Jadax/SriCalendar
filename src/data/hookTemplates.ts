@@ -4,7 +4,7 @@ export interface HookTemplate { text: string; category: string }
 export const HOOK_CATEGORIES = ['Question', 'Big Promise', 'Stat & Number', 'Myth-Bust', 'Contrarian', 'Story', 'Curiosity Gap', 'Danger & Stakes', 'Relatable', 'Authority & How-to', 'Challenge', 'Trend & Culture'] as const;
 
 export const HOOK_TEMPLATES: HookTemplate[] = [
-  // Question
+  // ═══ QUESTION ═══
   { category: 'Question', text: 'What if I told you {result} was hiding just {step} away?' },
   { category: 'Question', text: 'Why does nobody tell creators this about {topic}?' },
   { category: 'Question', text: 'Can you guess what happens in the first {seconds} seconds?' },
@@ -15,7 +15,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Question', text: 'What if your {thing} could be effortless too?' },
   { category: 'Question', text: 'Why is everyone suddenly doing {trend}?' },
   { category: 'Question', text: 'Have you ever wondered why {popular assumption} is actually wrong?' },
-  // Big Promise
+  // Question — beauty niche
+  { category: 'Question', text: 'Why does your skincare pill when you layer it? I found the answer.' },
+  { category: 'Question', text: 'Is your sunscreen actually protecting you? Here is the test.' },
+  { category: 'Question', text: 'Why do dermatologists never use {popular product}? I asked one.' },
+  { category: 'Question', text: 'What happens when you use {ingredient} every day for {days} days?' },
+  { category: 'Question', text: 'Why does your foundation separate by noon? It is not the foundation.' },
+  { category: 'Question', text: 'Is double cleansing actually worth it? I tested it for {days} days.' },
+  { category: 'Question', text: 'Why does your hair frizz more after you {common routine}?' },
+  { category: 'Question', text: 'What if your {product} is actually making your skin worse?' },
+  { category: 'Question', text: 'Why do {number} people get {skincare step} wrong?' },
+  { category: 'Question', text: 'How much {product} do you actually need? (It is less than you think)' },
+
+  // ═══ BIG PROMISE ═══
   { category: 'Big Promise', text: 'I tested {approach} for {days} days so you do not have to.' },
   { category: 'Big Promise', text: 'One setting that fixed my {problem} in {timeframe}.' },
   { category: 'Big Promise', text: 'This {free tool} does what paid ones charge {price} for.' },
@@ -26,7 +38,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Big Promise', text: 'From {starting point} to {dream outcome} with zero budget.' },
   { category: 'Big Promise', text: 'Copy this exact {system} and watch your {metric} climb.' },
   { category: 'Big Promise', text: 'The {smallest} change that made the {biggest} difference.' },
-  // Stat & Number
+  // Big Promise — beauty niche
+  { category: 'Big Promise', text: 'This R{price} product replaced my entire {category} routine.' },
+  { category: 'Big Promise', text: 'I cleared my {skin concern} in {days} days with this one product.' },
+  { category: 'Big Promise', text: 'The {ingredient} routine that gave me glass skin in {days} days.' },
+  { category: 'Big Promise', text: 'One hair mask that fixed {number} months of damage overnight.' },
+  { category: 'Big Promise', text: 'My {metric} went from {low} to {high} after switching to {product type}.' },
+  { category: 'Big Promise', text: 'This {product} is the reason I stopped wearing foundation.' },
+  { category: 'Big Promise', text: 'The skincare swap that saved me {price} a month.' },
+  { category: 'Big Promise', text: 'I found the {category} dupe that actually works better.' },
+  { category: 'Big Promise', text: 'This {habit} gave me the clearest skin of my life. Period.' },
+  { category: 'Big Promise', text: 'The {number}-step routine that transformed my {body part} in {days} days.' },
+
+  // ═══ STAT & NUMBER ═══
   { category: 'Stat & Number', text: '1 in {n} creators quit before they hit {number} followers.' },
   { category: 'Stat & Number', text: 'I tracked {metric} for {days} days. Here is what {number} videos taught me.' },
   { category: 'Stat & Number', text: '{number}% of {topic} content fails because of this.' },
@@ -37,7 +61,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Stat & Number', text: 'Here are {number} numbers every {niche} creator should memorize.' },
   { category: 'Stat & Number', text: '{number} days in a row. Here is the absurd result.' },
   { category: 'Stat & Number', text: 'The {number}-second rule that sets pros apart.' },
-  // Myth-Bust
+  // Stat — beauty niche
+  { category: 'Stat & Number', text: '{number}% of people apply {product} wrong. Here is the fix.' },
+  { category: 'Stat & Number', text: 'I tried {number} sunscreens. Only {number} passed the white cast test.' },
+  { category: 'Stat & Number', text: 'The average person spends {price} on {category} a year. I spend {price}.' },
+  { category: 'Stat & Number', text: '{number} dermatologists agree on this one {product} step.' },
+  { category: 'Stat & Number', text: 'I tested {number} {ingredient} serums. Here are the rankings.' },
+  { category: 'Stat & Number', text: 'Only {number} out of {number} {product} actually live up to the hype.' },
+  { category: 'Stat & Number', text: 'My {metric} improved by {number}% after changing this one step.' },
+  { category: 'Stat & Number', text: '{number} days of {ingredient}. Here is what my skin looks like.' },
+  { category: 'Stat & Number', text: 'I tracked my {metric} for {number} weeks. The data surprised me.' },
+  { category: 'Stat & Number', text: 'The {number}-minute {routine} that changed my skin forever.' },
+
+  // ═══ MYTH-BUST ═══
   { category: 'Myth-Bust', text: 'Stop believing {popular myth}. It is costing you {metric}.' },
   { category: 'Myth-Bust', text: 'Everything you know about {topic} is a lie.' },
   { category: 'Myth-Bust', text: 'The {advice} everyone gives is actually hurting you.' },
@@ -48,7 +84,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Myth-Bust', text: 'Bigger budgets don\u2019t win. This does.' },
   { category: 'Myth-Bust', text: 'Debunking the {trend} tip with {days} days of data.' },
   { category: 'Myth-Bust', text: 'The tool everyone raves about? Here is what it hides.' },
-  // Contrarian
+  // Myth-Bust — beauty niche
+  { category: 'Myth-Bust', text: '"You need to wash your face in the morning." Dermatologists say otherwise.' },
+  { category: 'Myth-Bust', text: '"Expensive skincare is always better." Here are {number} R{price} products that prove it wrong.' },
+  { category: 'Myth-Bust', text: '"Natural always means safe." This ingredient proves otherwise.' },
+  { category: 'Myth-Bust', text: '"You need {number} steps in your routine." dermatologists say {number} is enough.' },
+  { category: 'Myth-Bust', text: '"Oily skin does not need moisturiser." This is why you are breaking out.' },
+  { category: 'Myth-Bust', text: '"SPF is only for sunny days." UV damage happens year-round.' },
+  { category: 'Myth-Bust', text: '"You should exfoliate daily." Here is the real frequency.' },
+  { category: 'Myth-Bust', text: '"Hair masks work instantly." The truth about {ingredient} treatments.' },
+  { category: 'Myth-Bust', text: '"Retinol and vitamin C cannot be mixed." Here is the real rule.' },
+  { category: 'Myth-Bust', text: '"You need to pat your skincare in." Does it actually matter?' },
+
+  // ═══ CONTRARIAN ═══
   { category: 'Contrarian', text: 'Posting every day is lazy advice. Do the opposite.' },
   { category: 'Contrarian', text: 'More gear made my content worse. Here is why.' },
   { category: 'Contrarian', text: 'I quit {popular strategy} and my {metric} doubled.' },
@@ -59,7 +107,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Contrarian', text: 'You should not niche down. You should niche up.' },
   { category: 'Contrarian', text: 'The algorithm wants you to be boring. Defy it.' },
   { category: 'Contrarian', text: 'Watch time is not the real metric. This is.' },
-  // Story
+  // Contrarian — beauty niche
+  { category: 'Contrarian', text: 'I stopped using {popular product} and my skin improved.' },
+  { category: 'Contrarian', text: 'The {number}-step routine is a marketing scam. Here is the {number}-step truth.' },
+  { category: 'Contrarian', text: 'Drugstore {category} beats luxury {category} every time. Fight me.' },
+  { category: 'Contrarian', text: 'I stopped washing my face in the morning. Game changer.' },
+  { category: 'Contrarian', text: 'Your {product} is overpriced. Here is what actually works.' },
+  { category: 'Contrarian', text: 'I threw away half my {category} collection. No regrets.' },
+  { category: 'Contrarian', text: 'The beauty industry does not want you to know this.' },
+  { category: 'Contrarian', text: 'I stopped buying new {product} and used what I had. Shocking results.' },
+  { category: 'Contrarian', text: 'Your {routine} is too complicated. Here is the minimalist version.' },
+  { category: 'Contrarian', text: 'I stopped following {number} beauty rules. My skin thanked me.' },
+
+  // ═══ STORY ═══
   { category: 'Story', text: 'It was 11 PM, I had {resource}, and {unexpected thing} happened.' },
   { category: 'Story', text: 'I almost quit my {niche}. Then a {small event} stopped me.' },
   { category: 'Story', text: 'At {number} followers, I made the worst decision of my career.' },
@@ -70,7 +130,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Story', text: 'Here is the honest story behind {popular result}.' },
   { category: 'Story', text: 'I bet {risk} on a crazy idea. What happened next shocked me.' },
   { category: 'Story', text: 'From random {start} to {achievement}, the full unedited story.' },
-  // Curiosity Gap
+  // Story — beauty niche
+  { category: 'Story', text: 'I had {skin concern} for {number} years. Then I found this.' },
+  { category: 'Story', text: 'A dermatologist told me to stop using {product}. Best advice ever.' },
+  { category: 'Story', text: 'I spent R{amount} on {category} last year. Here is what actually worked.' },
+  { category: 'Story', text: 'My {family member} ruined my skin with {bad advice}. Here is the fix.' },
+  { category: 'Story', text: 'The day I found my {product} match. Never going back.' },
+  { category: 'Story', text: 'I tried {number} different {product} types. Only one survived.' },
+  { category: 'Story', text: 'My {hair type} journey: from {starting point} to {dream outcome}.' },
+  { category: 'Story', text: 'I went from {problem} to {solution} in {days} days. Unfiltered.' },
+  { category: 'Story', text: 'The {product} I almost threw away became my holy grail.' },
+  { category: 'Story', text: 'I trained myself to stop touching my face. Here is what happened.' },
+
+  // ═══ CURIOSITY GAP ═══
   { category: 'Curiosity Gap', text: 'Nobody talks about the {sneaky detail} in {topic}.' },
   { category: 'Curiosity Gap', text: 'I found the {unexpected} hiding inside {normal thing}.' },
   { category: 'Curiosity Gap', text: 'There is a reason your {thing} is not working. It is this.' },
@@ -81,7 +153,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Curiosity Gap', text: 'You are {number}% close to the answer already.' },
   { category: 'Curiosity Gap', text: 'The odd detail in my {video} you probably skipped.' },
   { category: 'Curiosity Gap', text: 'This {feature} has been hiding in plain sight.' },
-  // Danger & Stakes
+  // Curiosity Gap — beauty niche
+  { category: 'Curiosity Gap', text: 'The {ingredient} in your {product} does something you never expected.' },
+  { category: 'Curiosity Gap', text: 'Why your {product} stops working after {timeframe}.' },
+  { category: 'Curiosity Gap', text: 'The hidden {detail} on every skincare label. Can you spot it?' },
+  { category: 'Curiosity Gap', text: 'What {brand} does not tell you about their {product}.' },
+  { category: 'Curiosity Gap', text: 'The one {product} dermatologists actually use at home.' },
+  { category: 'Curiosity Gap', text: 'Why {ingredient} works differently on {skin type} skin.' },
+  { category: 'Curiosity Gap', text: 'The weird reason your {product} smells different after {timeframe}.' },
+  { category: 'Curiosity Gap', text: 'I found the {product} that {number} people swear by. Here is why.' },
+  { category: 'Curiosity Gap', text: 'The {technique} that pro {category} artists never share.' },
+  { category: 'Curiosity Gap', text: 'Your {product} is expired. Here is how to tell without the date.' },
+
+  // ═══ DANGER & STAKES ═══
   { category: 'Danger & Stakes', text: 'Doing this could get your account flagged for weeks.' },
   { category: 'Danger & Stakes', text: 'I almost lost everything by ignoring this {warning}.' },
   { category: 'Danger & Stakes', text: 'This mistake quietly kills engagement. Here is the fix.' },
@@ -92,7 +176,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Danger & Stakes', text: 'One wrong edit made my video invisible for {days} days.' },
   { category: 'Danger & Stakes', text: 'This could kill your trust in {seconds} seconds.' },
   { category: 'Danger & Stakes', text: 'The {subtle} mistake that strips your earnings.' },
-  // Relatable
+  // Danger — beauty niche
+  { category: 'Danger & Stakes', text: 'This {product} is destroying your {skin/hair} barrier. Stop now.' },
+  { category: 'Danger & Stakes', text: 'Your {product} is expired. Using it could cause {problem}.' },
+  { category: 'Danger & Stakes', text: 'The {ingredient} combo that causes {bad reaction}.' },
+  { category: 'Danger & Stakes', text: 'Stop layering {product A} with {product B}. Here is why.' },
+  { category: 'Danger & Stakes', text: 'Your {tool} is harboring more bacteria than a toilet seat.' },
+  { category: 'Danger & Stakes', text: 'This {routine} is stripping your skin. Here is the warning sign.' },
+  { category: 'Danger & Stakes', text: 'The {product} mistake that causes {number} breakouts a week.' },
+  { category: 'Danger & Stakes', text: 'Your {hair routine} is causing permanent damage. Here is the fix.' },
+  { category: 'Danger & Stakes', text: 'Using {product} wrong can cause {serious problem}. Here is how to do it right.' },
+  { category: 'Danger & Stakes', text: 'This {trend} is actually harmful. Dermatologists are worried.' },
+
+  // ═══ RELATABLE ═══
   { category: 'Relatable', text: 'POV: you planned {thing} for weeks and it still flopped.' },
   { category: 'Relatable', text: 'Nobody tells you how {lonely} this part of creating is.' },
   { category: 'Relatable', text: 'We all pretend we aren\u2019t refreshing the stats page.' },
@@ -103,7 +199,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Relatable', text: 'You are not behind. The algorithm is just noisy.' },
   { category: 'Relatable', text: 'The creator ritual nobody posts about: {routine}.' },
   { category: 'Relatable', text: 'Am I the only one whose {thing} looks worse after editing?' },
-  // Authority & How-to
+  // Relatable — beauty niche
+  { category: 'Relatable', text: 'POV: you just bought {product} and now your wallet is crying.' },
+  { category: 'Relatable', text: 'Nobody talks about how confusing {skincare step} is.' },
+  { category: 'Relatable', text: 'The struggle of finding your {product} shade is so real.' },
+  { category: 'Relatable', text: 'When your {product} works for {timeframe} then stops. Why?' },
+  { category: 'Relatable', text: 'Me: I do not need more {product}. Also me: *adds to cart*.' },
+  { category: 'Relatable', text: 'The {number}-step routine I actually do when I am tired.' },
+  { category: 'Relatable', text: 'Your {skin type} bestie after you recommend {product}.' },
+  { category: 'Relatable', text: 'When you finally find your {product} match but it is discontinued.' },
+  { category: 'Relatable', text: 'The {category} hoarder in me is triggered by this sale.' },
+  { category: 'Relatable', text: 'When your skin looks great but your wallet does not.' },
+
+  // ═══ AUTHORITY & HOW-TO ═══
   { category: 'Authority & How-to', text: 'The exact {framework} I use for every {format} I publish.' },
   { category: 'Authority & How-to', text: '{number} years in {niche}. These are the lessons that survived.' },
   { category: 'Authority & How-to', text: 'Here is my full {workflow}, step by step, no gatekeeping.' },
@@ -114,7 +222,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Authority & How-to', text: 'The tools I use for {task}, with zero fluff.' },
   { category: 'Authority & How-to', text: 'A professional\u2019s checklist for {deliverable}.' },
   { category: 'Authority & How-to', text: 'What {expert role} do before every {thing}.' },
-  // Challenge
+  // Authority — beauty niche
+  { category: 'Authority & How-to', text: 'The exact {routine} I use for {skin type} skin. Step by step.' },
+  { category: 'Authority & How-to', text: 'How to layer {number} products without pilling. Pro technique.' },
+  { category: 'Authority & How-to', text: 'The {ingredient} guide: what to use, when, and how much.' },
+  { category: 'Authority & How-to', text: 'My {category} routine: from {morning/night} to {morning/night}.' },
+  { category: 'Authority & How-to', text: 'How to choose the right {product} for your {skin/hair} type.' },
+  { category: 'Authority & How-to', text: 'The {technique} that changed how I {task}. Step by step.' },
+  { category: 'Authority & How-to', text: '{number} {product} every {skin type} person needs. Nothing else.' },
+  { category: 'Authority & How-to', text: 'How to read a {product} label like a {expert}.' },
+  { category: 'Authority & How-to', text: 'The {number}-minute {routine} for busy people. No excuses.' },
+  { category: 'Authority & How-to', text: 'What I wish I knew before starting my {skincare/haircare} journey.' },
+
+  // ═══ CHALLENGE ═══
   { category: 'Challenge', text: 'I challenge you to {action} for {days} days. Try it.' },
   { category: 'Challenge', text: '{days}-day {niche} challenge. Who is in?' },
   { category: 'Challenge', text: 'Post {thing} for a week. Film the honest result.' },
@@ -125,7 +245,19 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Challenge', text: 'Tag someone who needs to see {topic}.' },
   { category: 'Challenge', text: 'I tried {ridiculous method} so you don\u2019t have to.' },
   { category: 'Challenge', text: 'Day {n} of {total}: the journey so far.' },
-  // Trend & Culture
+  // Challenge — beauty niche
+  { category: 'Challenge', text: 'I am using only {number} products for {days} days. Let us see what happens.' },
+  { category: 'Challenge', text: '{days}-day {ingredient} challenge. Who is joining?' },
+  { category: 'Challenge', text: 'I am trying every {product} from {brand} for {days} days.' },
+  { category: 'Challenge', text: 'No {product} for {days} days. My skin is freaking out.' },
+  { category: 'Challenge', text: 'I let my {audience} choose my {routine} for a week.' },
+  { category: 'Challenge', text: 'Testing {number} viral {products} in one day. Chaos.' },
+  { category: 'Challenge', text: 'I am doing my {routine} only with {budget} products for {days} days.' },
+  { category: 'Challenge', text: 'The {brand} challenge: {number} products, {days} days, honest review.' },
+  { category: 'Challenge', text: 'I am copying {celebrity} {routine} for {days} days. Day {n}.' },
+  { category: 'Challenge', text: 'My audience picks my {routine} for a week. What could go wrong?' },
+
+  // ═══ TREND & CULTURE ═══
   { category: 'Trend & Culture', text: '{trend} is taking over. Here is how to use it before it dies.' },
   { category: 'Trend & Culture', text: 'This {week/month}\u2019s {platform} trend actually matches your niche.' },
   { category: 'Trend & Culture', text: 'Everyone is posting {trend}. Here is the smarter angle.' },
@@ -136,6 +268,17 @@ export const HOOK_TEMPLATES: HookTemplate[] = [
   { category: 'Trend & Culture', text: 'From {old trend} to {new trend}: what changed?' },
   { category: 'Trend & Culture', text: 'This trend is 48 hours from saturation. Act now.' },
   { category: 'Trend & Culture', text: 'What your feed is silently telling you about {topic}.' },
+  // Trend — beauty niche
+  { category: 'Trend & Culture', text: 'The {ingredient} trend is everywhere. Here is what actually works.' },
+  { category: 'Trend & Culture', text: 'This {category} trend from {country} is about to blow up.' },
+  { category: 'Trend & Culture', text: 'Everyone is buying {product}. Here is whether you should too.' },
+  { category: 'Trend & Culture', text: 'The {trend} skincare routine is actually genius. Here is why.' },
+  { category: 'Trend & Culture', text: '{celebrity} just posted their {routine}. Here is the breakdown.' },
+  { category: 'Trend & Culture', text: 'This {category} trend is {number} months old. Still worth it?' },
+  { category: 'Trend & Culture', text: 'The TikTok {product} that sold out everywhere. Is it worth the hype?' },
+  { category: 'Trend & Culture', text: 'Why {brand} is suddenly everywhere on your feed.' },
+  { category: 'Trend & Culture', text: 'This {category} hack from {country} is going viral. For good reason.' },
+  { category: 'Trend & Culture', text: 'The {season} {category} trend you need to try before summer.' },
 ];
 
 export const HOOK_CATEGORY_META: Record<(typeof HOOK_CATEGORIES)[number], { hint: string; archetype: string }> = {
