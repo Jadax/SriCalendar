@@ -186,7 +186,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'posts-today', emoji: '📅', priority: 'high',
       title: `${ctx.postsToday.length} post${ctx.postsToday.length === 1 ? '' : 's'} scheduled today`,
-      body: `${platforms} — check the calendar, film or schedule it and mark it live.`,
+      body: `${platforms}, check the calendar, film or schedule it and mark it live.`,
       action: { label: 'Open calendar', to: '/app/today' },
     });
   } else {
@@ -226,7 +226,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'invoice-booked', emoji: '🧾', priority: 'high',
       title: `Send the deposit invoice for ${uninvoiced.length} booked deal${uninvoiced.length === 1 ? '' : 's'}`,
-      body: `${uninvoiced[0]?.brand_name ?? 'a brand'}${uninvoiced.length > 1 ? ` and ${uninvoiced.length - 1} more` : ''} accepted — invoice now so the money is locked in.`,
+      body: `${uninvoiced[0]?.brand_name ?? 'a brand'}${uninvoiced.length > 1 ? ` and ${uninvoiced.length - 1} more` : ''} accepted, invoice now so the money is locked in.`,
       action: { label: 'Create invoice', to: '/app/business' },
     });
   }
@@ -256,7 +256,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'board-due', emoji: '🗂️', priority: 'medium',
       title: `${dueThisWeek.length} production card${dueThisWeek.length === 1 ? '' : 's'} due this week`,
-      body: `${dueThisWeek[0]?.title ?? 'A card'}${dueThisWeek.length > 1 ? ` and ${dueThisWeek.length - 1} more` : ''} — keep the pipeline moving.`,
+      body: `${dueThisWeek[0]?.title ?? 'A card'}${dueThisWeek.length > 1 ? ` and ${dueThisWeek.length - 1} more` : ''}, keep the pipeline moving.`,
       action: { label: 'Open board', to: '/app/studio' },
     });
   }
@@ -266,7 +266,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'tasks', emoji: '✅', priority: 'low',
       title: `${openTasks} task${openTasks === 1 ? '' : 's'} waiting on you today`,
-      body: 'Knock out the quickest one first — momentum beats motivation.',
+      body: 'Knock out the quickest one first, momentum beats motivation.',
       action: { label: 'Open calendar', to: '/app/today' },
     });
   }
@@ -275,7 +275,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'capture', emoji: '💡', priority: 'low',
       title: 'Start capturing ideas',
-      body: 'The Idea Bank is empty. Jot down 3 sparks today — even rough ones count.',
+      body: 'The Idea Bank is empty. Jot down 3 sparks today, even rough ones count.',
       action: { label: 'Spark an idea', to: '/app/studio' },
     });
   }
@@ -285,7 +285,7 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
     nudges.push({
       id: 'rates', emoji: '🏷️', priority: 'medium',
       title: 'Your rate card is empty',
-      body: 'Brands ask for rates first. Set a confident baseline with the pricing tool — you can negotiate down, never up.',
+      body: 'Brands ask for rates first. Set a confident baseline with the pricing tool, you can negotiate down, never up.',
       action: { label: 'Set your rates', to: '/app/business' },
     });
   }
@@ -402,7 +402,7 @@ export function interpretAnalytics(entries: AnalyticsEntry[]): AnalyticsInsight[
     insights.push({
       emoji: delta > 0 ? '🚀' : '🛟',
       title: delta > 0 ? `Followers are up ${delta.toLocaleString()} since ${first.date}` : `Followers dipped ${Math.abs(delta).toLocaleString()} since ${first.date}`,
-      body: delta > 0 ? 'That is real momentum — double down on what you posted between these dates.' : 'One weak week is normal. Tighten the hook and post at your best window.',
+      body: delta > 0 ? 'That is real momentum, double down on what you posted between these dates.' : 'One weak week is normal. Tighten the hook and post at your best window.',
       tone: delta > 0 ? 'good' : 'warn',
     });
   }
@@ -414,7 +414,7 @@ export function interpretAnalytics(entries: AnalyticsEntry[]): AnalyticsInsight[
     insights.push({
       emoji: lastEr >= 3 ? '❤️' : lastEr >= 1 ? '🌤️' : '🥶',
       title: `Latest engagement is ${lastEr.toFixed(2)}% (avg ${avg.toFixed(2)}%)`,
-      body: lastEr >= 3 ? 'That is a strong benchmark — viewers are saving and sharing.' : lastEr >= 1 ? 'Healthy baseline. A sharper first 3 seconds will push it up.' : 'Below 1% means the first second is losing people. Test a new hook style.',
+      body: lastEr >= 3 ? 'That is a strong benchmark, viewers are saving and sharing.' : lastEr >= 1 ? 'Healthy baseline. A sharper first 3 seconds will push it up.' : 'Below 1% means the first second is losing people. Test a new hook style.',
       tone: lastEr >= 3 ? 'good' : lastEr >= 1 ? 'neutral' : 'warn',
     });
   }
@@ -447,14 +447,14 @@ export function interpretAnalytics(entries: AnalyticsEntry[]): AnalyticsInsight[
     insights.push({
       emoji: ratio > 50 ? '🌊' : '🏝️',
       title: `About ${Math.round(ratio)} views per follower`,
-      body: ratio > 50 ? 'Your content reaches far beyond your followers — great for landing brand deals.' : 'Views are mostly your own followers. Lean into discovery angles and trends.',
+      body: ratio > 50 ? 'Your content reaches far beyond your followers, great for landing brand deals.' : 'Views are mostly your own followers. Lean into discovery angles and trends.',
       tone: ratio > 50 ? 'good' : 'neutral',
     });
   }
 
   const revenue = entries.reduce((s, e) => s + (e.revenue ?? 0), 0);
   if (revenue > 0) {
-    insights.push({ emoji: '💰', title: `${revenue.toLocaleString()} in logged platform revenue`, body: 'Platform payouts are the slowest stream — keep invoices for the fast money.', tone: 'neutral' });
+    insights.push({ emoji: '💰', title: `${revenue.toLocaleString()} in logged platform revenue`,       body: 'Platform payouts are the slowest stream, keep invoices for the fast money.', tone: 'neutral' });
   }
 
   return insights.slice(0, 5);
@@ -478,13 +478,13 @@ export function draftPitch(mediaKit: MediaKitProfile | null, deal: BrandDeal | n
 
   return `Hi ${brand} team,
 
-I'm ${name}, a ${niche} creator who makes short-form UGC that sounds like a real person talking to a friend — never like an ad.${location}
+I'm ${name}, a ${niche} creator who makes short-form content that sounds like a real person talking to a friend, never like an ad.${location}
 
-I saw you're looking for ${deliverables} and I think I'd be a natural fit. I'd create ${deliverables} tailored for ${platform}, with strong hooks, clear product benefits, and natural usage shots.${rates}
+I saw you're looking for ${deliverables} and I think I'd be a great fit. I'd create ${deliverables} for ${platform}, with strong hooks, honest product demos, and real-life shots.${rates}
 
-Would you be open to a quick call this week to talk through it? I'm happy to send over a sample or a custom rate.${availability}
+Want to jump on a quick call this week to chat about it? Happy to send over a sample or work with your budget.${availability}
 
-Warmly,
+Cheers,
 ${name}`;
 }
 
@@ -632,7 +632,7 @@ export function suggestRate(input: RateInput): RateSuggestion {
   const mid = Math.round((low + high) / 2);
   const addons = USAGE_ADDONS.map((u) => ({ label: u.label, note: u.note, pct: u.pct }));
   const drivers = [
-    `Base tier: ${tier.label} ($${tier.min}–$${tier.max})`,
+    `Base tier: ${tier.label} ($${tier.min}-$${tier.max})`,
     `Audience factor: ${band.label} followers ×${band.factor}`,
     `Deliverable: ${deliverable.label} ×${deliverable.factor}`,
     `Usage rights: ${usage.label} +${Math.round(usage.pct * 100)}%`,
@@ -641,7 +641,7 @@ export function suggestRate(input: RateInput): RateSuggestion {
   return {
     band: { low, high },
     mid,
-    perDeliverable: `$${low.toLocaleString()}–$${high.toLocaleString()} per deliverable`,
+      perDeliverable: `$${low.toLocaleString()}-$${high.toLocaleString()} per deliverable`,
     drivers,
     addons,
   };
@@ -745,7 +745,7 @@ export async function brainstormIdeasSmart(input: BrainstormInput): Promise<Brai
       `Act as a world-class UGC content strategist. Brainstorm ${input.count} specific, non-generic content ideas about "${input.topic}" for a ${input.niche || 'general'} creator.
 Pillars to cover: ${input.pillars.join(', ') || 'Education, Connection, Trends & growth'}.
 Avoid these existing titles: ${input.avoid.join('; ') || 'none'}.
-Return ${input.count} ideas, each with: title (platform-ready, under 90 chars), a scroll-stopping first-line hook, a content angle, a one-line audience promise, the pillar, and a platform (tiktok, instagram, youtube, shorts, reels). Be concrete and honest — no generic filler.`,
+Return ${input.count} ideas, each with: title (platform-ready, under 90 chars), a scroll-stopping first-line hook, a content angle, a one-line audience promise, the pillar, and a platform (tiktok, instagram, youtube, shorts, reels). Be concrete and honest, no generic filler.`,
       BRAINSTORM_SCHEMA,
     ).then((raw) => parseArray<BrainstormIdea>(raw, 'ideas').slice(0, input.count)),
     fallback,
@@ -779,14 +779,14 @@ export function generateCaptions(input: CaptionInput): CaptionSet {
   const captions = [
     fillTemplate(CAPTION_TEMPLATES[Math.floor(seededHash(`${topic}::0`) % CAPTION_TEMPLATES.length)]!, topic, niche),
     fillTemplate(CAPTION_TEMPLATES[Math.floor(seededHash(`${topic}::1`) % CAPTION_TEMPLATES.length)]!, topic, niche),
-    input.promise ? `${input.promise} Full breakdown in the video — ${hookClean.toLowerCase()}.` : `I've been holding this one back. ${capFirst(hookClean)}.`,
+    input.promise ? `${input.promise} Full breakdown in the video, ${hookClean.toLowerCase()}.` : `I've been holding this one back. ${capFirst(hookClean)}.`,
   ];
   const pool = NICHE_HASHTAGS[niche.toLowerCase()] ?? NICHE_HASHTAGS.lifestyle!;
   const platformTag = platformTagOf(input.platform);
   const generic = ['ugc', 'contentcreator', 'creatorlife', 'shortform'];
   const hashtags = [...new Set([...pool, platformTag, ...generic])].slice(0, 9);
   const cta = fillTemplate(CTA_TEMPLATES[Math.floor(seededHash(`${topic}::2`) % CTA_TEMPLATES.length)]!, topic, niche);
-  const firstComment = `What did I miss? Drop your biggest ${input.promise ? input.promise.toLowerCase().slice(0, 40) : niche} question below — I read every comment.`;
+  const firstComment = `What did I miss? Drop your biggest ${input.promise ? input.promise.toLowerCase().slice(0, 40) : niche} question below, I read every comment.`;
   return { captions, hashtags, firstComment, cta };
 }
 
@@ -813,7 +813,7 @@ export async function generateCaptionsSmart(input: CaptionInput): Promise<Captio
   return smartOr(
     () => generateText(
       `Write publish-ready captions for a ${input.platform || 'social'} post titled "${input.title}" (hook: "${input.hook}") for a ${input.niche || 'general'} creator.
-Return 3 caption variants (varied tone — educational, story, bold), 6-9 niche hashtags without # or spaces, an engagement-pulling first comment, and one clear call to action. No em dashes, no corporate speak.`,
+Return 3 caption variants (varied tone: educational, story, bold), 6-9 niche hashtags without # or spaces, an engagement-pulling first comment, and one clear call to action. No em dashes, no corporate speak.`,
       CAPTION_SCHEMA,
     ).then((raw) => {
       const parsed = JSON.parse(raw) as CaptionSet;
@@ -843,10 +843,10 @@ export function repurposeIdea(idea: ContentIdea): RepurposeVariant[] {
   const hook = idea.hook_idea || fillTemplate(HOOK_TEMPLATES[0]!.text, topic, niche);
   const clean = hook.replace(/[?.!]+$/, '');
   return [
-    { title: `${topic} — the 3 takeaways`, hook: `${clean} — here are the 3 takeaways.`, angle: 'listicle', platform: 'x', repurpose_plan: 'thread: pull 3 punchy lines from the video.' },
-    { title: `${topic} — swipe-save edition`, hook: `${clean}. Save this one.`, angle: 'carousel', platform: 'instagram', repurpose_plan: 'carousel: 5 slides, one idea per slide.' },
-    { title: `${topic} — 30-second clip`, hook: `${clean} (best 30 seconds).`, angle: 'shorts', platform: 'youtube', repurpose_plan: 'shorts: cut the single best segment, add captions.' },
-    { title: `${topic} — full breakdown`, hook: `${clean} — the complete breakdown.`, angle: 'long-form', platform: 'youtube', repurpose_plan: 'long-form: expand into a 5-minute tutorial.' },
+    { title: `${topic}, the 3 takeaways`, hook: `${clean}, here are the 3 takeaways.`, angle: 'listicle', platform: 'x', repurpose_plan: 'thread: pull 3 punchy lines from the video.' },
+    { title: `${topic}, swipe-save edition`, hook: `${clean}. Save this one.`, angle: 'carousel', platform: 'instagram', repurpose_plan: 'carousel: 5 slides, one idea per slide.' },
+    { title: `${topic}, 30-second clip`, hook: `${clean} (best 30 seconds).`, angle: 'shorts', platform: 'youtube', repurpose_plan: 'shorts: cut the single best segment, add captions.' },
+    { title: `${topic}, full breakdown`, hook: `${clean}, the complete breakdown.`, angle: 'long-form', platform: 'youtube', repurpose_plan: 'long-form: expand into a 5-minute tutorial.' },
   ];
 }
 
@@ -1012,29 +1012,29 @@ export function viralScoreOf(idea: ContentIdea, trends: TrendItem[], region = 'w
     ? (idea.impact * idea.confidence) / (EFFORT_COST[idea.effort_level ?? 'quick'] ?? 1)
     : 0;
   score += Math.min(40, ice * 3.2);
-  if (ice > 0) reasons.push(`Strong idea score — ICE ${Number(ice.toFixed(1))} puts it at the top of the bank.`);
+  if (ice > 0) reasons.push(`Strong idea score, ICE ${Number(ice.toFixed(1))} puts it at the top of the bank.`);
 
   if (SHORT_FORM.includes(idea.platform ?? '')) { score += 8; reasons.push('Short-form format is the highest-distribution channel right now.'); }
 
   if (idea.status === 'idea') score += 5;
-  if (idea.status === 'scripted') { score += 3; reasons.push('Already scripted — filming is one step away.'); }
+  if (idea.status === 'scripted') { score += 3; reasons.push('Already scripted, filming is one step away.'); }
 
   const fresh = Date.now() - new Date(`${idea.updated_at ?? idea.created_at}`).getTime();
-  if (fresh < 14 * 86400000) { score += 8; reasons.push('Fresh idea — momentum from recent thinking is still yours.'); }
+  if (fresh < 14 * 86400000) { score += 8; reasons.push('Fresh idea, momentum from recent thinking is still yours.'); }
   else if (fresh < 45 * 86400000) score += 4;
 
-  if (idea.hook_idea) { score += 5; reasons.push('Has a hook ready — drop it into the camera and go.'); }
+  if (idea.hook_idea) { score += 5; reasons.push('Has a hook ready, drop it into the camera and go.'); }
   if (idea.content_angle) score += 3;
 
   const titleHit = trends.find((t) => tokenOverlap(t.title, idea.title));
   if (titleHit) {
     score += 15;
-    reasons.push(`Rides "${titleHit.title}" — trending ${titleHit.direction === 'rising' ? 'and rising' : 'right now'} in ${regionLabelOf(titleHit.region)}.`);
+    reasons.push(`Rides "${titleHit.title}", trending ${titleHit.direction === 'rising' ? 'and rising' : 'right now'} in ${regionLabelOf(titleHit.region)}.`);
     return { idea, score: Math.round(Math.min(100, score)), reasons, matchedTrend: titleHit };
   }
   if (idea.pillar && trends.some((t) => t.niche === idea.pillar)) {
     score += 8;
-    reasons.push(`Your ${idea.pillar} ideas sit in a hot niche in ${regionLabelOf(region)} — posting now taps live demand.`);
+    reasons.push(`Your ${idea.pillar} ideas sit in a hot niche in ${regionLabelOf(region)}, posting now taps live demand.`);
   }
 
   return { idea, score: Math.round(Math.min(100, score)), reasons };

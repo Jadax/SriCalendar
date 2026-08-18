@@ -214,7 +214,7 @@ const NICHE_BEAT_GUIDES: Record<string, { problem: string; solution: string; pro
   parenting: {
     problem: 'Name the parenting moment. "The 3pm meltdown that happens every school day".',
     solution: 'Introduce the technique/product as a parent-to-parent tip. "A mum friend told me this".',
-    proof: 'Show the result. "It worked in 20 seconds" — be specific about time.',
+    proof: 'Show the result. "It worked in 20 seconds", be specific about time.',
     cta: 'Follow for more {niche} tips and tag a parent who needs this.',
   },
   finance: {
@@ -247,7 +247,7 @@ const NICHE_HOOK_STARTERS: Record<string, string[]> = {
   ],
   fitness: [
     'If you are not seeing results, this is why.',
-    'I tried {workout} for 30 days. The results surprised me.',
+    'I tried {workout} for 30 days and it went way better than I thought.',
     'The {exercise} mistake that is killing your gains.',
     'Stop doing {exercise} like this. Do this instead.',
     'This 10-minute workout replaced my 1-hour gym session.',
@@ -378,9 +378,9 @@ export function buildFullScript(ctx: BrainContext, myHooks: HookItem[]): FullScr
   const editingNotes = [
     'Cut every 3-5 seconds. Never let a single shot hold longer than 5s.',
     'Add on-beat captions. Keep them readable, not tiny.',
-    'Open with the most intense visual frame — pattern interrupt in 1.3 seconds.',
+    'Open with the most intense visual frame, grab attention in 1.3 seconds.',
     'Loop the ending back to the opening frame to boost replays.',
-    `Film for ${platform === 'youtube' ? 'YouTube' : 'TikTok/Reels'} — ${platform === 'youtube' ? '16:9 or 9:16' : '9:16 vertical'}.`,
+    `Film for ${platform === 'youtube' ? 'YouTube' : 'TikTok/Reels'}, ${platform === 'youtube' ? '16:9 or 9:16' : '9:16 vertical'}.`,
     'Hold a clean clip at the start for text overlay.',
     niche === 'beauty' ? 'Film in natural light. Show product texture up close.' :
     niche === 'fitness' ? 'Film the exercise from 2 angles. Show form, not just effort.' :
@@ -427,7 +427,7 @@ function seededHash(input: string): number {
 
 const NICHE_CAPTIONS: Record<string, string[]> = {
   beauty: ['The {niche} version of {topic}. Save this for your next getting-ready sesh 💅', 'Ran this {topic} myself so you don\u2019t have to. Which one are you guilty of? 👇'],
-  tech: ['The {topic} breakdown, minus the jargon. Save it for your next upgrade. 🔧', 'I tested the reasoning behind {topic} so you can skip the guesswork.'],
+  tech: ['The {topic} breakdown, minus the jargon. Save it for your next upgrade. 🔧', 'I tried {topic} so you can skip the guesswork.'],
   fitness: ['Your next {topic} starts here. Save the set, drop a 🔥 if you\u2019re in.', 'Nobody talks about this part of {topic}. Let\u2019s fix that in 60 seconds.'],
   food: ['{topic} in minutes, zero stress. Save this one for dinner tonight 🍳', 'The {topic} shortcut your takeout habit keeps hidden from you.'],
   fashion: ['{topic} done right. Save this before your next order 👗', 'Three ways to nail {topic} without buying anything new.'],
@@ -478,7 +478,7 @@ function buildTitles(topic: string, niche: string | null, platform: string, hook
   const list: string[] = [];
   list.push(`the ${kw} secret nobody shares (${base})`);
   list.push(`stop overthinking ${base.toLowerCase()}`);
-  list.push(`${base.toLowerCase()} — done the honest way`);
+  list.push(`${base.toLowerCase()}, done the honest way`);
   list.push(`why ${base.toLowerCase()} keeps failing (and the fix)`);
   if (hook) list.push(`what nobody tells you about ${base.toLowerCase()}`);
   return [...new Set(list.filter(Boolean))].slice(0, 4);
@@ -526,7 +526,7 @@ function buildDescription(topic: string, niche: string | null, platform: string,
 function buildEditingNotes(platform: string, content: string): string[] {
   const words = content.trim().split(/\s+/).filter(Boolean).length;
   const notes: string[] = [];
-  notes.push(`Cut every 4–6 seconds on ${platform === 'youtube' ? 'Shorts' : platform === 'newsletter' ? 'every paragraph' : 'short-form'}. Keep momentum in the first 3s.`);
+  notes.push(`Cut every 4-6 seconds on ${platform === 'youtube' ? 'Shorts' : platform === 'newsletter' ? 'every paragraph' : 'short-form'}. Keep momentum in the first 3s.`);
   notes.push('Add on-beat captions (CapCut or Submagic) and keep them readable, never tiny.');
   notes.push('Loop the ending back to the opening frame to boost replays.');
   notes.push('Hold a muted/clean clip for a text-overlay moment at the hook.');

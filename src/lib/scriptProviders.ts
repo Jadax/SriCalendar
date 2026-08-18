@@ -1,5 +1,5 @@
 /**
- * Multi-provider script engine — orchestrates free LLM APIs for UGC script generation.
+ * Multi-provider script engine ï¿½ orchestrates free LLM APIs for UGC script generation.
  * Gemini (already integrated) > Groq (fast) > OpenRouter (free) > Cerebras (bulk).
  * All use OpenAI-compatible chat completions format.
  */
@@ -116,7 +116,7 @@ export function buildScriptSystemPrompt(niche: string, platform: string): string
 
 Write in first person as a real person talking to a friend. Never sound like an ad.
 Structure every script using this 5-beat framework:
-1. HOOK (0-3s): Pattern-interrupt or specific pain callout. Spoken word-for-word.
+1. HOOK (0-3s): Grab attention or call out a specific pain. Spoken word-for-word.
 2. PROBLEM (3-7s): The specific moment the pain shows up + the feeling.
 3. SOLUTION (7-12s): What the product is, friend-explaining-to-friend language.
 4. PROOF (12-20s): Show the product working, one specific evidence point.

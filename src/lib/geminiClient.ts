@@ -52,7 +52,7 @@ const PROMPT = `You are a social media growth strategist watching a creator's ra
 Watch and listen to the full clip, then produce metadata that helps the creator publish it fast:
 a catchy title, a ready-to-post description, the strongest possible opening hook line, hashtags,
 SEO tags, the content pillar it belongs to, and which platforms it's best suited for.
-Be specific to what actually happens/is said in the video — never generic placeholder text.`;
+Be specific to what actually happens/is said in the video, never generic placeholder text.`;
 
 async function uploadVideo(blob: Blob, mimeType: string, displayName: string): Promise<string> {
   const startRes = await fetch(`${BASE}/upload/v1beta/files?key=${API_KEY}`, {

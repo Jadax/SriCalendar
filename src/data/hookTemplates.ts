@@ -293,7 +293,7 @@ export const HOOK_CATEGORY_META: Record<(typeof HOOK_CATEGORIES)[number], { hint
   Relatable: { hint: 'Mirror a shared frustration so they nod along.', archetype: 'Empathy' },
   'Authority & How-to': { hint: 'Promise structured, transferable knowledge.', archetype: 'Mastery' },
   Challenge: { hint: 'Invite participation or a dare to escalate stakes.', archetype: 'Action' },
-  'Trend & Culture': { hint: 'Leverage recency bias and shared context.', archetype: 'Relevance' },
+  'Trend & Culture': { hint: 'Use what is already trending and give it your spin.', archetype: 'Relevance' },
 };
 
 export const CAPTION_TEMPLATES = [
@@ -325,18 +325,18 @@ export const CTA_TEMPLATES = [
 ];
 
 export const SCRIPT_STRUCTURES = [
-  { id: 'retention', name: 'Retention Architecture', body: '0s Hook → 0-5s Stakes → 5-15s Promise stack (3 previews) → 15-30s Format lock → 1-3min First payoff → Rehook (2-4min) → Payoff over-delivery → 5s CTA' },
-  { id: 'storytell', name: 'Story Ladder', body: 'Mid-action cold open → Context gap (what is missing?) → Rising tension (3 escalating beats) → Turning point → Resolution → Takeaway → CTA' },
-  { id: 'listicle', name: 'Countdown Escalation', body: 'Promise the count → #3 small win → #2 bigger shift → #1 unlock → Bonus layer → CTA' },
-  { id: 'beforeafter', name: 'Before / After', body: 'Paint the painful "before" → Why attempts failed → The single change → "After" payoff → Reusable rule → CTA' },
-  { id: 'myth', name: 'Myth-Buster Blueprint', body: 'State the myth loudly → Prove it wrong (evidence) → Explain the cost of believing it → Present the correct model → Action step → CTA' },
-  { id: 'explainer', name: 'Zero-to-One Explainer', body: 'Hook with the confusion → Break concept into {3} layers → Metaphor anchor → Edge cases → Practical demo → Recap → CTA' },
-  { id: 'controversial', name: 'Hot Take Arc', body: 'Stamp the opinion → Show receipts/data → Address the "but actually" replies → Nuance pivot → Invite debate → CTA' },
-  { id: 'vlog', name: 'Day-in-the-Life Arc', body: 'Handler hook (the plan) → Chaos/gap reveal → Car chase beats → Mini-payoffs → Reflection → CTA' },
-  { id: 'tutorial', name: 'Speed Tutorial', body: 'Show the final result 3s → Requirements → Fast steps (voiceover density) → Pitfall warning → Result + file link → CTA' },
-  { id: 'react', name: 'Reaction Analysis', body: 'Subject teaser → First impressions → Breakdown points (3+) → Pushback or agreement → Final verdict → CTA' },
-  { id: 'shorts', name: 'Shorts Lightning', body: 'Mic-drop hook → 1 idea, cut every 4-6s → Visual beat switches → Payoff line by :30 → Text overlay CTA' },
-  { id: 'collab', name: 'Collab Spotlight', body: 'Grab attention on the guest → Chemistry intro clip → 3 questions with punchy cuts → Highlight reel → Both follow CTAs' },
+  { id: 'retention', name: 'Hook + Stakes + Payoff', body: '0s Hook \u2192 0-5s Stakes \u2192 5-15s Promise stack (3 previews) \u2192 15-30s Format lock \u2192 1-3min First payoff \u2192 Rehook (2-4min) \u2192 Payoff over-delivery \u2192 5s CTA' },
+  { id: 'storytell', name: 'Story Ladder', body: 'Mid-action cold open \u2192 Context gap (what is missing?) \u2192 Rising tension (3 escalating beats) \u2192 Turning point \u2192 Resolution \u2192 Takeaway \u2192 CTA' },
+  { id: 'listicle', name: 'Countdown Escalation', body: 'Promise the count \u2192 #3 small win \u2192 #2 bigger shift \u2192 #1 unlock \u2192 Bonus layer \u2192 CTA' },
+  { id: 'beforeafter', name: 'Before / After', body: 'Paint the painful "before" \u2192 Why attempts failed \u2192 The single change \u2192 "After" payoff \u2192 Reusable rule \u2192 CTA' },
+  { id: 'myth', name: 'Myth-Buster Blueprint', body: 'State the myth loudly \u2192 Prove it wrong (evidence) \u2192 Explain the cost of believing it \u2192 Present the correct model \u2192 Action step \u2192 CTA' },
+  { id: 'explainer', name: 'Step-by-Step Breakdown', body: 'Hook with the confusion \u2192 Break concept into {3} layers \u2192 Simple metaphor \u2192 Edge cases \u2192 Practical demo \u2192 Recap \u2192 CTA' },
+  { id: 'controversial', name: 'Hot Take Arc', body: 'Stamp the opinion \u2192 Show receipts/data \u2192 Address the "but actually" replies \u2192 Add nuance \u2192 Invite debate \u2192 CTA' },
+  { id: 'vlog', name: 'Day-in-the-Life Arc', body: 'Handler hook (the plan) \u2192 Chaos/gap reveal \u2192 Escalating moments \u2192 Mini-payoffs \u2192 Reflection \u2192 CTA' },
+  { id: 'tutorial', name: 'Speed Tutorial', body: 'Show the final result 3s \u2192 Requirements \u2192 Fast steps (voiceover density) \u2192 Pitfall warning \u2192 Result + file link \u2192 CTA' },
+  { id: 'react', name: 'Reaction Analysis', body: 'Subject teaser \u2192 First impressions \u2192 Breakdown points (3+) \u2192 Pushback or agreement \u2192 Final verdict \u2192 CTA' },
+  { id: 'shorts', name: 'Shorts Lightning', body: 'Mic-drop hook \u2192 1 idea, cut every 4-6s \u2192 Visual beat switches \u2192 Payoff line by :30 \u2192 Text overlay CTA' },
+  { id: 'collab', name: 'Collab Spotlight', body: 'Grab attention on the guest \u2192 Chemistry intro clip \u2192 3 questions with punchy cuts \u2192 Highlight reel \u2192 Both follow CTAs' },
 ];
 
 export const HOOK_ARCHETYPES = ['Curiosity', 'Reward', 'Proof', 'Contrast', 'Rebel', 'Narrative', 'Mystery', 'Tension', 'Empathy', 'Mastery', 'Action', 'Relevance'];
