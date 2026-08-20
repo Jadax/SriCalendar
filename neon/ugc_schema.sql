@@ -117,10 +117,15 @@ CREATE TABLE IF NOT EXISTS public.invoices (
   subtotal DECIMAL(10,2) NOT NULL DEFAULT 0,
   tax DECIMAL(10,2) NOT NULL DEFAULT 0,
   total DECIMAL(10,2) NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  stream TEXT NOT NULL DEFAULT 'brand-deal',
   status TEXT NOT NULL DEFAULT 'draft',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'USD';
+ALTER TABLE public.invoices ADD COLUMN IF NOT EXISTS stream TEXT NOT NULL DEFAULT 'brand-deal';
 
 CREATE TABLE IF NOT EXISTS public.media_kit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -136,8 +141,19 @@ CREATE TABLE IF NOT EXISTS public.media_kit (
   past_collabs JSONB NOT NULL DEFAULT '[]'::jsonb,
   availability TEXT,
   form_factor TEXT,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  social_instagram TEXT,
+  social_tiktok TEXT,
+  social_youtube TEXT,
+  social_x TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.media_kit ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'USD';
+ALTER TABLE public.media_kit ADD COLUMN IF NOT EXISTS social_instagram TEXT;
+ALTER TABLE public.media_kit ADD COLUMN IF NOT EXISTS social_tiktok TEXT;
+ALTER TABLE public.media_kit ADD COLUMN IF NOT EXISTS social_youtube TEXT;
+ALTER TABLE public.media_kit ADD COLUMN IF NOT EXISTS social_x TEXT;
 
 -- ---------------------------------------------------------------------------
 -- PILLAR 4: Knowledge
@@ -152,11 +168,14 @@ CREATE TABLE IF NOT EXISTS public.knowledge_base (
   url TEXT,
   tags TEXT[] NOT NULL DEFAULT '{}'::text[],
   cost DECIMAL(10,2),
+  currency TEXT NOT NULL DEFAULT 'USD',
   renewal_date DATE,
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE public.knowledge_base ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'USD';
 
 CREATE TABLE IF NOT EXISTS public.analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -172,11 +191,14 @@ CREATE TABLE IF NOT EXISTS public.analytics (
   engagement_rate DECIMAL(5,2),
   reach INTEGER NOT NULL DEFAULT 0,
   revenue DECIMAL(10,2) NOT NULL DEFAULT 0,
+  currency TEXT NOT NULL DEFAULT 'USD',
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (user_id, platform, date)
 );
+
+ALTER TABLE public.analytics ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'USD';
 
 CREATE TABLE IF NOT EXISTS public.content_pillars (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

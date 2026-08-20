@@ -46,7 +46,7 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
     if (!user) return;
     setFirstName(null); setAvatarUrl(null); setProfile(loadProfile(user.id)); setProfileSettings({}); setProfileLoaded(false);
     const today = toDateKey(new Date());
-    void neon.from('profiles').select('username,avatar_url,settings,streak_count,last_visit').eq('id', user.id).maybeSingle().then(async ({ data }) => {
+    void Promise.resolve(neon.from('profiles').select('username,avatar_url,settings,streak_count,last_visit').eq('id', user.id).maybeSingle()).then(async ({ data }) => {
       const previous = data?.last_visit as string | null | undefined;
       const oldCount = Number(data?.streak_count ?? 0);
       const gap = previous ? differenceInCalendarDays(new Date(), parseISO(previous)) : -1;
@@ -59,6 +59,9 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
       setProfileLoaded(true);
       setStreak(streak);
       if (gap !== 0) await neon.from('profiles').upsert({ id: user.id, streak_count: streak, last_visit: today }, { onConflict: 'id' });
+    }).catch(() => {
+      // Keep the local profile available when the first profile request is offline.
+      setProfileLoaded(true);
     });
   }, [preview, setStreak, user]);
 
@@ -68,14 +71,6 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
     const sample = { ...createEmptyDailyData(userId, today), tasks: [{ id: 'sample-1', text: 'Film the morning skincare reel', completed: true, order: 0 }, { id: 'sample-2', text: 'Edit the café mini vlog', completed: false, order: 1 }, { id: 'sample-3', text: 'Reply to brand comments', completed: false, order: 2 }], notes: 'Golden-hour shots around 4:30 ✨\nRemember the peach backdrop and the tiny flower clips.', stickers: ['🌸', '📸', '✨'], platform_posts: [{ id: 'post-1', platform: 'instagram' as const, title: 'Soft-life Sunday carousel', status: 'scheduled' as const, notes: 'Use the warm preset' }], updated_at: new Date().toISOString() };
     void db.daily_data.put(sample);
   }, [preview, userId]);
-
-  /** Persists the preferred name used in the calendar greeting. */
-  const saveFirstName = async (name: string): Promise<void> => {
-    if (!user) return;
-    const { error } = await neon.from('profiles').upsert({ id: user.id, username: name }, { onConflict: 'id' });
-    if (error) throw new Error(error.message);
-    setFirstName(name);
-  };
 
   /** Persists a compressed photo in the user's private Neon profile for every device. */
   const saveAvatar = async (photo: string): Promise<void> => {

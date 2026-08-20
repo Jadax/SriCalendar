@@ -4,15 +4,16 @@ import { useUiStore } from '../store/uiStore';
 import { SYNC_DEBOUNCE_MS, SYNC_RETRIES } from '../utils/constants';
 import type { AnyUgcRow, UgcRow } from '../types/ugc';
 
-/** Minimal Supabase-compatible chain surface used for dynamically named UGC tables. */
+/** Minimal PostgREST chain surface used for dynamically named UGC tables. */
 interface LooseResponse { data: unknown; error: { message: string } | null }
 interface LooseQuery {
-  select: (columns?: string) => Promise<LooseResponse>;
+  select: (columns?: string) => LooseQuery;
   single: () => Promise<LooseResponse>;
   eq: (column: string, value: unknown) => Promise<LooseResponse>;
+  then: <TResult = LooseResponse>(onfulfilled?: ((value: LooseResponse) => TResult | PromiseLike<TResult>) | null, onrejected?: ((reason: unknown) => TResult | PromiseLike<TResult>) | null) => PromiseLike<TResult>;
 }
 interface LooseTable {
-  select: (columns?: string) => Promise<LooseResponse>;
+  select: (columns?: string) => LooseQuery;
   upsert: (payload: Record<string, unknown>, options?: { onConflict?: string }) => LooseQuery;
   delete: () => LooseQuery;
   insert: (payload: Record<string, unknown>) => LooseQuery;
@@ -48,7 +49,7 @@ function stripSync<T extends UgcRow>(row: T): Record<string, unknown> {
 /** Fetches every owned row from Neon and reconciles it into IndexedDB. */
 export async function reconcileCollection(table: UgcTableName, userId: string): Promise<AnyUgcRow[]> {
   if (!userId) return [];
-  const { data, error } = await tableRef(table).select('*');
+  const { data, error } = await tableRef(table).select('*').eq('user_id', userId);
   if (error) throw new Error(error.message);
   const remoteRows = (Array.isArray(data) ? data : []) as Array<AnyUgcRow & { id: string }>;
   const merged: AnyUgcRow[] = [];
