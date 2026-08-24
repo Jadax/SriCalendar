@@ -18,6 +18,15 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 🔥 Consecutive-visit streaks, sync state, dark theme, and reduced-motion support
 - 🎬 Video Assistant: drop in a phone clip and a free Gemini call drafts the title, caption, hook, hashtags and tags — clips stay on-device, only sent to Google transiently for analysis
 - 🏠 Creator HQ, Studio, Business, and Knowledge workspaces for ideas, scripts, shoots, invoices, deals, goals, and analytics
+- 🔄 Content Pipeline: every idea flows Idea → Script → Film → Edit → Schedule → Publish with bottleneck detection
+- 🗓️ Weekly Planner: a 7-day content plan from your pillars and proven hooks, schedulable to the calendar in one click
+- 🔥 Trend Pulse: 200+ trend catalog across 6 regions (incl. South Africa), AI trend scans, live trend fetching, date-aware scheduling that links calendar + board + script together
+- ✍️ Script Writer: offline 5-beat UGC script engine plus optional Gemini co-pilot — hooks, titles, captions, hashtags, descriptions, editing notes
+- 💼 Brand Directory: 61 verified brands with contacts, ready-to-send outreach, rate benchmarks, and status tracking
+
+### Human-sounding AI
+
+Every generated hook, caption, title, script, pitch and description is written to sound like a real person talking to their phone: no em dashes, no corporate words, no "AI tells". Voice rules live in one shared system prompt (`BRAIN_SYSTEM` / `COACH_SYSTEM`) sent identically on every request so Gemini can cache the prefix and only the variable data is re-sent.
 
 ## Tech stack
 

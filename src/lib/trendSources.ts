@@ -24,11 +24,28 @@ const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 function getCached(key: string): LiveTrend[] | null {
   const entry = cache.get(key);
   if (entry && Date.now() - entry.ts < CACHE_TTL) return entry.data;
+  cache.delete(key);
   return null;
 }
 
 function setCache(key: string, data: LiveTrend[]): void {
+  // Evict expired entries so the cache cannot grow unbounded in long sessions.
+  for (const [k, v] of cache) {
+    if (Date.now() - v.ts >= CACHE_TTL) cache.delete(k);
+  }
   cache.set(key, { data, ts: Date.now() });
+}
+
+/** Parses Google Trends traffic strings like "2,000+", "500K+" or "1M+" into a number. */
+function parseTraffic(raw: string): number {
+  const match = /^([\d.,]+)\s*([KM])?/i.exec(raw.trim());
+  if (!match) return 0;
+  const base = parseFloat(match[1]!.replace(/,/g, ''));
+  if (Number.isNaN(base)) return 0;
+  const suffix = match[2]?.toUpperCase();
+  if (suffix === 'M') return base * 1_000_000;
+  if (suffix === 'K') return base * 1_000;
+  return base;
 }
 
 /* ---------------------------------------------------------------------------
@@ -109,7 +126,7 @@ export async function fetchGoogleTrends(limit = 20): Promise<LiveTrend[]> {
 
       const title = titleMatch?.[1]?.trim();
       if (title) {
-        const traffic = parseInt(trafficMatch?.[1] ?? '0', 10);
+        const traffic = parseTraffic(trafficMatch?.[1] ?? '');
         trends.push({
           source: 'google',
           title,
@@ -256,7 +273,7 @@ export async function fetchAllLiveTrends(regionCode = 'US'): Promise<LiveTrend[]
 /** Map a region id to a TikTok/YouTube country code. */
 export function regionToCountryCode(region: string): string {
   const map: Record<string, string> = {
-    us: 'US', uk: 'GB', india: 'IN', africa: 'ZA', world: 'US',
+    us: 'US', uk: 'GB', india: 'IN', africa: 'ZA', sa: 'ZA', world: 'US',
   };
   return map[region] ?? 'US';
 }

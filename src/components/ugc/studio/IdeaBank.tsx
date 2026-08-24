@@ -6,6 +6,7 @@ import { buildBrain } from '../../../lib/scriptBrain';
 import { brainstormIdeasSmart, generateCaptionsSmart, repurposeIdea, repurposeIdeaSmart, type BrainstormIdea, type CaptionSet, type RepurposeVariant } from '../../../lib/creatorBrain';
 import { NICHES } from '../../../data/creatorIntelligence';
 import { fillTemplate, PLATFORMS, PRIORITIES, EFFORT_LEVELS, IDEA_STATUSES, PRIORITY_META, EFFORT_META, PLATFORM_META, cap, alpha } from '../../../data/options';
+import { HOOK_TEMPLATES } from '../../../data/hookTemplates';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import type { ContentIdea } from '../../../types/ugc';
 import type { Platform } from '../../../types';
@@ -357,13 +358,5 @@ export function IdeaBank({ userId }: IdeaBankProps): ReactElement {
   </>;
 }
 
-const HOOKS = [
-  'What if I told you {topic} was hiding just one tiny step away?',
-  'I tested {topic} for 30 days so you do not have to.',
-  'Stop believing {topic} myths. They are costing you watch time.',
-  'Posting about {topic} every day is lazy advice. Do the opposite.',
-  'Nobody talks about the small detail in {topic} that changes everything.',
-  '{topic} barely worked until I made this one change.',
-  'This {topic} trick doubled my results in a weekend.',
-  'The {topic} mistakes almost everyone silently makes.',
-];
+// Spark hooks sampled from the shared template library so they stay in sync app-wide.
+const HOOKS = HOOK_TEMPLATES.slice(0, 8).map((h) => h.text);

@@ -3,6 +3,7 @@ import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_TEMPLATES } from '../data/hookTe
 import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, REGIONAL_BENCHMARKS, REGION_HASHTAGS, TRENDS, TREND_REGIONS, USAGE_ADDONS, type RegionalBenchmark, type Trend, type TrendRegion } from '../data/creatorIntelligence';
 export type { Trend, RegionalBenchmark } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
+import { seededHash } from '../utils/seededHash';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, Goal, HookItem, Invoice, MediaKitProfile,
 } from '../types/ugc';
@@ -58,12 +59,6 @@ export interface AnalyticsInsight { emoji: string; title: string; body: string; 
 /* ---------------------------------------------------------------------------
  * Small deterministic helpers
  * ------------------------------------------------------------------------- */
-
-function seededHash(input: string): number {
-  let h = 0;
-  for (let i = 0; i < input.length; i += 1) { h = (h << 5) - h + input.charCodeAt(i); h |= 0; }
-  return Math.abs(h);
-}
 
 function addDays(dateKey: string, days: number): string {
   const d = new Date(`${dateKey}T00:00:00`);
@@ -123,7 +118,8 @@ function fillTemplate(text: string, topic: string, niche: string): string {
     .replace(/\{topic\}/g, topic)
     .replace(/\{niche\}/g, niche || topic)
     .replace(/\{([a-zA-Z]+)\}/g, (_all, key: string) => BRAIN_FILLS[key] ?? key)
-    .replace(/\{[a-zA-Z _-]+\}/g, 'that thing');
+    .replace(/\{([a-zA-Z]+)\/([a-zA-Z]+)\}/g, (_all, a: string, b: string) => `${a} or ${b}`)
+    .replace(/\{[a-zA-Z_ /-]+\}/g, 'that thing');
 }
 
 function capFirst(text: string): string {
@@ -351,7 +347,7 @@ function pickHook(hooks: HookItem[], niche: string, seed: number): { hook: strin
   const mine = hooks.filter((h) => h.status === 'winning' && h.content).filter((h) => !niche || !h.niche || h.niche === niche);
   if (mine.length > 0) return { hook: mine[seededHash(`hook${seed}`) % mine.length]!.content, angle: mine[seededHash(`hook${seed}`) % mine.length]!.type ?? 'Hook' };
   const template = HOOK_TEMPLATES[seededHash(`tpl${seed}`) % HOOK_TEMPLATES.length]!;
-  return { hook: fillTemplate(template.text, 'your {topic}'.replace(' {topic}', 'topic'), niche), angle: template.category };
+  return { hook: fillTemplate(template.text, 'this', niche), angle: template.category };
 }
 
 export function buildWeeklyPlan(ctx: TodayContext, startDate = addDays(ctx.dateKey, 1), days = 7): WeeklyPlanSlot[] {
@@ -502,6 +498,19 @@ function parseArray<T>(raw: string, key: string): T[] {
   return Array.isArray(parsed[key]) ? (parsed[key] as T[]) : [];
 }
 
+/**
+ * Shared static system instruction for every brain call. Keeping it byte-identical
+ * across all request types gives Gemini a stable prefix (implicit prompt caching) and
+ * keeps each user turn down to just the variable workspace data.
+ */
+const BRAIN_SYSTEM = `You are a warm UGC coach writing for a creator who is not technical and speaks like a real person.
+
+Voice rules:
+- Write like a real person talks. No corporate words, no hype, no "unlock the power".
+- Never use em dashes in anything you write.
+- Be specific, concrete and honest rather than inflating.
+- Respect this proven finding: ${HOOK_SCIENCE[0] ?? 'the first 3 seconds decide everything.'}`;
+
 const NUDGE_SCHEMA: ResponseSchema = {
   type: 'OBJECT',
   properties: {
@@ -514,7 +523,7 @@ export async function buildDailyBriefSmart(ctx: TodayContext): Promise<BriefNudg
   const fallback = (): BriefNudge[] => buildDailyBrief(ctx);
   return smartOr(
     () => generateText(
-      `You are a warm UGC coach writing a short "today brief" for a creator.
+      `Write a short "today brief" for this creator.
 Today is ${ctx.dateKey} (${weekdayOf(ctx.dateKey)}). Streak: ${ctx.streak} days.
 Workspace snapshot:
 - Ideas: ${ctx.ideas.length} (${ctx.ideas.filter((i) => i.status === 'idea').length} open)
@@ -525,9 +534,10 @@ Workspace snapshot:
 - Posts scheduled today: ${ctx.postsToday.length}
 - Open tasks today: ${ctx.tasksToday.filter((t) => !t.done).length}
 
-Respect: ${HOOK_SCIENCE[0]}
-Write 3-5 prioritised, actionable nudges in the creator's voice. No hype, no corporate words. Keep each under 160 characters. Priority must be "high", "medium" or "low".`,
+Write 3-5 prioritised, actionable nudges in the creator's voice. Keep each under 160 characters. Priority must be "high", "medium" or "low".`,
       NUDGE_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.7, maxOutputTokens: 700 },
     ).then((raw) => parseArray<BriefNudge>(raw, 'nudges')),
     fallback,
   );
@@ -546,10 +556,12 @@ export async function buildWeeklyPlanSmart(ctx: TodayContext): Promise<WeeklyPla
   return smartOr(
     () => generateText(
       `Design a 7-day short-form content plan for a ${nicheOf(ctx) || 'creator'}.
-Their content pillars: ${ctx.pillars.map((p) => `${p.name} (${p.target_mix ?? 0}% mix) — ${p.content_promise ?? ''}`).join('; ') || 'Education, Connection, Trends & growth'}.
-Proven hooks they use: ${ctx.hooks.filter((h) => h.status === 'winning').slice(0, 4).map((h) => h.content).join('; ') || 'none yet — use strong curiosity/question hooks'}.
+Their content pillars: ${ctx.pillars.map((p) => `${p.name} (${p.target_mix ?? 0}% mix), ${p.content_promise ?? ''}`).join('; ') || 'Education, Connection, Trends & growth'}.
+Proven hooks they use: ${ctx.hooks.filter((h) => h.status === 'winning').slice(0, 4).map((h) => h.content).join('; ') || 'none yet, use strong curiosity/question hooks'}.
 Start ${addDays(ctx.dateKey, 1)}. Return 7 slots (one per day) with: date (yyyy-MM-dd), pillar, a concrete topic, a platform, a one-sentence hook, and the hook angle. Keep topics specific and honest.`,
       PLAN_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.8, maxOutputTokens: 900 },
     ).then((raw) => parseArray<WeeklyPlanSlot>(raw, 'slots')),
     fallback,
   );
@@ -572,6 +584,8 @@ export async function interpretAnalyticsSmart(entries: AnalyticsEntry[]): Promis
       `A creator logged these metrics. Write 3-5 short, honest, actionable insights about what is working and what to try next. Tone must be "good", "warn" or "neutral".
 ${latest}`,
       INSIGHT_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.6, maxOutputTokens: 700 },
     ).then((raw) => parseArray<AnalyticsInsight>(raw, 'insights')),
     fallback,
   );
@@ -582,10 +596,12 @@ export async function draftPitchSmart(mediaKit: MediaKitProfile | null, deal: Br
   return smartOr(
     () => generateText(
       `Write a short, warm outreach email from a UGC creator to ${deal?.brand_name ?? 'a brand'} about ${deal?.deliverables ?? 'a short-form UGC project'}.
-Creator: ${mediaKit?.display_name ?? 'unknown'} · niche: ${mediaKit?.niche ?? 'general'} · availability: ${mediaKit?.availability ?? 'open to work'}
+Creator: ${mediaKit?.display_name ?? 'unknown'}, niche: ${mediaKit?.niche ?? 'general'}, availability: ${mediaKit?.availability ?? 'open to work'}
 Rate card: ${mediaKit?.rates?.map((r) => `${r.name} at ${r.price}`).join('; ') ?? 'none'}
-Rules: real human voice, no corporate words, no em dashes, under 180 words, end with a clear call to action.`,
+Under 180 words, end with a clear call to action.`,
       { type: 'OBJECT', properties: { email: { type: 'STRING' } }, required: ['email'] },
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.7, maxOutputTokens: 500 },
     ).then((raw) => {
       const parsed = JSON.parse(raw) as { email?: string };
       return parsed.email ?? fallback();
@@ -649,15 +665,18 @@ export function suggestRate(input: RateInput): RateSuggestion {
 
 export async function suggestRateSmart(input: RateInput): Promise<RateSuggestion> {
   const fallback = (): RateSuggestion => suggestRate(input);
+  // Addons are fixed curated constants; only the numbers + drivers come from the model.
   return smartOr(
     () => generateText(
       `A UGC creator is pricing a project. Experience tier: ${input.tier}, followers: ${input.followers}, deliverable: ${input.deliverable}, usage: ${input.usage}, niche: ${input.niche ?? 'general'}, bundle: ${input.bundle}.
-Return a realistic 2026 USD rate band: a low, a high, a mid, a short "perDeliverable" summary line, 2-4 plain-English "drivers" (what justifies the number), and up to 5 "addons" as {label, note, pct}. Be honest and data-driven, not inflating.`,
-      { type: 'OBJECT', properties: { band: { type: 'OBJECT', properties: { low: { type: 'NUMBER' }, high: { type: 'NUMBER' } } }, mid: { type: 'NUMBER' }, perDeliverable: { type: 'STRING' }, drivers: { type: 'ARRAY', items: { type: 'STRING' } }, addons: { type: 'ARRAY', items: { type: 'OBJECT', properties: { label: { type: 'STRING' }, note: { type: 'STRING' }, pct: { type: 'NUMBER' } } } } }, required: ['band', 'mid', 'perDeliverable', 'drivers'] },
+Return a realistic 2026 USD rate band: a low, a high, a mid, a short "perDeliverable" summary line, and 2-4 plain-English "drivers" (what justifies the number). Be honest and data-driven, not inflating.`,
+      { type: 'OBJECT', properties: { band: { type: 'OBJECT', properties: { low: { type: 'NUMBER' }, high: { type: 'NUMBER' } } }, mid: { type: 'NUMBER' }, perDeliverable: { type: 'STRING' }, drivers: { type: 'ARRAY', items: { type: 'STRING' } } }, required: ['band', 'mid', 'perDeliverable', 'drivers'] },
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.5, maxOutputTokens: 500 },
     ).then((raw) => {
       const parsed = JSON.parse(raw) as RateSuggestion;
       if (!parsed.band || !parsed.band.low) throw new Error('bad rate schema');
-      return parsed;
+      return { ...parsed, addons: USAGE_ADDONS.map((u) => ({ label: u.label, note: u.note, pct: u.pct })) };
     }),
     fallback,
   );
@@ -747,6 +766,8 @@ Pillars to cover: ${input.pillars.join(', ') || 'Education, Connection, Trends &
 Avoid these existing titles: ${input.avoid.join('; ') || 'none'}.
 Return ${input.count} ideas, each with: title (platform-ready, under 90 chars), a scroll-stopping first-line hook, a content angle, a one-line audience promise, the pillar, and a platform (tiktok, instagram, youtube, shorts, reels). Be concrete and honest, no generic filler.`,
       BRAINSTORM_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 1.0, maxOutputTokens: 1600 },
     ).then((raw) => parseArray<BrainstormIdea>(raw, 'ideas').slice(0, input.count)),
     fallback,
   );
@@ -790,7 +811,7 @@ export function generateCaptions(input: CaptionInput): CaptionSet {
   return { captions, hashtags, firstComment, cta };
 }
 
-function platformTagOf(platform: string): string {
+export function platformTagOf(platform: string): string {
   if (platform === 'tiktok') return 'tiktok';
   if (platform === 'instagram' || platform === 'reels') return 'reels';
   if (platform === 'youtube' || platform === 'shorts') return 'youtubeshorts';
@@ -813,8 +834,10 @@ export async function generateCaptionsSmart(input: CaptionInput): Promise<Captio
   return smartOr(
     () => generateText(
       `Write publish-ready captions for a ${input.platform || 'social'} post titled "${input.title}" (hook: "${input.hook}") for a ${input.niche || 'general'} creator.
-Return 3 caption variants (varied tone: educational, story, bold), 6-9 niche hashtags without # or spaces, an engagement-pulling first comment, and one clear call to action. No em dashes, no corporate speak.`,
+Return 3 caption variants (varied tone: educational, story, bold), 6-9 niche hashtags without # or spaces, an engagement-pulling first comment, and one clear call to action.`,
       CAPTION_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.8, maxOutputTokens: 600 },
     ).then((raw) => {
       const parsed = JSON.parse(raw) as CaptionSet;
       if (!parsed.captions?.length) throw new Error('bad caption schema');
@@ -862,9 +885,11 @@ export async function repurposeIdeaSmart(idea: ContentIdea): Promise<RepurposeVa
   const fallback = (): RepurposeVariant[] => repurposeIdea(idea);
   return smartOr(
     () => generateText(
-      `Act as a UGC repurposing strategist. A creator already posted "${idea.title}"${idea.hook_idea ? ` with the hook "${idea.hook_idea}"` : ''}${idea.pillar ? ` for the ${idea.pillar} niche` : ''}.
-Stretch that single source into exactly 4 distinct cross-platform variants: one X thread, one Instagram carousel, one YouTube short, one YouTube long-form. For each, return a platform-ready title, a scroll-stopping hook, a clear angle, the platform, and a one-line repurpose plan. Be concrete, no generic filler, no em dashes.`,
+      `A creator already posted "${idea.title}"${idea.hook_idea ? ` with the hook "${idea.hook_idea}"` : ''}${idea.pillar ? ` for the ${idea.pillar} niche` : ''}.
+Stretch that single source into exactly 4 distinct cross-platform variants: one X thread, one Instagram carousel, one YouTube short, one YouTube long-form. For each, return a platform-ready title, a scroll-stopping hook, a clear angle, the platform, and a one-line repurpose plan. Be concrete, no generic filler.`,
       REPURPOSE_SCHEMA,
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.8, maxOutputTokens: 1000 },
     ).then((raw) => {
       const variants = parseArray<RepurposeVariant>(raw, 'variants');
       if (!variants.length) throw new Error('bad repurpose schema');
@@ -891,7 +916,7 @@ Quick follow-up on the ${deliverables} opportunity I sent over ${pitchedOn}, jus
 
 Happy to send samples, a rate card, or jump on a 10-minute call this week if that's easier.
 
-Warmly,
+Cheers,
 ${name}`;
 }
 
@@ -900,8 +925,10 @@ export async function draftFollowUpSmart(mediaKit: MediaKitProfile | null, deal:
   return smartOr(
     () => generateText(
       `Write a short, warm follow-up email from UGC creator ${mediaKit?.display_name ?? 'a creator'} to ${deal?.brand_name ?? 'a brand'} about ${deal?.deliverables ?? 'a project'}, pitched ${deal?.pitch_date ?? 'recently'} (deal status: ${deal?.status ?? 'unknown'}).
-Rules: real human voice, no corporate words, no em dashes, under 120 words, one clear next step.`,
+Under 120 words, one clear next step.`,
       { type: 'OBJECT', properties: { email: { type: 'STRING' } }, required: ['email'] },
+      undefined,
+      { system: BRAIN_SYSTEM, temperature: 0.7, maxOutputTokens: 400 },
     ).then((raw) => {
       const parsed = JSON.parse(raw) as { email?: string };
       return parsed.email ?? fallback();
@@ -961,15 +988,24 @@ const TREND_SCHEMA: ResponseSchema = {
   required: ['trends'],
 };
 
+/** Static scout persona for the trend radar (stable prefix for caching). */
+const SCOUT_SYSTEM = `You are a viral-trend scout for UGC creators. You only report trends you would bet money on, prioritising specific and timely over evergreen advice.
+
+Voice rules:
+- Titles and hooks must sound like a real person talks. No corporate words, no hype.
+- Never use em dashes in anything you write.`;
+
 /** Gemini radar: a real-time trend scan for the creator's niches + region, falling back to the catalog. */
 export async function trendingNowSmart(niches: string[], region: string): Promise<TrendItem[]> {
   const fallback = (): TrendItem[] => trendingNow(niches, region);
   const regionLabel = regionLabelOf(region);
   return smartOr(
     () => generateText(
-      `You are a viral-trend scout for UGC creators. List the top 8 content trends that are genuinely trending RIGHT NOW (2026) for a ${regionLabel} audience, in these niches: ${niches.join(', ') || 'general lifestyle'}.
-For each trend return: a specific platform-ready title, a scroll-stopping hook, a content angle, a format, a momentum score (0-100, how hot it is this week), a direction (rising/peaking/falling), a virality score (0-100 viral potential), a one-line play explaining why it is blowing up, and 3-5 niche hashtags. Prioritise specific, timely, verifiable trends over evergreen advice. No em dashes.`,
+      `List the top 8 content trends that are genuinely trending RIGHT NOW (2026) for a ${regionLabel} audience, in these niches: ${niches.join(', ') || 'general lifestyle'}.
+For each trend return: a specific platform-ready title, a scroll-stopping hook, a content angle, a format, a momentum score (0-100, how hot it is this week), a direction (rising/peaking/falling), a virality score (0-100 viral potential), a one-line play explaining why it is blowing up, and 3-5 niche hashtags.`,
       TREND_SCHEMA,
+      undefined,
+      { system: SCOUT_SYSTEM, temperature: 0.9, maxOutputTokens: 1800 },
     ).then((raw) => {
       const list = parseArray<Partial<TrendItem>>(raw, 'trends');
       if (!list.length) throw new Error('bad trend schema');

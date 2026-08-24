@@ -15,16 +15,33 @@ export interface SchemaProperty {
 }
 export interface ResponseSchema { type: 'OBJECT'; properties: Record<string, SchemaProperty>; required?: string[] }
 
+/**
+ * Per-call generation options. `system` carries the stable persona/rules text so the
+ * request prefix stays identical between calls of the same type (best for implicit
+ * prompt caching on Gemini's free tier); only the variable data goes in the user turn.
+ */
+export interface GenerateOptions {
+  system?: string;
+  temperature?: number;
+  maxOutputTokens?: number;
+}
+
 /** One structured text-generation call against Gemini's free tier. */
-export async function generateText(prompt: string, schema: ResponseSchema, signal?: AbortSignal): Promise<string> {
+export async function generateText(prompt: string, schema: ResponseSchema, signal?: AbortSignal, opts?: GenerateOptions): Promise<string> {
   if (!isGeminiConfigured) throw new Error('No Gemini API key configured. Add VITE_GEMINI_API_KEY to your .env file.');
   const res = await fetch(`${BASE}/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal,
     body: JSON.stringify({
+      ...(opts?.system ? { systemInstruction: { parts: [{ text: opts.system }] } } : {}),
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json', responseSchema: schema },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+        temperature: opts?.temperature ?? 0.8,
+        maxOutputTokens: opts?.maxOutputTokens ?? 1024,
+      },
     }),
   });
   if (!res.ok) throw new Error(await describeError(res));
@@ -48,15 +65,17 @@ const RESPONSE_SCHEMA = {
   required: ['title', 'description', 'hook', 'hashtags', 'tags', 'suggested_pillar', 'platform_fit'],
 };
 
-const PROMPT = `You are a social media growth strategist watching a creator's raw video clip.
+const VIDEO_SYSTEM = `You are a social media growth strategist watching a creator's raw video clip.
 Watch and listen to the full clip, then produce metadata that helps the creator publish it fast:
 a catchy title, a ready-to-post description, the strongest possible opening hook line, hashtags,
 SEO tags, the content pillar it belongs to, and which platforms it's best suited for.
-Be specific to what actually happens/is said in the video, never generic placeholder text.`;
+Be specific to what actually happens/is said in the video, never generic placeholder text.
+Write like a real person talks: no corporate words, no hype, no em dashes.`;
 
-async function uploadVideo(blob: Blob, mimeType: string, displayName: string): Promise<string> {
+async function uploadVideo(blob: Blob, mimeType: string, displayName: string, signal?: AbortSignal): Promise<string> {
   const startRes = await fetch(`${BASE}/upload/v1beta/files?key=${API_KEY}`, {
     method: 'POST',
+    signal,
     headers: {
       'X-Goog-Upload-Protocol': 'resumable',
       'X-Goog-Upload-Command': 'start',
@@ -72,6 +91,7 @@ async function uploadVideo(blob: Blob, mimeType: string, displayName: string): P
 
   const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
+    signal,
     headers: {
       'Content-Length': String(blob.size),
       'X-Goog-Upload-Offset': '0',
@@ -110,7 +130,7 @@ async function describeError(res: Response): Promise<string> {
 export async function analyzeVideo(blob: Blob, mimeType: string, displayName: string, signal?: AbortSignal): Promise<VideoAnalysis> {
   if (!isGeminiConfigured) throw new Error('No Gemini API key configured. Add VITE_GEMINI_API_KEY to your .env file.');
 
-  const fileName = await uploadVideo(blob, mimeType, displayName);
+  const fileName = await uploadVideo(blob, mimeType, displayName, signal);
   try {
     const fileUri = await waitUntilActive(fileName, signal);
     const genRes = await fetch(`${BASE}/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`, {
@@ -118,8 +138,9 @@ export async function analyzeVideo(blob: Blob, mimeType: string, displayName: st
       headers: { 'Content-Type': 'application/json' },
       signal,
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ file_data: { file_uri: fileUri, mime_type: mimeType } }, { text: PROMPT }] }],
-        generationConfig: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA },
+        systemInstruction: { parts: [{ text: VIDEO_SYSTEM }] },
+        contents: [{ role: 'user', parts: [{ file_data: { file_uri: fileUri, mime_type: mimeType } }] }],
+        generationConfig: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA, temperature: 0.7, maxOutputTokens: 1024 },
       }),
     });
     if (!genRes.ok) throw new Error(await describeError(genRes));

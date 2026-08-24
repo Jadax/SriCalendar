@@ -1,7 +1,8 @@
-import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_CATEGORIES, HOOK_CATEGORY_META, HOOK_TEMPLATES, SCRIPT_STRUCTURES } from '../data/hookTemplates';
+import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_CATEGORY_META, HOOK_TEMPLATES, SCRIPT_STRUCTURES } from '../data/hookTemplates';
 import { NICHE_HASHTAGS } from '../data/creatorIntelligence';
 import { PLATFORMS } from '../data/options';
-import { generateCaptions } from './creatorBrain';
+import { generateCaptions, platformTagOf } from './creatorBrain';
+import { seededHash } from '../utils/seededHash';
 import type { HookItem } from '../types/ugc';
 
 export interface BrainContext {
@@ -86,7 +87,7 @@ function smartFill(text: string, ctx: BrainContext): string {
     'popular myth': 'the popular myth', 'expensive thing': 'expensive gear', 'popular strategy': 'the popular strategy',
     'small event': 'small email', 'small comment': 'small comment', 'famous creator': 'a famous creator',
     'viral example': 'that viral post', 'legal/brand': 'legal', subtle: 'subtle', 'small action': 'small action',
-    'sneaky detail': 'tiny detail', lonel_y: 'lonely', 'relatable frustration': 'the frustration', emotion: 'that feeling', clip: 'clip',
+    'sneaky detail': 'tiny detail', lonely: 'how quiet it gets', 'relatable frustration': 'the frustration', emotion: 'that feeling', clip: 'clip',
     routine: 'routine', 'ridiculous method': 'ridiculous method', 'old trend': 'old trend', 'new trend': 'new trend',
     'viral moment': 'viral moment', 'hard thing': 'hard thing', objection: 'it feels too hard',
     'expert role': 'professional', steps: '3', outcome2: 'outcome',
@@ -121,7 +122,7 @@ export function pickHooks(ctx: BrainContext, myHooks: HookItem[], count = 3): Ho
   });
 
   picks.sort((a, b) => b.score - a.score);
-  return picks.slice(0, 40).sort(() => 0) /* stable-ish */ .slice(0, count).map(({ text, category, score, reason }) => ({ text, category, score, reason }));
+  return picks.slice(0, count).map(({ text, category, score, reason }) => ({ text, category, score, reason }));
 }
 
 function pickReason(category: string): string {
@@ -368,7 +369,7 @@ export function buildFullScript(ctx: BrainContext, myHooks: HookItem[]): FullScr
 
   // Build hashtags
   const pool = NICHE_HASHTAGS[niche.toLowerCase()] ?? NICHE_HASHTAGS.lifestyle!;
-  const platformTag = platform === 'tiktok' ? 'tiktok' : platform === 'instagram' || platform === 'reels' ? 'reels' : 'shorts';
+  const platformTag = platformTagOf(platform);
   const hashtags = [...new Set([...pool, platformTag, 'ugc', 'creator'])].slice(0, 8);
 
   // Build caption
@@ -417,12 +418,6 @@ function productOnScreen(niche: string): string {
     lifestyle: 'Routine shot + time stamp',
   };
   return map[niche] ?? 'Product on screen with text overlay';
-}
-
-function seededHash(input: string): number {
-  let h = 0;
-  for (let i = 0; i < input.length; i++) { h = (h << 5) - h + input.charCodeAt(i); h |= 0; }
-  return Math.abs(h);
 }
 
 const NICHE_CAPTIONS: Record<string, string[]> = {
@@ -482,11 +477,6 @@ function buildTitles(topic: string, niche: string | null, platform: string, hook
   list.push(`why ${base.toLowerCase()} keeps failing (and the fix)`);
   if (hook) list.push(`what nobody tells you about ${base.toLowerCase()}`);
   return [...new Set(list.filter(Boolean))].slice(0, 4);
-}
-
-function titleWord(topic: string): string {
-  const words = topic.trim().split(/\s+/).filter(Boolean);
-  return words.length > 3 ? '3' : words.length > 0 ? '1' : 'the';
 }
 
 function buildTags(topic: string, niche: string | null, platform: string): string[] {

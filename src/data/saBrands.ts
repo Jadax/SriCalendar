@@ -108,7 +108,7 @@ Thanks so much!
     name: 'Dis-Chem', country: 'ZA', category: 'retailers', subcategory: 'Pharmacy & beauty retail',
     website: 'dischem.co.za', instagram: '@dischem', tiktok: '@dischem', email: 'marketing1@dischem.co.za',
     contactMethod: 'email', outreachDifficulty: 'medium', typicalBudget: 'mid',
-    keyProducts: ['Dis-Chem Glam Crew programme', 'Clicks exclusive brands', 'Dis-Chem Benefit Card promotions'],
+    keyProducts: ['Dis-Chem Glam Crew programme', 'Dis-Chem own-brand beauty range', 'Dis-Chem Benefit Card promotions'],
     keyEvents: ['Dis-Chem Glam Crew (always-on influencer programme)', 'Dis-Chem Beauty Festival'],
     notes: 'Major pharmacy chain. Has the "Dis-Chem Glam Crew" influencer programme. Contact their social media team or apply via their website.',
     readyToSendMessage: `Hi Dis-Chem Team 👋
@@ -326,7 +326,7 @@ Thanks!
     name: 'Rain Africa', country: 'ZA', category: 'body_care', subcategory: 'African body care',
     website: 'rainafrica.com', instagram: '@rainafrica', tiktok: '@rainafrica', email: 'info@rainafrica.com',
     contactMethod: 'email', outreachDifficulty: 'easy', typicalBudget: 'gifted',
-    keyProducts: ['African Butter range', ' Shea range', 'Gift sets'],
+    keyProducts: ['African Butter range', 'Shea range', 'Gift sets'],
     keyEvents: ['Rain Africa store events'],
     notes: 'SA luxury body care. African botanicals. Gift focus. Very open to gifting.',
     readyToSendMessage: `Hi Rain Africa 👋

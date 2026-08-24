@@ -43,12 +43,24 @@ The client creates its profile on first visit. The insert policy accepts it only
 
 ## Module boundaries
 
-- `src/lib`: external clients and synchronization rules
+- `src/lib`: external clients, synchronization rules, and the creator brain (offline intelligence + AI upgrades)
 - `src/hooks`: React-facing auth, calendar, daily-data, and reconnection orchestration
 - `src/store`: small UI/session/navigation state only
+- `src/data`: curated static content — hook templates, trend catalog, brands, rate data
 - `src/components`: presentation and user interactions
 - `neon/schema.sql`: repeatable database schema, grants, policies, and indexes
 - `neon/ugc_schema.sql`: repeatable Creator HQ, Studio, Business, and Knowledge schema, grants, policies, and indexes
+
+## AI layer
+
+All AI runs client-side against Gemini's free tier (`geminiClient.ts`), with every smart call paired to a deterministic offline fallback in `creatorBrain.ts` / `scriptBrain.ts` via `smartOr`. No key configured means the app still works — only generation is unavailable.
+
+Token and caching strategy:
+
+1. **Stable system instructions.** Persona + voice rules live in one shared `systemInstruction` string (`BRAIN_SYSTEM` in creatorBrain, `COACH_SYSTEM` in aiBrain, `SCOUT_SYSTEM` for the trend radar). Because these are byte-identical on every request of a given type, Gemini sees a stable request prefix — the best setup for implicit prompt caching. Only variable workspace data is sent in the user turn.
+2. **Per-call output caps.** Every call sets an explicit `maxOutputTokens` sized to its schema (400 for emails up to 1800 for trend lists) plus a tuned temperature, so free-tier quota is never wasted on runaway generations.
+3. **No static data through the model.** Curated constants (usage addons, hashtags) are merged locally after parsing instead of asking the model to regenerate them.
+4. **One voice.** The shared prompts ban em dashes, corporate speak, and hype so generated content reads like a real creator; the offline template banks follow the same voice rules.
 
 ## Creator workspace synchronization
 

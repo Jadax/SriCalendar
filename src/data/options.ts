@@ -88,5 +88,8 @@ export function fillTemplate(template: string, topic: string, niche: string): st
     session: 'shoot', score: 'score', saturation: 'saturation', feed: 'feeds', tip: 'tip', rule: 'rule',
     project: 'project', frequency: 'every week', nacho: 'start', secrets: 'secrets', soc: 'content',
   };
-  return template.replace(/\{([a-zA-Z_]+)\}/g, (_all, key: string) => defaults[key] ?? key);
+  return template.replace(/\{([a-zA-Z_ /-]+)\}/g, (_all, key: string) => {
+    if (key.includes('/')) return key.split('/').filter(Boolean).join(' or ');
+    return defaults[key] ?? key;
+  });
 }

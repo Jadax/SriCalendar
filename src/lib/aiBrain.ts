@@ -8,37 +8,41 @@ export { isGeminiConfigured } from './geminiClient';
 const BRAIN_SCHEMA: ResponseSchema = {
   type: 'OBJECT',
   properties: {
-    hooks: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 strong opening hooks, each one sentence, that would stop a scroll in the first 1.3 seconds.' },
-    hook_reasons: { type: 'ARRAY', items: { type: 'STRING' }, description: 'Why each hook works, one short sentence each, plain English.' },
-    caption: { type: 'STRING', description: 'A ready-to-post caption under 200 characters with 2-3 line breaks.' },
-    cta: { type: 'STRING', description: 'One short call-to-action encouraging a save, follow or comment.' },
-    structure: { type: 'STRING', description: 'A beat-by-beat structure of the video (hook, 2-3 body beats, payoff, CTA) with rough timings.' },
+    hooks: { type: 'ARRAY', items: { type: 'STRING' }, description: '3 strong opening hooks, each one sentence.' },
+    hook_reasons: { type: 'ARRAY', items: { type: 'STRING' }, description: 'One short reason per hook.' },
+    caption: { type: 'STRING', description: 'Ready-to-post caption under 200 characters.' },
+    cta: { type: 'STRING' },
+    structure: { type: 'STRING', description: 'Beat-by-beat video structure with rough timings.' },
     titles: { type: 'ARRAY', items: { type: 'STRING' }, description: '4 platform-ready video titles.' },
-    tags: { type: 'ARRAY', items: { type: 'STRING' }, description: '8 relevant lowercase hashtags without the # symbol.' },
-    description: { type: 'STRING', description: 'A 2-4 sentence post description ready to publish.' },
-    editingNotes: { type: 'ARRAY', items: { type: 'STRING' }, description: '4-6 practical editing notes: cuts per second, captions, pacing, first-3-seconds.' },
-    best_time: { type: 'STRING', description: 'One best day + time to post this on the target platform, e.g. "Sunday 9am".' },
+    tags: { type: 'ARRAY', items: { type: 'STRING' }, description: '8 lowercase hashtags without #.' },
+    description: { type: 'STRING', description: '2-4 sentence post description ready to publish.' },
+    editingNotes: { type: 'ARRAY', items: { type: 'STRING' }, description: '4-6 practical editing notes.' },
+    best_time: { type: 'STRING', description: 'Best day + time to post, e.g. "Sunday 9am".' },
   },
   required: ['hooks', 'hook_reasons', 'caption', 'cta', 'structure', 'titles', 'tags', 'description', 'editingNotes', 'best_time'],
 };
 
-function brainPrompt(ctx: BrainContext, winningHooks: string[]): string {
-  const hooks = winningHooks.length ? `\n\nHooks this creator has already proven work (steal their energy, not their words):\n${winningHooks.map((h) => `- ${h}`).join('\n')}` : '';
-  return `You are a warm, brilliant UGC coach helping a creator (who is not technical and speaks like a real person) publish short-form video content.
-
-Content brief:
-- Niche: ${ctx.niche || 'general'}
-- Topic: ${ctx.topic}
-- Target platform: ${ctx.platform}
-- What the video shows/contains: ${ctx.content || 'not specified'}${hooks}
+/**
+ * Static persona + rules. Kept byte-identical across every call so Gemini's request
+ * prefix is stable (good for implicit caching) and the user turn stays tiny.
+ */
+const COACH_SYSTEM = `You are a warm, brilliant UGC coach helping a creator (who is not technical and speaks like a real person) publish short-form video content.
 
 Rules:
 - Write like a real person talks. NO corporate words, NO "unlock the power", NO hype.
-- The hook must be 1 sentence, conversational, that stops the scroll in 1.3 seconds.
+- Every hook must be 1 sentence, conversational, that stops the scroll in 1.3 seconds.
 - Respect these proven findings: ${HOOK_SCIENCE.slice(0, 4).join(' ')}
 - Match the tone to the platform (TikTok/Shorts = fast and casual, LinkedIn = still friendly but sharper).
 - Never use em dashes in the copy you write.
-- Give the single best posting time for this platform based on 2026 data.`;
+- Give the single best posting time for the platform based on 2026 data.`;
+
+function brainPrompt(ctx: BrainContext, winningHooks: string[]): string {
+  const hooks = winningHooks.length ? `\n\nHooks this creator has already proven work (steal their energy, not their words):\n${winningHooks.map((h) => `- ${h}`).join('\n')}` : '';
+  return `Content brief:
+- Niche: ${ctx.niche || 'general'}
+- Topic: ${ctx.topic}
+- Target platform: ${ctx.platform}
+- What the video shows/contains: ${ctx.content || 'not specified'}${hooks}`;
 }
 
 function brainToResult(raw: string): BrainResult {
@@ -69,7 +73,7 @@ export async function buildBrainSmart(ctx: BrainContext, myHooks: HookItem[], si
   if (!isGeminiConfigured) return buildBrain(ctx, myHooks);
   const winning = myHooks.filter((h) => h.status === 'winning').map((h) => h.content).slice(0, 5);
   try {
-    const raw = await generateText(brainPrompt(ctx, winning), BRAIN_SCHEMA, signal);
+    const raw = await generateText(brainPrompt(ctx, winning), BRAIN_SCHEMA, signal, { system: COACH_SYSTEM, temperature: 0.9, maxOutputTokens: 1400 });
     return brainToResult(raw);
   } catch {
     return buildBrain(ctx, myHooks);

@@ -35,7 +35,7 @@ export const BEST_TIMES: Record<string, PostWindow[]> = {
   instagram: [
     { day: 'Tuesday', start: '10:00 AM', end: '1:00 PM', note: 'Top reach window for Reels.' },
     { day: 'Wednesday', start: '10:00 AM', end: '1:00 PM', note: 'Strong for services + educational content.' },
-    { day: 'Thu–Sat', start: '7:00 PM', end: '9:00 PM', note: 'Evening entertainment window.' },
+    { day: 'Thursday–Saturday', start: '7:00 PM', end: '9:00 PM', note: 'Evening entertainment window.' },
   ],
   reels: [
     { day: 'Tuesday', start: '10:00 AM', end: '1:00 PM', note: 'Highest reach window.' },
@@ -276,7 +276,7 @@ export const TRENDS: Trend[] = [
   { id: 'uk-tech-1', niche: 'tech', region: 'uk', title: 'The broadband hack nobody uses', hook: 'Your broadband is slower than it should be. Fix this now.', angle: 'speed rescue', format: 'tips', momentum: 71, direction: 'rising', virality: 62, play: 'UK broadband frustration is a universal pain point.', hashtags: ['broadband', 'techuk', 'internetspeed'] },
   { id: 'uk-fitness-1', niche: 'fitness', region: 'uk', title: 'Couch to 5K: the honest truth', hook: 'I tried Couch to 5K for 30 days. Here is what nobody warns you about.', angle: 'honest review', format: 'vlog + tips', momentum: 75, direction: 'rising', virality: 66, play: 'Couch to 5K is the UKs most downloaded fitness programme.', hashtags: ['couchto5k', 'running', 'fitnessuk'] },
   { id: 'uk-parenting-1', niche: 'parenting', region: 'uk', title: 'The nursery swap that saved 200', hook: 'The 200 nursery essential that does nothing. Skip it.', angle: 'baby savings', format: 'honest haul', momentum: 72, direction: 'rising', virality: 64, play: 'Money-saving baby content resonates in the cost-of-living squeeze.', hashtags: ['nursery', 'babyessentials', 'parentinguk'] },
-  { id: 'in-parenting-1', niche: 'parenting', region: 'india', title: 'The tiffin that kids actually eat', hook: 'My kid rejected every tiffin until I tried this one trick.', angle: 'lunchbox rescue', format: 'recipe tips', momentum: 78, direction: 'rising', virality: 72, play: 'Tiffin content is a daily ritual for Indian parents.', hashtags: ['tiffinideas', 'kidsfood', 'indianmoms'] },
+  { id: 'in-parenting-3', niche: 'parenting', region: 'india', title: 'The tiffin that kids actually eat', hook: 'My kid rejected every tiffin until I tried this one trick.', angle: 'lunchbox rescue', format: 'recipe tips', momentum: 78, direction: 'rising', virality: 72, play: 'Tiffin content is a daily ritual for Indian parents.', hashtags: ['tiffinideas', 'kidsfood', 'indianmoms'] },
 
   /* ---- south africa ---- */
   { id: 'sa-beauty-1', niche: 'beauty', region: 'sa', title: 'Clicks vs Dis-Chem skincare showdown', hook: 'I tested the same routine from both stores. One won by far.', angle: 'store showdown', format: 'side-by-side test', momentum: 84, direction: 'rising', virality: 80, play: 'Clicks vs Dis-Chem debates are the SA beauty equivalent of jollof wars.', hashtags: ['clicks', 'dischem', 'skincareza'] },
