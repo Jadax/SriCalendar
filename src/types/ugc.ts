@@ -206,5 +206,26 @@ export interface Collaboration extends UgcRow {
   deadline: string | null;
 }
 
+export interface ContentResult extends UgcRow {
+  /** Date the post went live. */
+  date: string;
+  platform: string;
+  title: string;
+  /** Hook category used, from the shared HOOK_CATEGORIES list. */
+  hook_category: string | null;
+  pillar: string | null;
+  /** Video format, from POST_FORMATS. */
+  format: string | null;
+  angle: string | null;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  /** Followers gained (own estimate or the platform's "new followers from this post"). */
+  followers_gained: number;
+  note: string | null;
+}
+
 /** Union of every row type stored locally for offline-first access. */
-export type AnyUgcRow = ContentIdea | Script | HookItem | BoardCard | BrandDeal | Invoice | MediaKitProfile | KnowledgeItem | AnalyticsEntry | ContentPillar | Goal | ProductionChecklist | Collaboration;
+export type AnyUgcRow = ContentIdea | Script | HookItem | BoardCard | BrandDeal | Invoice | MediaKitProfile | KnowledgeItem | AnalyticsEntry | ContentPillar | Goal | ProductionChecklist | Collaboration | ContentResult;

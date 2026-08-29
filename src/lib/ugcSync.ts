@@ -111,7 +111,7 @@ export async function flushPendingUgc(userId: string): Promise<void> {
   const tables = dbUgc;
   const queued = await tables.delete_queue.where('user_id').equals(userId).toArray();
   for (const entry of queued) await flushDelete(entry).catch(() => undefined);
-  for (const table of ['content_ideas', 'scripts', 'hook_library', 'production_board', 'brand_deals', 'invoices', 'media_kit', 'knowledge_base', 'analytics', 'content_pillars', 'goals', 'production_checklists', 'collaborations'] as const) {
+  for (const table of ['content_ideas', 'scripts', 'hook_library', 'production_board', 'brand_deals', 'invoices', 'media_kit', 'knowledge_base', 'analytics', 'content_pillars', 'goals', 'production_checklists', 'collaborations', 'content_results'] as const) {
     const local = tables.table<AnyUgcRow, string>(table).where('user_id').equals(userId).and((row) => row.sync_pending === 1).toArray();
     for (const record of await local) await pushUgcRecord(table, record).catch(() => undefined);
   }

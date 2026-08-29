@@ -17,7 +17,8 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 🛡️ Private JSON backup and restore through the in-app Data Vault
 - 🔥 Consecutive-visit streaks, sync state, dark theme, and reduced-motion support
 - 🎬 Video Assistant: drop in a phone clip and a free Gemini call drafts the title, caption, hook, hashtags and tags — clips stay on-device, only sent to Google transiently for analysis
-- 🏠 Creator HQ, Studio, Business, and Knowledge workspaces for ideas, scripts, shoots, invoices, deals, goals, and analytics
+- 🏠 Creator HQ, Studio, Business, and Knowledge workspaces for ideas, scripts, shoots, invoices, deals, goals, analytics, and results
+- 🧬 What Worked: log each post's real numbers and the engine names your winning hooks, pillars, formats and angles — then feeds the pattern into your daily brief
 - 🔄 Content Pipeline: every idea flows Idea → Script → Film → Edit → Schedule → Publish with bottleneck detection
 - 🗓️ Weekly Planner: a 7-day content plan from your pillars and proven hooks, schedulable to the calendar in one click
 - 🔥 Trend Pulse: 200+ trend catalog across 6 regions (incl. South Africa), AI trend scans, live trend fetching, date-aware scheduling that links calendar + board + script together
@@ -88,7 +89,7 @@ Try the app at [sri-calendar.vercel.app](https://sri-calendar.vercel.app). No-lo
 - [Home](https://sri-calendar.vercel.app/preview/home) — Creator HQ: daily brief, weekly AI plan, money & analytics pulse
 - [Studio](https://sri-calendar.vercel.app/preview/studio) — Idea Bank, Script Writer, Production Board, Checklists
 - [Business](https://sri-calendar.vercel.app/preview/business) — Income, Brand Deals, Invoices
-- [Knowledge](https://sri-calendar.vercel.app/preview/knowledge) — Goals, Growth Analytics
+- [Knowledge](https://sri-calendar.vercel.app/preview/knowledge) — Goals, Growth Analytics, What Worked
 - [Calendar](https://sri-calendar.vercel.app/preview/today) — the content calendar, now showing production due dates
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for the Neon + Vercel setup.

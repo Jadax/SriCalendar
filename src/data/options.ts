@@ -1,4 +1,6 @@
 export const PLATFORMS = ['tiktok', 'instagram', 'youtube', 'linkedin', 'pinterest', 'x', 'shorts', 'reels', 'newsletter', 'podcast'] as const;
+/** Video formats used when logging what a published post actually was. */
+export const POST_FORMATS = ['reel', 'demo', 'tutorial', 'before-after', 'review', 'get-ready', 'story', 'carousel', 'vlog', 'trend', 'other'] as const;
 export const PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
 export const EFFORT_LEVELS = ['quick', 'medium', 'big'] as const;
 export const IDEA_STATUSES = ['idea', 'scripted', 'scheduled', 'published', 'discarded'] as const;

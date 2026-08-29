@@ -1,6 +1,6 @@
 import type { DailyData, Profile } from './index';
 import type {
-  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, Goal,
+  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, ContentResult, Goal,
   HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
 } from './ugc';
 
@@ -99,6 +99,12 @@ export interface Database {
         Row: Row<Collaboration>;
         Insert: Partial<Row<Collaboration>> & Pick<Row<Collaboration>, 'partner_name'>;
         Update: Partial<Row<Collaboration>>;
+        Relationships: [];
+      };
+      content_results: {
+        Row: Row<ContentResult>;
+        Insert: Partial<Row<ContentResult>> & Pick<Row<ContentResult>, 'platform' | 'title'>;
+        Update: Partial<Row<ContentResult>>;
         Relationships: [];
       };
     };

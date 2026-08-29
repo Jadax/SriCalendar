@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.12.0 — 29 August 2026
+
+What Worked: a results log that turns real numbers into a repeatable formula.
+
+- New "What Worked" tab under Knowledge: log per-post outcomes (date, platform, format, hook style, pillar, angle, views, likes, comments, shares, saves, followers gained) by hand or by picking a post you already marked published, so the flow from posting to learning stays one tap.
+- The Winning Formula panel turns the log into decisions: it finds the hook styles, pillars, formats and angles with the strongest engagement-rate lift over your baseline, flags the ones running at half your average, and writes plain-English coach notes ("Lead with Question hooks. It is your strongest move right now.").
+- The daily brief adds a "winning pattern" nudge as soon as four logged posts show a clear winner, so the formula feeds straight into planning.
+- Full offline-first persistence: content_results ships through the same local Dexie store, Neon schema (idempotent table + index + RLS + grant) and typed API contract as every other workspace.
+- Nudges only appear once the signal is real (a pattern needs 2+ posts), and the engine is pure deterministic math so it stays honest at 0 posts.
+
 ## 1.11.2 — 24 August 2026
 
 Full codebase review: logic fixes, deduplication, and LLM efficiency.

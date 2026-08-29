@@ -252,6 +252,31 @@ CREATE TABLE IF NOT EXISTS public.collaborations (
 );
 
 -- ---------------------------------------------------------------------------
+-- What Worked: per-post outcome log that powers the winning-formula engine
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.content_results (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL DEFAULT auth.user_id(),
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  platform TEXT NOT NULL,
+  title TEXT NOT NULL,
+  hook_category TEXT,
+  pillar TEXT,
+  format TEXT,
+  angle TEXT,
+  views INTEGER NOT NULL DEFAULT 0,
+  likes INTEGER NOT NULL DEFAULT 0,
+  comments INTEGER NOT NULL DEFAULT 0,
+  shares INTEGER NOT NULL DEFAULT 0,
+  saves INTEGER NOT NULL DEFAULT 0,
+  followers_gained INTEGER NOT NULL DEFAULT 0,
+  note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ---------------------------------------------------------------------------
 -- Indexes
 -- ---------------------------------------------------------------------------
 
@@ -267,6 +292,7 @@ CREATE INDEX IF NOT EXISTS idx_content_pillars_user ON public.content_pillars (u
 CREATE INDEX IF NOT EXISTS idx_goals_user ON public.goals (user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_production_checklists_user ON public.production_checklists (user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collaborations_user ON public.collaborations (user_id, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_content_results_user_date ON public.content_results (user_id, date DESC);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security for all new tables
@@ -278,7 +304,7 @@ DECLARE
   new_tables TEXT[] := ARRAY[
     'content_ideas','scripts','hook_library','production_board',
     'brand_deals','invoices','media_kit',
-    'knowledge_base','analytics','content_pillars','goals','production_checklists','collaborations'
+    'knowledge_base','analytics','content_pillars','goals','production_checklists','collaborations','content_results'
   ];
 BEGIN
   FOREACH tbl IN ARRAY new_tables
@@ -299,5 +325,5 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   public.content_ideas, public.scripts, public.hook_library, public.production_board,
   public.brand_deals, public.invoices, public.media_kit,
   public.knowledge_base, public.analytics, public.content_pillars, public.goals,
-  public.production_checklists, public.collaborations
+  public.production_checklists, public.collaborations, public.content_results
 TO authenticated;

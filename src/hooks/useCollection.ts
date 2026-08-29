@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { dbUgc, type UgcTableName } from '../lib/dexieUgcClient';
 import { enqueueDelete, reconcileCollection, scheduleUgcPush } from '../lib/ugcSync';
 import type {
-  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, Goal,
+  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, ContentResult, Goal,
   HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
 } from '../types/ugc';
 
@@ -23,6 +23,7 @@ export interface UgcRowMap {
   goals: Goal;
   production_checklists: ProductionChecklist;
   collaborations: Collaboration;
+  content_results: ContentResult;
 }
 
 export type UgcActions<K extends UgcTableName> = {

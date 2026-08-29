@@ -4,8 +4,9 @@ import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HA
 export type { Trend, RegionalBenchmark } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
 import { seededHash } from '../utils/seededHash';
+import { analyzeOutcomes, outcomeNudge } from './outcomeBrain';
 import type {
-  AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, Goal, HookItem, Invoice, MediaKitProfile,
+  AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, ContentResult, Goal, HookItem, Invoice, MediaKitProfile,
 } from '../types/ugc';
 
 export { isGeminiConfigured } from './geminiClient';
@@ -42,6 +43,8 @@ export interface TodayContext {
   tasksToday: Array<{ text: string; done: boolean }>;
   postsToday: Array<{ platform: string; title: string; status: string }>;
   mediaKit: MediaKitProfile | null;
+  /** Per-post outcome log; powers the "what worked" nudge when available. */
+  results?: ContentResult[];
 }
 
 export interface WeeklyPlanSlot {
@@ -304,6 +307,11 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
       body: 'One strong post can become a thread, a carousel and a clip. Stretch your best work instead of starting cold.',
       action: { label: 'Repurpose', to: '/app/studio' },
     });
+  }
+
+  if (ctx.results && ctx.results.length > 0) {
+    const winning = outcomeNudge(analyzeOutcomes(ctx.results));
+    if (winning) nudges.push(winning);
   }
 
   nudges.push({

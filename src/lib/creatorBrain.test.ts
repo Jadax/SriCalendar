@@ -4,7 +4,7 @@ import {
   rankIdeasForNext, trendingNow, trendingNowSmart, regionalBenchmark, hashtagPack,
   type BrainstormIdea, type TodayContext, type Trend,
 } from './creatorBrain';
-import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
+import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentResult, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
 
 const mediaKit = (p: Partial<MediaKitProfile> = {}): MediaKitProfile => ({
   id: 'mk', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
@@ -37,6 +37,17 @@ describe('creatorBrain · daily brief', () => {
     expect(ids).toContain('capture');
     expect(ids).toContain('plan-week');
     expect(nudges.find((n) => n.id === 'plan-week')?.priority).toBe('low');
+  });
+
+  it('adds a winning-pattern nudge when a clear winner is logged', () => {
+    const results: ContentResult[] = Array.from({ length: 6 }, (_, i) => ({
+      id: `x${i}`, user_id: 'u', created_at: '2026-08-01', updated_at: '2026-08-01', sync_pending: 0,
+      date: '2026-08-01', platform: 'tiktok', title: `post ${i}`, hook_category: 'Question',
+      pillar: null, format: 'reel', angle: null, views: 1000, likes: 100, comments: 5, shares: 2,
+      saves: 40, followers_gained: 0, note: null,
+    }));
+    const ids = buildDailyBrief(baseCtx({ results })).map((n) => n.id);
+    expect(ids).toContain('winning-pattern');
   });
 
   it('ranks nudges from high to low priority', () => {

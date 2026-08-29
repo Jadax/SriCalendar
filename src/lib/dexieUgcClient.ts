@@ -1,6 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type {
-  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, Goal,
+  AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, ContentResult, Goal,
   HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
 } from '../types/ugc';
 import type { VideoAsset } from '../types/video';
@@ -22,6 +22,7 @@ class SriCalendarUgcDatabase extends Dexie {
   goals!: Table<Goal, string>;
   production_checklists!: Table<ProductionChecklist, string>;
   collaborations!: Table<Collaboration, string>;
+  content_results!: Table<ContentResult, string>;
   delete_queue!: Table<PendingDelete, string>;
   /** Device-only clip storage — never pushed to Neon, deliberately absent from UGC_TABLES. */
   video_assets!: Table<VideoAsset, string>;
@@ -46,6 +47,7 @@ class SriCalendarUgcDatabase extends Dexie {
     };
     this.version(1).stores(stores);
     this.version(2).stores({ ...stores, video_assets: 'id, user_id, created_at, status' });
+    this.version(3).stores({ ...stores, video_assets: 'id, user_id, created_at, status', content_results: 'id, user_id, updated_at, sync_pending, date' });
   }
 }
 
@@ -67,6 +69,7 @@ export const UGC_TABLES = [
   'goals',
   'production_checklists',
   'collaborations',
+  'content_results',
 ] as const;
 
 export type UgcTableName = (typeof UGC_TABLES)[number];
