@@ -5,7 +5,7 @@ import { dbUgc, type UgcTableName } from '../lib/dexieUgcClient';
 import { enqueueDelete, reconcileCollection, scheduleUgcPush } from '../lib/ugcSync';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, ContentResult, Goal,
-  HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
+  HookItem, Invoice, KnowledgeItem, MediaKitProfile, OutreachContact, ProductionChecklist, Script, UgcDeliverable,
 } from '../types/ugc';
 
 /** Maps each local table name to its typed row. */
@@ -24,6 +24,8 @@ export interface UgcRowMap {
   production_checklists: ProductionChecklist;
   collaborations: Collaboration;
   content_results: ContentResult;
+  ugc_deliverables: UgcDeliverable;
+  outreach: OutreachContact;
 }
 
 export type UgcActions<K extends UgcTableName> = {

@@ -5,8 +5,9 @@ export type { Trend, RegionalBenchmark } from '../data/creatorIntelligence';
 import { cap } from '../data/options';
 import { seededHash } from '../utils/seededHash';
 import { analyzeOutcomes, outcomeNudge } from './outcomeBrain';
+import { followUpsDue } from './outreachBrain';
 import type {
-  AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, ContentResult, Goal, HookItem, Invoice, MediaKitProfile,
+  AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentPillar, ContentResult, Goal, HookItem, Invoice, MediaKitProfile, OutreachContact,
 } from '../types/ugc';
 
 export { isGeminiConfigured } from './geminiClient';
@@ -45,6 +46,8 @@ export interface TodayContext {
   mediaKit: MediaKitProfile | null;
   /** Per-post outcome log; powers the "what worked" nudge when available. */
   results?: ContentResult[];
+  /** Brand outreach touchpoints; a follow-up due shows up as a nudge. */
+  outreach?: OutreachContact[];
 }
 
 export interface WeeklyPlanSlot {
@@ -237,6 +240,16 @@ export function buildDailyBrief(ctx: TodayContext): BriefNudge[] {
       title: `${pitches.length} pitch${pitches.length === 1 ? '' : 'es'} need a follow-up`,
       body: `Quiet pitches go stale after ${PITCH_STALE_DAYS} days. A one-line reply keeps you on their radar.`,
       action: { label: 'Review deals', to: '/app/business' },
+    });
+  }
+
+  const outreachDue = ctx.outreach ? followUpsDue(ctx.outreach, ctx.dateKey) : [];
+  if (outreachDue.length > 0) {
+    nudges.push({
+      id: 'outreach-due', emoji: '🤝', priority: 'high',
+      title: `${outreachDue.length} brand follow-up${outreachDue.length === 1 ? '' : 's'} due`,
+      body: `${outreachDue[0]?.brand ?? 'A brand'}${outreachDue.length > 1 ? ` and ${outreachDue.length - 1} more` : ''} is waiting on a nudge. A one-line reply keeps the thread warm.`,
+      action: { label: 'Open outreach', to: '/app/business' },
     });
   }
 

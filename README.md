@@ -23,7 +23,8 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 🗓️ Weekly Planner: a 7-day content plan from your pillars and proven hooks, schedulable to the calendar in one click
 - 🔥 Trend Pulse: 200+ trend catalog across 6 regions (incl. South Africa), AI trend scans, live trend fetching, date-aware scheduling that links calendar + board + script together
 - ✍️ Script Writer: offline 5-beat UGC script engine plus optional Gemini co-pilot — hooks, titles, captions, hashtags, descriptions, editing notes
-- 💼 Brand Directory: 61 verified brands with contacts, ready-to-send outreach, rate benchmarks, and status tracking
+- 💼 Brand Directory: 61 verified brands with contacts, ready-to-send outreach, rate benchmarks, and a persisted outreach CRM (status, follow-up dates, snooze) with due-follow-up nudges in the daily brief
+- 📦 Client Work: per-deliverable tracking from contracted to paid (submissions, revisions, linked results) with a Business dashboard money section
 
 ### Human-sounding AI
 

@@ -1,7 +1,7 @@
 import type { DailyData, Profile } from './index';
 import type {
   AnalyticsEntry, BoardCard, BrandDeal, Collaboration, ContentIdea, ContentPillar, ContentResult, Goal,
-  HookItem, Invoice, KnowledgeItem, MediaKitProfile, ProductionChecklist, Script,
+  HookItem, Invoice, KnowledgeItem, MediaKitProfile, OutreachContact, ProductionChecklist, Script, UgcDeliverable,
 } from './ugc';
 
 type DailyRow = Omit<DailyData, 'sync_pending'>;
@@ -105,6 +105,18 @@ export interface Database {
         Row: Row<ContentResult>;
         Insert: Partial<Row<ContentResult>> & Pick<Row<ContentResult>, 'platform' | 'title'>;
         Update: Partial<Row<ContentResult>>;
+        Relationships: [];
+      };
+      ugc_deliverables: {
+        Row: Row<UgcDeliverable>;
+        Insert: Partial<Row<UgcDeliverable>> & Pick<Row<UgcDeliverable>, 'brand_name' | 'description'>;
+        Update: Partial<Row<UgcDeliverable>>;
+        Relationships: [];
+      };
+      outreach: {
+        Row: Row<OutreachContact>;
+        Insert: Partial<Row<OutreachContact>> & Pick<Row<OutreachContact>, 'brand'>;
+        Update: Partial<Row<OutreachContact>>;
         Relationships: [];
       };
     };

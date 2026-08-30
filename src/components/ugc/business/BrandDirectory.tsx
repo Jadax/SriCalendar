@@ -1,42 +1,56 @@
 import { useMemo, useState, type ReactElement } from 'react';
-import { Mail, Instagram, Globe, Search, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Mail, Instagram, Globe, Search, X, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { SA_BRANDS, BRAND_CATEGORIES, CONTACT_METHODS, OUTREACH_DIFFICULTY, BUDGET_TIERS, CREATOR_WORKFLOW, type SaBrand, type BrandCategory } from '../../../data/saBrands';
-import { cx, PageHead, Pill, SectionBlock } from '../shared/primitives';
+import { OUTREACH_CHANNELS, OUTREACH_STATUSES, OUTREACH_STATUS_META, cap } from '../../../data/options';
+import { cx, Field, FormRow, Modal, PageHead, Pill, SectionBlock, confirmDelete } from '../shared/primitives';
+import { useCollection } from '../../../hooks/useCollection';
+import { toDateKey } from '../../../utils/dateUtils';
+import { channelOf, daysOverdue, draftOutreachFollowUp, followUpsDue } from '../../../lib/outreachBrain';
+import type { OutreachContact } from '../../../types/ugc';
+
+const outreachStatusMeta = (s: string): { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' } =>
+  OUTREACH_STATUS_META[s] ?? { emoji: '・', label: s, color: 'gray' };
 
 interface Props { userId: string }
 
-interface BrandStatus {
-  [key: string]: 'none' | 'contacted' | 'interested' | 'pitched' | 'collaborating' | 'done';
-}
-
-const STATUS_OPTIONS: { id: BrandStatus[string]; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' }[] = [
-  { id: 'none', label: '—', color: 'mint' },
-  { id: 'contacted', label: '📩 Contacted', color: 'sky' },
-  { id: 'interested', label: '👀 Interested', color: 'yellow' },
-  { id: 'pitched', label: '📋 Pitched', color: 'lavender' },
-  { id: 'collaborating', label: '🤝 Collaborating', color: 'mint' },
-  { id: 'done', label: '✅ Done', color: 'coral' },
-];
-
-function getStatusColor(status: BrandStatus[string]): 'sky' | 'yellow' | 'lavender' | 'mint' | 'coral' {
-  return STATUS_OPTIONS.find((s) => s.id === status)?.color ?? 'mint';
-}
-
-function getStatusLabel(status: BrandStatus[string]): string {
-  return STATUS_OPTIONS.find((s) => s.id === status)?.label ?? '—';
-}
-
 type ViewMode = 'directory' | 'workflow' | 'templates';
 
-/** Business page sub-tab: comprehensive directory of SA beauty, wellness & haircare brands with proven outreach. */
+function addDaysKey(dateKey: string, days: number): string {
+  const d = new Date(`${dateKey}T00:00:00`);
+  d.setDate(d.getDate() + days);
+  return toDateKey(d);
+}
+
+/** Business sub-tab: SA beauty, wellness & haircare directory with a persisted outreach CRM. */
 export function BrandDirectory({ userId }: Props): ReactElement {
+  const outreach = useCollection('outreach', userId);
+  const media = useCollection('media_kit', userId);
+  const mediaKit = media.items[0] ?? null;
+
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<BrandCategory | 'all'>('all');
   const [countryFilter, setCountryFilter] = useState<'all' | 'ZA' | 'international'>('all');
-  const [statuses, setStatuses] = useState<BrandStatus>({});
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('directory');
-  const [copiedTemplate, setCopiedTemplate] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const [editing, setEditing] = useState<OutreachContact | null>(null);
+  const [followDraft, setFollowDraft] = useState<{ brand: string; text: string } | null>(null);
+
+  const todayKey = useMemo(() => toDateKey(new Date()), []);
+
+  const byBrand = useMemo(() => {
+    const map = new Map<string, OutreachContact>();
+    for (const row of outreach.items) map.set(row.brand, row);
+    return map;
+  }, [outreach.items]);
+
+  const due = useMemo(() => followUpsDue(outreach.items, todayKey), [outreach.items, todayKey]);
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const row of outreach.items) counts[row.status] = (counts[row.status] ?? 0) + 1;
+    return counts;
+  }, [outreach.items]);
 
   const filtered = useMemo(() => {
     let result = SA_BRANDS;
@@ -64,25 +78,59 @@ export function BrandDirectory({ userId }: Props): ReactElement {
     return counts;
   }, []);
 
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const s of Object.values(statuses)) {
-      if (s !== 'none') counts[s] = (counts[s] || 0) + 1;
-    }
-    return counts;
-  }, [statuses]);
-
-  const updateStatus = (brandName: string, status: BrandStatus[string]): void => {
-    setStatuses((prev) => ({ ...prev, [brandName]: status }));
+  const copyText = async (key: string, text: string): Promise<void> => {
+    try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 2000); } catch { /* ignore */ }
   };
 
-  const copyTemplate = async (key: string, text: string): Promise<void> => {
-    try { await navigator.clipboard.writeText(text); setCopiedTemplate(key); setTimeout(() => setCopiedTemplate(null), 2000); } catch { /* ignore */ }
+  const setStatus = async (brandName: string, status: string): Promise<void> => {
+    const touch = todayKey;
+    const existing = byBrand.get(brandName);
+    if (status === 'none') {
+      if (existing) await outreach.remove(existing.id);
+      return;
+    }
+    const nextFollowUp = status === 'collab' || status === 'done' ? null : addDaysKey(touch, 5);
+    if (existing) {
+      await outreach.update(existing.id, { status, last_touched: touch, follow_up_at: nextFollowUp });
+      return;
+    }
+    const brand = SA_BRANDS.find((b) => b.name === brandName) ?? null;
+    await outreach.add({
+      brand: brandName, brand_category: brand?.category ?? null,
+      channel: channelOf(brand), contact: brand?.email ?? null,
+      status, sent_at: status === 'sent' ? touch : null,
+      last_touched: touch, follow_up_at: nextFollowUp,
+      template: brand?.readyToSendMessage ?? null, notes: null, deal_id: null,
+    });
+  };
+
+  const snooze = async (id: string, followUpAt: string): Promise<void> => {
+    await outreach.update(id, { follow_up_at: addDaysKey(followUpAt, 3) });
+  };
+
+  const openDraft = (brandName: string): void => {
+    const contact = byBrand.get(brandName) ?? null;
+    const brand = SA_BRANDS.find((b) => b.name === brandName) ?? null;
+    setFollowDraft({ brand: brandName, text: draftOutreachFollowUp(contact, brand, mediaKit) });
+  };
+
+  const saveEdit = async (): Promise<void> => {
+    if (!editing) return;
+    await outreach.update(editing.id, {
+      status: editing.status,
+      channel: editing.channel,
+      contact: editing.contact?.trim() || null,
+      sent_at: editing.sent_at || null,
+      last_touched: editing.last_touched || null,
+      follow_up_at: editing.follow_up_at || null,
+      notes: editing.notes?.trim() || null,
+    });
+    setEditing(null);
   };
 
   return <div className="ugc-page">
     <PageHead eyebrow="Business · Brands" title="Brand Directory 🤝"
-      subtitle={`${SA_BRANDS.length} beauty, wellness & haircare brands with proven outreach strategies.`} />
+      subtitle="Beauty, wellness & haircare brands with proven outreach. Your status, follow-ups and notes now persist across every device." />
 
     {/* View mode toggle */}
     <div className="section-block" style={{ marginBottom: 14 }}>
@@ -94,16 +142,42 @@ export function BrandDirectory({ userId }: Props): ReactElement {
     </div>
 
     {viewMode === 'directory' && <>
+      {due.length > 0 && (
+        <SectionBlock title={`🔔 ${due.length} follow-up${due.length === 1 ? '' : 's'} waiting`} hint="a one-line nudge keeps you on their radar">
+          <div className="nudge-list">
+            {due.map((r) => {
+              const days = daysOverdue(r.follow_up_at ?? todayKey, todayKey);
+              const meta = OUTREACH_STATUS_META[r.status];
+              return <div className="nudge" key={r.id}>
+                <span className="nudge-emoji">📨</span>
+                <div className="nudge-body">
+                  <div className="row" style={{ gap: 6 }}>
+                    <span className="nudge-title">{r.brand}</span>
+                    {meta && <Pill color={meta.color}>{meta.label}</Pill>}
+                  </div>
+                  <p>{days <= 0 ? 'Follow-up is due today. Reply fast while the thread is warm.' : `${days} day${days === 1 ? '' : 's'} overdue. Reply, send a nudge, or close the loop.`}</p>
+                  <div className="row" style={{ gap: 8 }}>
+                    <button className="btn soft small" onClick={() => openDraft(r.brand)}>📮 Draft follow-up</button>
+                    <button className="btn ghost small" onClick={() => void snooze(r.id, r.follow_up_at ?? todayKey)}>⏰ +3 days</button>
+                  </div>
+                </div>
+              </div>;
+            })}
+          </div>
+        </SectionBlock>
+      )}
+
       {/* Stats bar */}
       {Object.keys(statusCounts).length > 0 && (
         <div className="section-block" style={{ marginBottom: 14 }}>
           <div className="mini-grid">
-            {STATUS_OPTIONS.filter((s) => s.id !== 'none').map((s) => (
-              <div key={s.id} className="stat-card" style={{ opacity: (statusCounts[s.id] ?? 0) > 0 ? 1 : 0.4 }}>
-                <div className="stat-label">{s.label}</div>
-                <div className="stat-value">{statusCounts[s.id] ?? 0}</div>
-              </div>
-            ))}
+            {OUTREACH_STATUSES.map((s) => {
+              const meta = outreachStatusMeta(s);
+              return <div key={s} className="stat-card" style={{ opacity: (statusCounts[s] ?? 0) > 0 ? 1 : 0.4 }}>
+                <div className="stat-label">{meta.emoji} {meta.label}</div>
+                <div className="stat-value">{statusCounts[s] ?? 0}</div>
+              </div>;
+            })}
           </div>
         </div>
       )}
@@ -169,7 +243,9 @@ export function BrandDirectory({ userId }: Props): ReactElement {
         ) : (
           <div className="brand-grid">
             {filtered.map((brand) => {
-              const status = statuses[brand.name] ?? 'none';
+              const row = byBrand.get(brand.name);
+              const status = row?.status ?? 'none';
+              const statusMeta = OUTREACH_STATUS_META[status];
               const isExpanded = expandedBrand === brand.name;
               const diff = OUTREACH_DIFFICULTY[brand.outreachDifficulty];
               const budget = BUDGET_TIERS[brand.typicalBudget];
@@ -182,11 +258,12 @@ export function BrandDirectory({ userId }: Props): ReactElement {
                       <span className="brand-card-sub">{brand.subcategory} · {brand.country === 'ZA' ? '🇿🇦 SA' : '🌐 International'}</span>
                     </div>
                     <div className="brand-card-actions" onClick={(e) => e.stopPropagation()}>
-                      <Pill color={diff.color}>{diff.label.split(' —')[0]}</Pill>
-                      {status !== 'none' && <Pill color={getStatusColor(status)}>{getStatusLabel(status)}</Pill>}
+                      <Pill color={diff.color}>{diff.label}</Pill>
+                      {status === 'none' && <span className="hint" style={{ fontSize: 11 }}>not contacted</span>}
+                      {status !== 'none' && statusMeta && <Pill color={statusMeta.color}>{statusMeta.emoji} {statusMeta.label}</Pill>}
                       {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                     </div>
-                  </div>
+                    </div>
 
                   {isExpanded && (
                     <div className="brand-card-details">
@@ -246,25 +323,59 @@ export function BrandDirectory({ userId }: Props): ReactElement {
                       <div className="brand-message-box">
                         <div className="brand-message-header">
                           <span>✉️ Ready-to-Send Message</span>
-                          <button className="btn soft" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => void copyTemplate(brand.name, brand.readyToSendMessage)}>
-                            {copiedTemplate === brand.name ? '✅ Copied!' : '📋 Copy'}
+                          <button className="btn soft" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => void copyText(brand.name, brand.readyToSendMessage)}>
+                            {copied === brand.name ? '✅ Copied!' : '📋 Copy'}
                           </button>
                         </div>
                         <pre className="brand-message-body">{brand.readyToSendMessage}</pre>
                       </div>
 
+                      {/* Outreach timeline */}
+                      {row && (
+                        <div className="brand-products-box">
+                          <div className="row" style={{ justifyContent: 'space-between', gap: 8 }}>
+                            <strong>Outreach:</strong>
+                            <button className="btn ghost" style={{ padding: '3px 10px', fontSize: 11 }} onClick={() => setEditing({ ...row })}>
+                              <Pencil size={11} /> Edit
+                            </button>
+                          </div>
+                          <div className="brand-quick-info">
+                            <span className="brand-info-chip">📤 Sent {row.sent_at ?? 'not set'}</span>
+                            <span className="brand-info-chip">👋 Last touch {row.last_touched ?? 'never'}</span>
+                            <span className="brand-info-chip">⏰ Next follow-up {row.follow_up_at ?? 'not set'}</span>
+                            <span className="brand-info-chip">📱 {cap(row.channel)}</span>
+                          </div>
+                          {row.notes && <p className="brand-card-notes" style={{ marginTop: 8 }}>{row.notes}</p>}
+                          <div className="row" style={{ gap: 8, marginTop: 8 }}>
+                            {(status === 'sent' || status === 'replied' || status === 'discussing') && (
+                              <button className="btn soft small" onClick={() => openDraft(brand.name)}>📮 Draft follow-up</button>
+                            )}
+                            <button className="btn soft small" onClick={() => void copyText(`${brand.name}-template`, brand.readyToSendMessage)}>
+                              {copied === `${brand.name}-template` ? '✅ Copied!' : '📋 Copy message'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {/* Status tracker */}
                       <div className="brand-card-status-row">
                         <span className="hint" style={{ fontSize: 11, marginRight: 6 }}>Status:</span>
-                        {STATUS_OPTIONS.map((s) => (
-                          <button
-                            key={s.id}
-                            className={cx('status-chip', status === s.id && 'active')}
-                            onClick={() => updateStatus(brand.name, s.id)}
+                        <button
+                          className={cx('status-chip', status === 'none' && 'active')}
+                          onClick={() => void setStatus(brand.name, 'none')}
+                        >
+                          —
+                        </button>
+                        {OUTREACH_STATUSES.map((s) => {
+                          const meta = outreachStatusMeta(s);
+                          return <button
+                            key={s}
+                            className={cx('status-chip', status === s && 'active')}
+                            onClick={() => void setStatus(brand.name, s)}
                           >
-                            {s.label}
-                          </button>
-                        ))}
+                            {meta.emoji} {meta.label}
+                          </button>;
+                        })}
                       </div>
                     </div>
                   )}
@@ -339,5 +450,39 @@ export function BrandDirectory({ userId }: Props): ReactElement {
         </div>
       </SectionBlock>
     )}
+
+    {/* Outreach edit modal */}
+    {editing && <Modal title={`Outreach · ${editing.brand}`} onClose={() => setEditing(null)} wide
+      footer={<div className="row" style={{ justifyContent: 'space-between', marginTop: 16 }}>
+        <button className="btn ghost" onClick={() => { confirmDelete(() => { void outreach.remove(editing.id); setEditing(null); }); }}>Delete</button>
+        <div className="row" style={{ gap: 8 }}>
+          <button className="btn ghost" onClick={() => setEditing(null)}>Cancel</button>
+          <button className="btn primary" onClick={() => void saveEdit()}>Save</button>
+        </div>
+      </div>}>
+      <div className="grid" style={{ gap: 14 }}>
+        <FormRow>
+          <Field label="Status"><select className="select" value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value })}>{OUTREACH_STATUSES.map((s) => <option key={s} value={s}>{outreachStatusMeta(s).emoji} {outreachStatusMeta(s).label}</option>)}</select></Field>
+          <Field label="Channel"><select className="select" value={editing.channel} onChange={(e) => setEditing({ ...editing, channel: e.target.value })}>{OUTREACH_CHANNELS.map((c) => <option key={c} value={c}>{cap(c)}</option>)}</select></Field>
+          <Field label="Contact"><input className="input" value={editing.contact ?? ''} onChange={(e) => setEditing({ ...editing, contact: e.target.value })} placeholder="email or handle"/></Field>
+        </FormRow>
+        <FormRow>
+          <Field label="Sent on"><input type="date" className="date-input" value={editing.sent_at ?? ''} onChange={(e) => setEditing({ ...editing, sent_at: e.target.value })}/></Field>
+          <Field label="Last touch"><input type="date" className="date-input" value={editing.last_touched ?? ''} onChange={(e) => setEditing({ ...editing, last_touched: e.target.value })}/></Field>
+          <Field label="Next follow-up"><input type="date" className="date-input" value={editing.follow_up_at ?? ''} onChange={(e) => setEditing({ ...editing, follow_up_at: e.target.value })}/></Field>
+        </FormRow>
+        <Field label="Notes"><textarea className="textarea" rows={3} value={editing.notes ?? ''} onChange={(e) => setEditing({ ...editing, notes: e.target.value })} placeholder="Who to ask for, what they said, next best move"/></Field>
+      </div>
+    </Modal>}
+
+    {/* Follow-up draft modal */}
+    {followDraft && <Modal title={`Follow-up for ${followDraft.brand}`} onClose={() => setFollowDraft(null)}
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>
+        <button className="btn ghost" onClick={() => setFollowDraft(null)}>Close</button>
+        <button className="btn primary" onClick={() => void copyText(`draft-${followDraft.brand}`, followDraft.text)}>{copied === `draft-${followDraft.brand}` ? '✅ Copied!' : '📋 Copy to clipboard'}</button>
+      </div>}>
+      <p className="hint" style={{ marginBottom: 10 }}>A short, warm nudge. Edit as needed before sending.</p>
+      <pre className="brand-message-body" style={{ whiteSpace: 'pre-wrap' }}>{followDraft.text}</pre>
+    </Modal>}
   </div>;
 }

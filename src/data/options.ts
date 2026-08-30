@@ -14,6 +14,37 @@ export const GOAL_STATUSES = ['active', 'at-risk', 'achieved', 'paused'] as cons
 export const PERIODS = ['daily', 'weekly', 'monthly'] as const;
 export const KNOWLEDGE_CATEGORIES = ['gear', 'software', 'presets', 'music', 'b-roll', 'links', 'templates', 'learning'] as const;
 export const COLLAB_STATUSES = ['active', 'pending', 'done', 'declined'] as const;
+/** UGC deliverable lifecycle inside a client deal. */
+export const DELIVERABLE_STATUSES = ['contracted', 'filmed', 'submitted', 'revision', 'approved', 'published', 'paid'] as const;
+/** The order deliverables naturally move through (revision loops back to filming). */
+export const DELIVERABLE_FLOW: Record<string, string> = {
+  contracted: 'filmed',
+  filmed: 'submitted',
+  submitted: 'revision',
+  revision: 'filmed',
+  approved: 'published',
+  published: 'paid',
+  paid: '',
+};
+export const DELIVERABLE_STATUS_META: Record<string, { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' }> = {
+  contracted: { emoji: '🤝', label: 'Contracted', color: 'gray' },
+  filmed: { emoji: '🎬', label: 'Filmed', color: 'sky' },
+  submitted: { emoji: '📤', label: 'Submitted', color: 'yellow' },
+  revision: { emoji: '🔄', label: 'Revisions', color: 'coral' },
+  approved: { emoji: '✅', label: 'Approved', color: 'mint' },
+  published: { emoji: '🌍', label: 'Published', color: 'lavender' },
+  paid: { emoji: '💸', label: 'Paid', color: 'mint' },
+};
+/** Outreach CRM statuses; the absence of a row means "not contacted". */
+export const OUTREACH_STATUSES = ['sent', 'replied', 'discussing', 'collab', 'done'] as const;
+export const OUTREACH_STATUS_META: Record<string, { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' }> = {
+  sent: { emoji: '📩', label: 'Sent', color: 'sky' },
+  replied: { emoji: '👀', label: 'Replied', color: 'yellow' },
+  discussing: { emoji: '📋', label: 'Discussing', color: 'lavender' },
+  collab: { emoji: '🤝', label: 'Collab', color: 'mint' },
+  done: { emoji: '✅', label: 'Done', color: 'coral' },
+};
+export const OUTREACH_CHANNELS = ['email', 'dm', 'form', 'other'] as const;
 export const RIGHTS_PERIODS = ['30-day organic', '90-day whitelisting + paid ads', '6 months full rights', '12 months full rights', 'perpetual'] as const;
 
 export const PRIORITY_META: Record<string, { emoji: string; color: 'coral' | 'yellow' | 'lavender' | 'gray' }> = {

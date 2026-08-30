@@ -10,7 +10,10 @@ export function BusinessDashboard({ userId }: Props): ReactElement {
   const deals = useCollection('brand_deals', userId);
   const invoices = useCollection('invoices', userId);
   const board = useCollection('production_board', userId);
+  const deliverables = useCollection('ugc_deliverables', userId);
   const base = getBaseCurrency();
+
+  const todayKey = useMemo(() => new Date().toISOString().slice(0, 10), []);
 
   const activeDeals = deals.items.filter((d) => d.status !== 'declined');
   const pipelineValue = fromUsd(activeDeals.reduce((sum, d) => sum + toUsd(d.deal_value ?? 0, d.currency) * ((d.estimated_probability ?? 0) / 100), 0), base);
@@ -28,6 +31,10 @@ export function BusinessDashboard({ userId }: Props): ReactElement {
     .slice(0, 5);
   const stalePitches = activeDeals.filter((d) => d.pitch_date && new Date(d.pitch_date).getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000 && (d.status === 'cold' || d.status === 'contacted')).length;
 
+  const awaitingFeedback = deliverables.items.filter((d) => d.status === 'submitted' || d.status === 'revision').length;
+  const approvedUnpaid = deliverables.items.filter((d) => d.status === 'approved' || d.status === 'published').length;
+  const dueDeliverables = deliverables.items.filter((d) => d.due_date && d.due_date <= todayKey && d.status !== 'paid').length;
+
   return <div className="grid" style={{ gap: 16 }}>
     <div className="grid grid-4">
       <StatCard emoji="🤝" label="Active deals" value={String(activeDeals.length)} note={`${stalePitches} stale pitch${stalePitches === 1 ? '' : 'es'} to follow up`} />
@@ -43,6 +50,17 @@ export function BusinessDashboard({ userId }: Props): ReactElement {
           <div className="timeline">
             {upcoming.map((d) => <div key={d.id} className="tl-item"><span className="tl-dot">📁</span><div className="tl-body"><strong style={{ fontSize: 13, color: '#5d4f79' }}>{d.brand_name}</strong><p className="card-sub">{d.deadline} · {formatMoneyCompact(d.deal_value ?? 0, d.currency)} · <b>{d.status}</b></p></div></div>)}
           </div>}
+      </section>
+    </div>
+    <div className="grid">
+      <section className="section-block">
+        <div className="block-head"><h2 style={{ fontSize: 15 }}>📦 Client work</h2><span className="hint">{deliverables.items.length} deliverable{deliverables.items.length !== 1 ? 's' : ''}</span></div>
+        <div className="mini-grid">
+          <div className="stat-card"><div className="stat-label">📤 Awaiting feedback</div><div className="stat-value">{awaitingFeedback}</div><div className="stat-note">submitted or in revisions</div></div>
+          <div className="stat-card"><div className="stat-label">✅ Approved, not paid</div><div className="stat-value">{approvedUnpaid}</div><div className="stat-note">send the invoice already</div></div>
+          <div className="stat-card"><div className="stat-label">⏰ Due or overdue</div><div className="stat-value">{dueDeliverables}</div><div className="stat-note">client deadlines to hit</div></div>
+          <div className="stat-card"><div className="stat-label">🎬 To film</div><div className="stat-value">{deliverables.items.filter((d) => d.status === 'contracted').length}</div><div className="stat-note">contracted but not filmed yet</div></div>
+        </div>
       </section>
     </div>
   </div>;

@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.13.0 — 30 August 2026
+
+Client Work and a persisted outreach CRM: the money pipeline now tracks every deliverable to the paid payout, and brand outreach no longer evaporates on refresh.
+
+- New "Client Work" tab under Business: every asset inside a deal as its own tracked deliverable (quantity, due date, value, notes, platform), routed through a clean pipeline — contracted → filmed → submitted → revision (revision loops back to filming) → approved → published → paid — with a one-tap advance button per row.
+- Revisions count themselves: every time a deliverable swings back to revision it records a revision, so your "this brand is revision-hungry" signal builds automatically.
+- Link a published result to a deliverable: log the post in What Worked from inside it (title, platform, date), one tap auto-links it and marks the deliverable published. Existing results can be linked too and unlinked anytime.
+- Client work shows up at a glance: the Business dashboard adds a "Client Work" section (awaiting feedback, approved but unpaid, due/overdue, still to film) so nothing sits unpaid.
+- Brand Directory outreach is now a real CRM: status, channel, contact, sent/last-touch/follow-up dates and notes save per brand instead of vanishing on refresh. Changing a brand's status auto-schedules its next follow-up 5 days out; snooze defers one by 3 days.
+- A "follow-ups due" strip sits at the top of the directory (overdue highlighted in coral), and the daily brief raises a high-priority nudge whenever a brand follow-up is due, so threads never go cold.
+- Both new stores (ugc_deliverables, outreach) go through the same offline-first path: local Dexie, Neon schema (idempotent tables + indexes + RLS + grant) and typed API contract. 68/68 tests passing.
+
 ## 1.12.0 — 29 August 2026
 
 What Worked: a results log that turns real numbers into a repeatable formula.

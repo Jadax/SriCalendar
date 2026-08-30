@@ -277,6 +277,52 @@ CREATE TABLE IF NOT EXISTS public.content_results (
 );
 
 -- ---------------------------------------------------------------------------
+-- Client Work: per-deliverable UGC lifecycle (contracted → filmed → submitted →
+-- approved → published → paid) that powers the deliverables workspace
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.ugc_deliverables (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL DEFAULT auth.user_id(),
+  deal_id UUID REFERENCES public.brand_deals(id) ON DELETE SET NULL,
+  brand_name TEXT NOT NULL,
+  description TEXT NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'contracted',
+  platform TEXT,
+  due_date DATE,
+  submitted_at DATE,
+  compensation DECIMAL(10,2),
+  revision_count INTEGER NOT NULL DEFAULT 0,
+  linked_result_id UUID REFERENCES public.content_results(id) ON DELETE SET NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ---------------------------------------------------------------------------
+-- Outreach CRM: persisted brand outreach touchpoints backing the directory
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS public.outreach (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL DEFAULT auth.user_id(),
+  brand TEXT NOT NULL,
+  brand_category TEXT,
+  channel TEXT NOT NULL DEFAULT 'email',
+  contact TEXT,
+  status TEXT NOT NULL DEFAULT 'sent',
+  sent_at DATE,
+  last_touched DATE,
+  follow_up_at DATE,
+  template TEXT,
+  notes TEXT,
+  deal_id UUID REFERENCES public.brand_deals(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ---------------------------------------------------------------------------
 -- Indexes
 -- ---------------------------------------------------------------------------
 
@@ -293,6 +339,8 @@ CREATE INDEX IF NOT EXISTS idx_goals_user ON public.goals (user_id, updated_at D
 CREATE INDEX IF NOT EXISTS idx_production_checklists_user ON public.production_checklists (user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_collaborations_user ON public.collaborations (user_id, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_content_results_user_date ON public.content_results (user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_ugc_deliverables_user_status ON public.ugc_deliverables (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_outreach_user_follow_up ON public.outreach (user_id, follow_up_at);
 
 -- ---------------------------------------------------------------------------
 -- Row Level Security for all new tables
@@ -304,7 +352,8 @@ DECLARE
   new_tables TEXT[] := ARRAY[
     'content_ideas','scripts','hook_library','production_board',
     'brand_deals','invoices','media_kit',
-    'knowledge_base','analytics','content_pillars','goals','production_checklists','collaborations','content_results'
+    'knowledge_base','analytics','content_pillars','goals','production_checklists','collaborations','content_results',
+    'ugc_deliverables','outreach'
   ];
 BEGIN
   FOREACH tbl IN ARRAY new_tables
@@ -325,5 +374,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON
   public.content_ideas, public.scripts, public.hook_library, public.production_board,
   public.brand_deals, public.invoices, public.media_kit,
   public.knowledge_base, public.analytics, public.content_pillars, public.goals,
-  public.production_checklists, public.collaborations, public.content_results
+  public.production_checklists, public.collaborations, public.content_results,
+  public.ugc_deliverables, public.outreach
 TO authenticated;

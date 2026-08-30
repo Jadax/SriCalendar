@@ -227,5 +227,44 @@ export interface ContentResult extends UgcRow {
   note: string | null;
 }
 
+/** A single client asset inside a brand deal, tracked through the UGC lifecycle. */
+export interface UgcDeliverable extends UgcRow {
+  /** The brand_deal this deliverable belongs to, when created from a deal. */
+  deal_id: string | null;
+  brand_name: string;
+  description: string;
+  /** Batch size (UGC often requires multiple unique clips per product). */
+  quantity: number;
+  /** One of DELIVERABLE_STATUSES: contracted → filmed → submitted → … → paid. */
+  status: string;
+  platform: string | null;
+  due_date: string | null;
+  submitted_at: string | null;
+  compensation: number | null;
+  /** How many revision rounds this deliverable has been through. */
+  revision_count: number;
+  /** The content_results entry once the approved work actually goes live. */
+  linked_result_id: string | null;
+  notes: string | null;
+}
+
+/** A persisted outreach touchpoint with a brand, backing the Brand Directory CRM. */
+export interface OutreachContact extends UgcRow {
+  /** Brand name — matches the directory entry when it came from a directory brand. */
+  brand: string;
+  brand_category: string | null;
+  channel: string;
+  contact: string | null;
+  /** One of OUTREACH_STATUSES; absence of a row means "not contacted". */
+  status: string;
+  sent_at: string | null;
+  last_touched: string | null;
+  /** Date the next follow-up is due (nudge fires from the daily brief). */
+  follow_up_at: string | null;
+  template: string | null;
+  notes: string | null;
+  deal_id: string | null;
+}
+
 /** Union of every row type stored locally for offline-first access. */
-export type AnyUgcRow = ContentIdea | Script | HookItem | BoardCard | BrandDeal | Invoice | MediaKitProfile | KnowledgeItem | AnalyticsEntry | ContentPillar | Goal | ProductionChecklist | Collaboration | ContentResult;
+export type AnyUgcRow = ContentIdea | Script | HookItem | BoardCard | BrandDeal | Invoice | MediaKitProfile | KnowledgeItem | AnalyticsEntry | ContentPillar | Goal | ProductionChecklist | Collaboration | ContentResult | UgcDeliverable | OutreachContact;

@@ -35,6 +35,7 @@ export function HomePage({ userId }: Props): ReactElement {
   const analytics = useCollection('analytics', userId);
   const media = useCollection('media_kit', userId);
   const results = useCollection('content_results', userId);
+  const outreach = useCollection('outreach', userId);
   const mediaKit = media.items[0] ?? null;
 
   const todayRow = useLiveQuery(() => db.daily_data.get([userId, dateKey]), [userId, dateKey]);
@@ -59,7 +60,8 @@ export function HomePage({ userId }: Props): ReactElement {
     postsToday: (todayRow?.platform_posts ?? []).map((p) => ({ platform: p.platform, title: p.title, status: p.status })),
     mediaKit,
     results: results.items,
-  }), [dateKey, streak, ideas.items, hooks.items, board.items, deals.items, invoices.items, goals.items, pillars.items, analytics.items, todayRow, mediaKit, results.items]);
+    outreach: outreach.items,
+  }), [dateKey, streak, ideas.items, hooks.items, board.items, deals.items, invoices.items, goals.items, pillars.items, analytics.items, todayRow, mediaKit, results.items, outreach.items]);
 
   const nudges = useMemo<BriefNudge[]>(() => buildDailyBrief(ctx), [ctx]);
   const insights = useMemo(() => interpretAnalytics(analytics.items), [analytics.items]);

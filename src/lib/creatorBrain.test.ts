@@ -4,7 +4,7 @@ import {
   rankIdeasForNext, trendingNow, trendingNowSmart, regionalBenchmark, hashtagPack,
   type BrainstormIdea, type TodayContext, type Trend,
 } from './creatorBrain';
-import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentResult, HookItem, Invoice, MediaKitProfile } from '../types/ugc';
+import type { AnalyticsEntry, BoardCard, BrandDeal, ContentIdea, ContentResult, HookItem, Invoice, MediaKitProfile, OutreachContact } from '../types/ugc';
 
 const mediaKit = (p: Partial<MediaKitProfile> = {}): MediaKitProfile => ({
   id: 'mk', user_id: 'u', created_at: '2026-01-01', updated_at: '2026-01-01', sync_pending: 0,
@@ -48,6 +48,25 @@ describe('creatorBrain · daily brief', () => {
     }));
     const ids = buildDailyBrief(baseCtx({ results })).map((n) => n.id);
     expect(ids).toContain('winning-pattern');
+  });
+
+  it('nudges about brand follow-ups that are due', () => {
+    const outreach: OutreachContact[] = [
+      { id: 'o1', user_id: 'u', created_at: '2026-08-01', updated_at: '2026-08-01', sync_pending: 0, brand: 'Clicks', brand_category: null, channel: 'email', contact: null, status: 'sent', sent_at: '2026-08-10', last_touched: '2026-08-10', follow_up_at: '2026-08-15', template: null, notes: null, deal_id: null },
+      { id: 'o2', user_id: 'u', created_at: '2026-08-01', updated_at: '2026-08-01', sync_pending: 0, brand: 'Dis-Chem', brand_category: null, channel: 'email', contact: null, status: 'collab', sent_at: null, last_touched: null, follow_up_at: '2026-08-01', template: null, notes: null, deal_id: null },
+    ];
+    const ids = buildDailyBrief(baseCtx({ dateKey: '2026-08-15', outreach })).map((n) => n.id);
+    expect(ids).toContain('outreach-due');
+    const nudge = buildDailyBrief(baseCtx({ dateKey: '2026-08-15', outreach })).find((n) => n.id === 'outreach-due');
+    expect(nudge?.priority).toBe('high');
+  });
+
+  it('stays quiet about outreach when no follow-up is due', () => {
+    const outreach: OutreachContact[] = [
+      { id: 'o1', user_id: 'u', created_at: '2026-08-01', updated_at: '2026-08-01', sync_pending: 0, brand: 'Clicks', brand_category: null, channel: 'email', contact: null, status: 'sent', sent_at: '2026-08-10', last_touched: '2026-08-10', follow_up_at: '2026-08-20', template: null, notes: null, deal_id: null },
+    ];
+    const ids = buildDailyBrief(baseCtx({ dateKey: '2026-08-15', outreach })).map((n) => n.id);
+    expect(ids).not.toContain('outreach-due');
   });
 
   it('ranks nudges from high to low priority', () => {
