@@ -7,11 +7,12 @@ import { Invoices } from './Invoices';
 import { MediaKit } from './MediaKit';
 import { Collaborations } from './Collaborations';
 import { Income } from './Income';
+import { MoneyFlow } from './MoneyFlow';
 import { RateCalculator } from './RateCalculator';
 import { HowIWork } from './HowIWork';
 import { BrandDirectory } from './BrandDirectory';
 
-type BusinessTab = 'dashboard' | 'income' | 'deals' | 'deliverables' | 'rates' | 'invoices' | 'media' | 'collabs' | 'workflow' | 'brands';
+type BusinessTab = 'dashboard' | 'income' | 'flow' | 'deals' | 'deliverables' | 'rates' | 'invoices' | 'media' | 'collabs' | 'workflow' | 'brands';
 
 interface Props { userId: string }
 
@@ -26,6 +27,7 @@ export function BusinessPage({ userId }: Props): ReactElement {
         { id: 'dashboard', label: 'Dashboard', icon: '📊' },
         { id: 'brands', label: 'Brand Directory', icon: '🤝' },
         { id: 'income', label: 'Income', icon: '💗' },
+        { id: 'flow', label: 'Money Flow', icon: '💸' },
         { id: 'deals', label: 'Brand Deals', icon: '💼' },
         { id: 'deliverables', label: 'Client Work', icon: '📦' },
         { id: 'rates', label: 'Rates', icon: '🧮' },
@@ -37,6 +39,7 @@ export function BusinessPage({ userId }: Props): ReactElement {
     {tab === 'dashboard' && <BusinessDashboard userId={userId}/>}
     {tab === 'brands' && <BrandDirectory userId={userId}/>}
     {tab === 'income' && <Income userId={userId}/>}
+    {tab === 'flow' && <MoneyFlow userId={userId}/>}
     {tab === 'deals' && <BrandDeals userId={userId}/>}
     {tab === 'deliverables' && <Deliverables userId={userId}/>}
     {tab === 'rates' && <RateCalculator userId={userId}/>}

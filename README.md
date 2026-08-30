@@ -25,6 +25,7 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - ✍️ Script Writer: offline 5-beat UGC script engine plus optional Gemini co-pilot — hooks, titles, captions, hashtags, descriptions, editing notes
 - 💼 Brand Directory: 61 verified brands with contacts, ready-to-send outreach, rate benchmarks, and a persisted outreach CRM (status, follow-up dates, snooze) with due-follow-up nudges in the daily brief
 - 📦 Client Work: per-deliverable tracking from contracted to paid (submissions, revisions, linked results) with a Business dashboard money section
+- 💸 Money Flow: the deal-to-paid funnel with win rate, expected pipeline value, and a 6-month cash-flow projection weighted by deal probability
 
 ### Human-sounding AI
 

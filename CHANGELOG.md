@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.14.0 — 30 August 2026
+
+Money Flow: the funnel between outreach and paid, plus a 6-month cash-flow projection.
+
+- New "Money Flow" tab under Business: every deal becomes a stage in a funnel (New lead → Pitched → Negotiating → Booked → Delivered → Passed) with count and value per stage, so it is obvious where money is stuck.
+- Conversion stats that decide themselves: win rate (booked + delivered ÷ decided), average booked/dealt-of-closed deal size, expected pipeline value (probability-weighted) and outstanding invoices at full value.
+- A 6-month cash-flow projection chart and table: paid money lands by issue date, invoiced-but-unpaid by due date, and open deals by their deadline weighted by estimated probability. Deals without a deadline hold their value in a separate "set a deadline" total instead of faking a month.
+- Deadlines before the window clamp into the current month so nothing silently falls off the projection, and declined deals are excluded everywhere.
+- Pure deterministic engine (`moneyFlow.ts`) with 15 new unit tests covering win-rate math, probability weighting, currency conversion to USD and month bucketing. 83/83 tests passing.
+
 ## 1.13.0 — 30 August 2026
 
 Client Work and a persisted outreach CRM: the money pipeline now tracks every deliverable to the paid payout, and brand outreach no longer evaporates on refresh.
