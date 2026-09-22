@@ -16,6 +16,7 @@ import { MonthNavigator } from '../calendar/MonthNavigator';
 import { CalendarGrid } from '../calendar/CalendarGrid';
 import { WeekView } from '../calendar/WeekView';
 import { DailyPanel } from '../daily/DailyPanel';
+import { TodayReminder } from '../calendar/TodayReminder';
 import { Confetti } from '../shared/Confetti';
 import { OnboardingWizard } from '../shared/OnboardingWizard';
 import { isOnboardingProfile, loadProfile, saveProfile, type OnboardingProfile } from '../../data/onboarding';
@@ -91,5 +92,5 @@ export function AppShell({ preview = false }: { preview?: boolean }): ReactEleme
   };
 
   if (!userId) return <div className="full-loader">Loading…</div>;
-  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'home' || appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace"><Suspense fallback={<div className="ugc-page-loading">Loading your creator workspace ✨</div>}>{appTab === 'home' && <HomePage userId={userId}/>}{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</Suspense></main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/></main>}{!preview && profileLoaded && !profile?.onboarded && <OnboardingWizard userId={userId} initialName={firstName ?? ''} onComplete={(next) => { setProfile(next); setFirstName(next.name); void saveOnboarding(next).catch(() => undefined); }} />}</div>;
+  return <div className={darkMode ? 'app dark' : 'app'}><Confetti/><Header firstName={firstName ?? undefined} avatarUrl={avatarUrl} onAvatarChange={saveAvatar}/><TabBar/>{(appTab === 'home' || appTab === 'studio' || appTab === 'business' || appTab === 'knowledge') ? <main className="ugc-workspace"><Suspense fallback={<div className="ugc-page-loading">Loading your creator workspace ✨</div>}>{appTab === 'home' && <HomePage userId={userId}/>}{appTab === 'studio' && <StudioPage userId={userId}/>}{appTab === 'business' && <BusinessPage userId={userId}/>}{appTab === 'knowledge' && <KnowledgePage userId={userId}/>}</Suspense></main> : <main className="workspace"><section className="calendar-card"><MonthNavigator/>{viewMode === 'month' ? <CalendarGrid userId={userId}/> : <WeekView/>}</section><DailyPanel userId={userId} dateKey={selectedDateKey}/><TodayReminder userId={userId}/></main>}{!preview && profileLoaded && !profile?.onboarded && <OnboardingWizard userId={userId} initialName={firstName ?? ''} onComplete={(next) => { setProfile(next); setFirstName(next.name); void saveOnboarding(next).catch(() => undefined); }} />}</div>;
 }

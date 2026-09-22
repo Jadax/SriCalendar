@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.15.0 — 30 August 2026
+
+Today shows up the moment it has work, and a gentle popup does the nagging for you.
+
+- Today's calendar cell now glows when it has open items: a soft pulsing coral ring, a gradient day-number and a little pulsing badge that counts exactly how many things are still open (unfinished tasks, unpublished posts, production cards due today). When you finish everything, today settles into a calm mint "all done" ring instead.
+- Week view marks today the same way, with a coral ring around the day header.
+- A friendly reminder card slides in once a day (when today actually has open work): it lists your unfinished tasks with tappable checkboxes that complete instantly and update the calendar badge right there, plus scheduled posts and any production cards due today. "Open today" jumps the calendar to today and tucks the card away, and the close button dismisses it for the rest of the day.
+- It never blocks you: no modal, no repeating popups, nothing on a day you've already knocked out. 83/83 tests passing.
+
 ## 1.14.0 — 30 August 2026
 
 Money Flow: the funnel between outreach and paid, plus a 6-month cash-flow projection.

@@ -26,6 +26,7 @@ An offline-first, pastel content-planning calendar built for creators. SriCalend
 - 💼 Brand Directory: 61 verified brands with contacts, ready-to-send outreach, rate benchmarks, and a persisted outreach CRM (status, follow-up dates, snooze) with due-follow-up nudges in the daily brief
 - 📦 Client Work: per-deliverable tracking from contracted to paid (submissions, revisions, linked results) with a Business dashboard money section
 - 💸 Money Flow: the deal-to-paid funnel with win rate, expected pipeline value, and a 6-month cash-flow projection weighted by deal probability
+- ⚡ Today Spotlight: today's calendar cell glows with a pulsing badge counting your open items (tasks, posts, due production), turns mint when you're all done, and a once-a-day reminder card pops in with an interactive checklist and a jump-to-today button
 
 ### Human-sounding AI
 
