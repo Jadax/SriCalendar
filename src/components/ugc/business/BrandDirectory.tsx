@@ -1,15 +1,16 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Mail, Instagram, Globe, Search, X, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { SA_BRANDS, BRAND_CATEGORIES, CONTACT_METHODS, OUTREACH_DIFFICULTY, BUDGET_TIERS, CREATOR_WORKFLOW, type SaBrand, type BrandCategory } from '../../../data/saBrands';
-import { OUTREACH_CHANNELS, OUTREACH_STATUSES, OUTREACH_STATUS_META, cap } from '../../../data/options';
-import { cx, Field, FormRow, Modal, PageHead, Pill, SectionBlock, confirmDelete } from '../shared/primitives';
+import { OUTREACH_CHANNELS, OUTREACH_STATUSES, OUTREACH_STATUS_META, cap, metaFallback } from '../../../data/options';
+import { cx, Field, FormRow, Modal, PageHead, Pill, SectionBlock, StatCard, confirmDelete } from '../shared/primitives';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { toDateKey } from '../../../utils/dateUtils';
 import { channelOf, daysOverdue, draftOutreachFollowUp, followUpsDue } from '../../../lib/outreachBrain';
 import type { OutreachContact } from '../../../types/ugc';
 
 const outreachStatusMeta = (s: string): { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' } =>
-  OUTREACH_STATUS_META[s] ?? { emoji: '・', label: s, color: 'gray' };
+  metaFallback(OUTREACH_STATUS_META, s);
 
 interface Props { userId: string }
 
@@ -32,7 +33,7 @@ export function BrandDirectory({ userId }: Props): ReactElement {
   const [countryFilter, setCountryFilter] = useState<'all' | 'ZA' | 'international'>('all');
   const [expandedBrand, setExpandedBrand] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('directory');
-  const [copied, setCopied] = useState<string | null>(null);
+  const { copied, copy } = useCopy(2000);
   const [editing, setEditing] = useState<OutreachContact | null>(null);
   const [followDraft, setFollowDraft] = useState<{ brand: string; text: string } | null>(null);
 
@@ -78,9 +79,7 @@ export function BrandDirectory({ userId }: Props): ReactElement {
     return counts;
   }, []);
 
-  const copyText = async (key: string, text: string): Promise<void> => {
-    try { await navigator.clipboard.writeText(text); setCopied(key); setTimeout(() => setCopied(null), 2000); } catch { /* ignore */ }
-  };
+  const copyText = async (key: string, text: string): Promise<void> => { void copy(text, key); };
 
   const setStatus = async (brandName: string, status: string): Promise<void> => {
     const touch = todayKey;
@@ -173,10 +172,7 @@ export function BrandDirectory({ userId }: Props): ReactElement {
           <div className="mini-grid">
             {OUTREACH_STATUSES.map((s) => {
               const meta = outreachStatusMeta(s);
-              return <div key={s} className="stat-card" style={{ opacity: (statusCounts[s] ?? 0) > 0 ? 1 : 0.4 }}>
-                <div className="stat-label">{meta.emoji} {meta.label}</div>
-                <div className="stat-value">{statusCounts[s] ?? 0}</div>
-              </div>;
+              return <StatCard key={s} style={{ opacity: (statusCounts[s] ?? 0) > 0 ? 1 : 0.4 }} label={`${meta.emoji} ${meta.label}`} value={String(statusCounts[s] ?? 0)} />;
             })}
           </div>
         </div>

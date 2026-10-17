@@ -3,8 +3,9 @@ import { Copy } from 'lucide-react';
 import { suggestRate, suggestRateSmart, isGeminiConfigured as brainGemini, regionalBenchmark, type RateSuggestion } from '../../../lib/creatorBrain';
 import { DELIVERABLE_LABELS, FOLLOWERS_BANDS, PACKAGE_TIERS, PLATFORM_LADDER, RATE_TIERS, TREND_REGIONS, USAGE_ADDONS } from '../../../data/creatorIntelligence';
 import { alphaBy } from '../../../data/options';
+import { useCopy } from '../../../hooks/useCopy';
 import { cap } from '../../../data/options';
-import { EmptyState, Field, FormRow, PageHead, Pill, SectionBlock } from '../shared/primitives';
+import { EmptyState, Field, FormRow, PageHead, Pill, SectionBlock, StatCard } from '../shared/primitives';
 
 interface Props { userId: string }
 
@@ -22,7 +23,7 @@ export function RateCalculator(_props: Props): ReactElement {
   const [niche, setNiche] = useState(DEFAULT_STATE.niche);
   const [smartBusy, setSmartBusy] = useState(false);
   const [smart, setSmart] = useState<RateSuggestion | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopy(1600);
   const [benchRegion, setBenchRegion] = useState('india');
   const bench = useMemo(() => regionalBenchmark(benchRegion), [benchRegion]);
 
@@ -39,7 +40,7 @@ export function RateCalculator(_props: Props): ReactElement {
     const dl = DELIVERABLE_LABELS[deliverable]!;
     const us = USAGE_ADDONS.find((u) => u.id === usage)!;
     const text = `${dl.label} — $${suggestion.band.low}–$${suggestion.band.high} (aim $${suggestion.mid}), ${us.label.toLowerCase()}${niche ? ` · ${niche}` : ''}`;
-    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* clipboard unavailable */ }
+    void copy(text, 'rateLine');
   };
 
   const usageAddon = USAGE_ADDONS.find((u) => u.id === usage)!;
@@ -86,7 +87,7 @@ export function RateCalculator(_props: Props): ReactElement {
         </div>
         <div className="hint" style={{ fontSize: 11.5, marginTop: 10 }}>Add-ons you can quote separately:</div>
         <div className="mini-grid">
-          {suggestion.addons.slice(0, 4).map((a) => <div className="stat-card" key={a.label}><div className="stat-label">{a.label}</div><div className="stat-value">+{Math.round(a.pct * 100)}%</div><div className="stat-note">{a.note}</div></div>)}
+          {suggestion.addons.slice(0, 4).map((a) => <StatCard key={a.label} label={a.label} value={`+${Math.round(a.pct * 100)}%`} note={a.note} />)}
         </div>
       </SectionBlock>
     </div>

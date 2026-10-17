@@ -2,6 +2,7 @@ import { generateText, isGeminiConfigured, type ResponseSchema } from './geminiC
 import { CAPTION_TEMPLATES, CTA_TEMPLATES, HOOK_TEMPLATES } from '../data/hookTemplates';
 import { BEST_TIMES, DELIVERABLE_LABELS, FOLLOWERS_BANDS, HOOK_SCIENCE, NICHE_HASHTAGS, PACKAGE_TIERS, RATE_TIERS, REGIONAL_BENCHMARKS, REGION_HASHTAGS, TRENDS, TREND_REGIONS, USAGE_ADDONS, type RegionalBenchmark, type Trend, type TrendRegion } from '../data/creatorIntelligence';
 export type { Trend, RegionalBenchmark } from '../data/creatorIntelligence';
+import { PLAN_PLATFORMS } from '../data/options';
 import { cap } from '../data/options';
 import { seededHash } from '../utils/seededHash';
 import { analyzeOutcomes, outcomeNudge } from './outcomeBrain';
@@ -350,8 +351,6 @@ const DEFAULT_PILLARS: Array<Pick<ContentPillar, 'name' | 'target_mix' | 'exampl
   { name: 'Connection', target_mix: 30, example_topics: ['day in the life', 'failures & lessons', 'small wins'], content_promise: 'Feel seen, not sold to' },
   { name: 'Trends & growth', target_mix: 30, example_topics: ['trend reactions', 'contrarian takes', 'predictions'], content_promise: 'Hot takes and new perspectives' },
 ];
-
-const PLAN_PLATFORMS = ['tiktok', 'instagram', 'youtube', 'shorts', 'reels'] as const;
 
 function pickPillar(pillars: Array<Pick<ContentPillar, 'name' | 'target_mix' | 'example_topics' | 'content_promise'>>, seed: number): (typeof pillars)[number] {
   const weights = pillars.map((p) => p.target_mix ?? 100 / pillars.length);

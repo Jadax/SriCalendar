@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Mail, Plus, Reply, Table2, Trash2, Wallet } from 'lucide-react';
 import { addMonths, eachDayOfInterval, endOfMonth, format, isSameMonth, startOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { draftFollowUp, draftFollowUpSmart, draftPitch, draftPitchSmart } from '../../../lib/creatorBrain';
 import { DEAL_STATUSES, PAYMENT_STATUSES, PLATFORMS, RIGHTS_PERIODS, cap, alpha } from '../../../data/options';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
@@ -28,29 +29,29 @@ export function BrandDeals({ userId }: Props): ReactElement {
   const [pitchTarget, setPitchTarget] = useState<BrandDeal | null>(null);
   const [pitchText, setPitchText] = useState('');
   const [pitchBusy, setPitchBusy] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const pitchCopy = useCopy(1600);
   const [followTarget, setFollowTarget] = useState<BrandDeal | null>(null);
   const [followText, setFollowText] = useState('');
   const [followBusy, setFollowBusy] = useState(false);
-  const [followCopied, setFollowCopied] = useState(false);
+  const followCopy = useCopy(1600);
 
   /** Generates a warm, on-brand outreach email for the deal using the media kit. */
   const openPitch = async (deal: BrandDeal): Promise<void> => {
-    setPitchTarget(deal); setPitchText(''); setCopied(false);
+    setPitchTarget(deal); setPitchText(''); pitchCopy.reset();
     setPitchBusy(true);
     try { setPitchText(await draftPitchSmart(media.items[0] ?? null, deal)); } catch { setPitchText(draftPitch(media.items[0] ?? null, deal)); } finally { setPitchBusy(false); }
   };
 
-  const copyPitch = async (): Promise<void> => { try { await navigator.clipboard.writeText(pitchText); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* clipboard unavailable */ } };
+  const copyPitch = async (): Promise<void> => { void pitchCopy.copy(pitchText); };
 
   /** Drafts a gentle nudge that keeps a pitched-but-quiet deal warm. */
   const openFollow = async (deal: BrandDeal): Promise<void> => {
-    setFollowTarget(deal); setFollowText(''); setFollowCopied(false);
+    setFollowTarget(deal); setFollowText(''); followCopy.reset();
     setFollowBusy(true);
     try { setFollowText(await draftFollowUpSmart(media.items[0] ?? null, deal)); } catch { setFollowText(draftFollowUp(media.items[0] ?? null, deal)); } finally { setFollowBusy(false); }
   };
 
-  const copyFollow = async (): Promise<void> => { try { await navigator.clipboard.writeText(followText); setFollowCopied(true); setTimeout(() => setFollowCopied(false), 1600); } catch { /* clipboard unavailable */ } };
+  const copyFollow = async (): Promise<void> => { void followCopy.copy(followText); };
 
   const visible = useMemo(() => items
     .filter((d) => (statusFilter === 'all' ? true : d.status === statusFilter))
@@ -158,13 +159,13 @@ export function BrandDeals({ userId }: Props): ReactElement {
       </div>
     </Modal>}
   {pitchTarget && <Modal title={`Draft pitch for ${pitchTarget.brand_name}`} onClose={() => setPitchTarget(null)} wide
-      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setPitchTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyPitch()} disabled={!pitchText}>{copied ? 'Copied ✓' : 'Copy email'}</button></div>}>
-      {pitchBusy ? <div className="empty-state"><div className="empty-emoji">✍️</div><p>Drafting your pitch…</p></div> :
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setPitchTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyPitch()} disabled={!pitchText}>{pitchCopy.copied ? 'Copied ✓' : 'Copy email'}</button></div>}>
+      {pitchBusy ? <EmptyState emoji="✍️" title="Drafting your pitch…"/> :
         <textarea className="textarea" style={{ minHeight: 260, whiteSpace: 'pre-wrap', lineHeight: 1.7 }} value={pitchText} onChange={(e) => setPitchText(e.target.value)} aria-label="Pitch email draft"/>}
     </Modal>}
   {followTarget && <Modal title={`Follow-up for ${followTarget.brand_name}`} onClose={() => setFollowTarget(null)} wide
-      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setFollowTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyFollow()} disabled={!followText}>{followCopied ? 'Copied ✓' : 'Copy email'}</button></div>}>
-      {followBusy ? <div className="empty-state"><div className="empty-emoji">🔁</div><p>Drafting a gentle nudge…</p></div> :
+      footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setFollowTarget(null)}>Close</button><button className="btn primary" onClick={() => void copyFollow()} disabled={!followText}>{followCopy.copied ? 'Copied ✓' : 'Copy email'}</button></div>}>
+      {followBusy ? <EmptyState emoji="🔁" title="Drafting a gentle nudge…"/> :
         <textarea className="textarea" style={{ minHeight: 220, whiteSpace: 'pre-wrap', lineHeight: 1.7 }} value={followText} onChange={(e) => setFollowText(e.target.value)} aria-label="Follow-up email draft"/>}
       <p className="hint" style={{ fontSize: 11.5, marginTop: 8 }}>Pitched {followTarget.pitch_date ?? 'recently'} — a warm nudge ~3–5 days later keeps deals alive without feeling pushy. Set a follow-up date in the deal so this never slips.</p>
     </Modal>}

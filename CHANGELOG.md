@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.16.0 — 30 August 2026
+
+Under the hood tidy-up: one source of truth for the numbers, labels and code the whole suite shares, so screens stay consistent and the app stays snappy.
+
+- New shared helpers replaced copy-pasted logic everywhere: compact number formatting (830 stays 830, 12,300 becomes 12.3K), engagement-rate and latest-followers math, a friendly "Copied ✓" clipboard hook and a short human date label (17 Oct) now come from one file each.
+- Hand-rolled stat cards, status pill colours and platform lists across Home, Results log, Portfolio, Business dashboard, Content studio, Invoices and the creator brain now all build from the same shared pieces — no more screens drifting out of sync.
+- Cleaned up duplicate CSS: one font + pastel colour set, one auth background, one card hover, one input focus feel. Nothing looks different by design; the stylesheets are just shorter and easier to keep lovely.
+- Added 7 new tests for the shared helpers. 90/90 tests passing.
+
 ## 1.15.0 — 30 August 2026
 
 Today shows up the moment it has work, and a gentle popup does the nagging for you.

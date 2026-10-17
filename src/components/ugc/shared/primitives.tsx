@@ -1,4 +1,4 @@
-import { useEffect, type ReactElement, type ReactNode } from 'react';
+import { useEffect, type CSSProperties, type ReactElement, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 export function cx(...classes: Array<string | false | null | undefined>): string {
@@ -38,8 +38,8 @@ export function SubTabs<T extends string>({ tabs, active, onChange }: { tabs: Ar
   return <div className="subtabs">{tabs.map((tab) => <button key={tab.id} className={`subtab ${active === tab.id ? 'active' : ''}`} onClick={() => onChange(tab.id)}>{tab.icon && <span>{tab.icon}</span>}{tab.label}</button>)}</div>;
 }
 
-export function StatCard({ label, value, note, emoji }: { label: string; value: string; note?: string; emoji?: string }): ReactElement {
-  return <div className="stat-card"><div className="stat-label">{emoji && <span>{emoji}</span>}{label}</div><div className="stat-value">{value}</div>{note && <div className="stat-note">{note}</div>}</div>;
+export function StatCard({ label, value, note, emoji, style }: { label: string; value: string; note?: string; emoji?: string; style?: CSSProperties }): ReactElement {
+  return <div className="stat-card" style={style}><div className="stat-label">{emoji && <span>{emoji}</span>}{label}</div><div className="stat-value">{value}</div>{note && <div className="stat-note">{note}</div>}</div>;
 }
 
 export function Progress({ value, max = 100, label }: { value: number; max?: number; label?: string }): ReactElement {

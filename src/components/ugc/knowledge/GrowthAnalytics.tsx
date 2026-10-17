@@ -5,19 +5,15 @@ import { useCollection } from '../../../hooks/useCollection';
 import { PLATFORMS, cap, alpha, alphaBy } from '../../../data/options';
 import { CURRENCIES, formatMoney, getBaseCurrency, fromUsd, toUsd } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, StatCard, confirmDelete } from '../shared/primitives';
+import { erOf, latestFollowers, avgEngagementRate } from '../../../lib/analyticsStats';
+import { formatCompact } from '../../../utils/format';
+import { shortDate } from '../../../utils/dateUtils';
 import type { AnalyticsEntry } from '../../../types/ugc';
 
 interface Props { userId: string }
 
 const empty = (): Omit<AnalyticsEntry, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'> => ({ platform: 'tiktok', date: new Date().toISOString().slice(0, 10), followers: 0, views: 0, likes: 0, comments: 0, shares: 0, saves: 0, engagement_rate: 0, reach: 0, revenue: 0, currency: 'USD', notes: '' });
 
-const erOf = (e: Pick<AnalyticsEntry, 'likes' | 'comments' | 'shares' | 'saves' | 'followers'>): number => (e.followers > 0 ? ((e.likes + e.comments + e.shares + e.saves) / e.followers) * 100 : 0);
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
 
 /** PILLAR 4.2 — growth analytics with auto-calculated engagement and trend charts. */
 export function GrowthAnalytics({ userId }: Props): ReactElement {
@@ -31,21 +27,14 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
   const timeSeries = useMemo(() => {
     const map = new Map<string, AnalyticsEntry>();
     for (const e of filtered.filter((x) => x.followers > 0 || x.views > 0)) map.set(e.date, e);
-    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, e]) => ({ date: date.slice(5), followers: e.followers, views: e.views, engagement: Number(erOf(e).toFixed(2)) }));
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([date, e]) => ({ date: shortDate(date), followers: e.followers, views: e.views, engagement: Number(erOf(e).toFixed(2)) }));
   }, [filtered]);
 
-  const engagementSeries = useMemo(() => filtered.filter((e) => e.followers > 0).map((e) => ({ date: e.date.slice(5), platform: e.platform, er: Number(erOf(e).toFixed(2)) })).slice(-30), [filtered]);
+  const engagementSeries = useMemo(() => filtered.filter((e) => e.followers > 0).map((e) => ({ date: shortDate(e.date), platform: e.platform, er: Number(erOf(e).toFixed(2)) })).slice(-30), [filtered]);
 
-  const latestFollowers = useMemo(() => {
-    const latest = new Map<string, number>();
-    for (const e of items) latest.set(e.platform, e.followers);
-    return [...latest.values()].reduce((a, b) => a + b, 0);
-  }, [items]);
+  const latest = useMemo(() => latestFollowers(items), [items]);
 
-  const avgEr = useMemo(() => {
-    const rows = items.filter((e) => e.followers > 0);
-    return rows.length ? rows.reduce((s, e) => s + erOf(e), 0) / rows.length : 0;
-  }, [items]);
+  const avgEr = useMemo(() => avgEngagementRate(items), [items]);
   const totalViews = items.reduce((s, e) => s + e.views, 0);
   const base = getBaseCurrency();
   const revenueBase = fromUsd(items.reduce((s, e) => s + toUsd(e.revenue, e.currency ?? 'USD'), 0), base);
@@ -64,7 +53,7 @@ export function GrowthAnalytics({ userId }: Props): ReactElement {
       actions={[<button key="add" className="btn primary" onClick={() => { setEditorId(null); setEditing(empty()); }}><Plus size={16}/> Log metrics</button>]} />
 
     <div className="grid grid-4">
-      <StatCard emoji="👥" label="Followers" value={formatCompact(latestFollowers)} note="Latest per platform" />
+      <StatCard emoji="👥" label="Followers" value={formatCompact(latest)} note="Latest per platform" />
       <StatCard emoji="❤️" label="Avg engagement" value={`${avgEr.toFixed(2)}%`} note="(L+C+S+Sv) ÷ followers · strong 3–5%" />
       <StatCard emoji="👀" label="Total views" value={formatCompact(totalViews)} />
       <StatCard emoji="💰" label="Revenue logged" value={formatMoney(revenueBase, base, 0)} />

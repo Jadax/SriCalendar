@@ -1,8 +1,10 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Download, ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { CURRENCIES, formatMoney } from '../../../utils/money';
 import { alphaBy } from '../../../data/options';
+import { formatCompact } from '../../../utils/format';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill } from '../shared/primitives';
 import type { MediaKitProfile, RateCard, PastCollab } from '../../../types/ugc';
 
@@ -38,11 +40,13 @@ export function MediaKit({ userId }: Props): ReactElement {
     setEditing(null);
   };
 
+  const { copied: sharedCopied, copy: copyToClipboard } = useCopy(1800);
+
   const shareCopy = async (): Promise<void> => {
     const cur = profile?.currency || 'USD';
     const socials = [profile?.social_instagram && `IG: ${profile.social_instagram}`, profile?.social_tiktok && `TikTok: ${profile.social_tiktok}`, profile?.social_youtube && `YT: ${profile.social_youtube}`, profile?.social_x && `X: ${profile.social_x}`].filter(Boolean).join(' · ');
     const text = `📸 ${profile?.display_name || 'Creator'} · Media Kit\n${profile?.tagline || ''}\n${profile?.bio || ''}\n\n${socials ? `${socials}\n\n` : ''}Rates from ${formatMoney(Math.min(...(profile?.rates.map((r) => r.price) ?? [0])), cur)}`;
-    try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
+    void copyToClipboard(text);
   };
 
   const downloadPdf = async (): Promise<void> => {
@@ -63,7 +67,7 @@ export function MediaKit({ userId }: Props): ReactElement {
     <PageHead eyebrow="Pillar 3 · Business" title="Media kit 📇" subtitle="The one-pager brands scan. Stats refresh from your analytics automatically."
       actions={profile ? [
         <button key="pdf" className="btn primary" onClick={() => void downloadPdf()}><Download size={14}/> One-pager PDF</button>,
-        <button key="share" className="btn soft" onClick={() => void shareCopy()}><ExternalLink size={14}/> Copy share text</button>,
+        <button key="share" className="btn soft" onClick={() => void shareCopy()}><ExternalLink size={14}/> {sharedCopied ? 'Copied ✓' : 'Copy share text'}</button>,
         <button key="edit" className="btn soft" onClick={() => setEditing({ ...profile })}><Pencil size={15}/> Edit kit</button>,
       ] : [<button key="create" className="btn primary" onClick={() => setEditing(emptyProfile())}><Plus size={15}/> Create media kit</button>]} />
 
@@ -178,12 +182,6 @@ function PreviewProfile({ profile, stats }: { profile: MediaKitProfile; stats: {
       )}
     </div>
   </div>;
-}
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
 }
 
 function demographicsText(p: MediaKitProfile): string {

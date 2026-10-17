@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { CalendarCheck, Copy, Sparkles, Wand2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { loadProfile } from '../../../data/onboarding';
 import { buildWeeklyPlan, buildWeeklyPlanSmart, regionLabelOf, type WeeklyPlanSlot } from '../../../lib/creatorBrain';
 import { schedulePlatformPost } from '../../../lib/calendarActions';
@@ -30,7 +31,7 @@ export function WeeklyPlanner({ userId }: Props): ReactElement {
   const [generating, setGenerating] = useState(false);
   const [scheduling, setScheduling] = useState<string | null>(null);
   const [flash, setFlash] = useState('');
-  const [copiedDay, setCopiedDay] = useState<string | null>(null);
+  const { copied: copiedDay, copy: copyToClipboard } = useCopy(2000);
 
   useMemo(() => { setNiches(loadProfile(userId)?.niches ?? []); }, [userId]);
 
@@ -79,11 +80,7 @@ export function WeeklyPlanner({ userId }: Props): ReactElement {
 
   const copyDay = async (slot: WeeklyPlanSlot): Promise<void> => {
     const text = `${slot.topic}\n\nHook: ${slot.hook}\nAngle: ${slot.angle}\nPlatform: ${slot.platform}\nPillar: ${slot.pillar}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedDay(slot.date);
-      setTimeout(() => setCopiedDay(null), 2000);
-    } catch { /* ignore */ }
+    void copyToClipboard(text, slot.date);
   };
 
   return <div>

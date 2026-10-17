@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { Pencil, Plus, Trash2, Unlink } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { DELIVERABLE_FLOW, DELIVERABLE_STATUSES, DELIVERABLE_STATUS_META, PLATFORMS, cap } from '../../../data/options';
+import { DELIVERABLE_FLOW, DELIVERABLE_STATUSES, DELIVERABLE_STATUS_META, PLATFORMS, cap, metaFallback } from '../../../data/options';
 import { toDateKey } from '../../../utils/dateUtils';
 import { formatMoneyCompact } from '../../../utils/money';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, SectionBlock, confirmDelete } from '../shared/primitives';
@@ -35,7 +35,7 @@ const empty = (): Draft => ({
 });
 
 const statusMeta = (s: string): { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' } =>
-  DELIVERABLE_STATUS_META[s] ?? { emoji: '📦', label: cap(s), color: 'gray' };
+  metaFallback(DELIVERABLE_STATUS_META, s);
 
 /** CLIENT WORK — every asset inside a deal, tracked from contracted to paid. */
 export function Deliverables({ userId }: Props): ReactElement {

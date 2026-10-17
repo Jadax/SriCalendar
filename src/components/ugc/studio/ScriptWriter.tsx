@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { Brain, Clapperboard, ClipboardCopy, FilePlus2, Film, Loader2, Plus, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { HOOK_CATEGORIES, HOOK_TEMPLATES } from '../../../data/hookTemplates';
 import { PLATFORMS, cap, alpha } from '../../../data/options';
 import { generateScene, NICHES, type SceneFormula } from '../../../data/sceneFormulas';
@@ -172,9 +173,9 @@ function sceneBlock(scene: SceneFormula): string {
 }
 
 function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; myHooks: HookItem[]; onInsert: (text: string) => void; onClose: () => void }): ReactElement {
-  const [copied, setCopied] = useState('');
   const [brain, setBrain] = useState<BrainResult | null>(null);
   const [loading, setLoading] = useState(true);
+  const { copied, copy: writeClipboard } = useCopy(1400);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -188,11 +189,7 @@ function CoPilotModal({ script, myHooks, onInsert, onClose }: { script: Script; 
     return () => ctrl.abort();
   }, [script.title, script.niche, script.platform_target, script.content, myHooks]);
 
-  const copy = async (label: string, text: string): Promise<void> => {
-    try { await navigator.clipboard.writeText(text); } catch { /* ignore */ }
-    setCopied(label);
-    window.setTimeout(() => setCopied((c) => (c === label ? '' : c)), 1400);
-  };
+  const copy = async (label: string, text: string): Promise<void> => { void writeClipboard(text, label); };
 
   return <Modal title="🧠 AI co-pilot · Script Writer" onClose={onClose} wide
     footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}>{!isGeminiConfigured && <span className="hint" style={{ marginRight: 'auto' }}>smart fallback engine</span>}<button className="btn ghost" onClick={onClose}>Close</button></div>}>

@@ -44,8 +44,8 @@
 @media(max-width:760px){.grid-3,.grid-4,.grid-2,.grid-5{grid-template-columns:1fr}}
 
 /* ---- Cards & pills ---- */
-.ugc-card{background:rgba(255,255,255,.62);border:1px solid rgba(139,126,200,.12);border-radius:18px;padding:16px;box-shadow:0 5px 20px rgba(187,104,143,.08);transition:transform .16s ease,box-shadow .16s ease}
-.ugc-card.hoverable:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(187,104,143,.16)}
+.ugc-card{background:rgba(255,255,255,.62);border:1px solid rgba(139,126,200,.12);border-radius:18px;padding:16px;box-shadow:0 5px 20px rgba(187,104,143,.08);transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease}
+.ugc-card.hoverable:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(187,104,143,.16)}
 .ugc-card .card-title{font-size:14px;font-weight:800;color:#5d4f79;display:flex;align-items:center;gap:8px;justify-content:space-between}
 .ugc-card .card-sub{font-size:11px;color:var(--muted);margin-top:4px}
 .dark .ugc-card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}
@@ -70,7 +70,7 @@
 /* ---- Forms ---- */
 .field{display:grid;gap:5px;min-width:0}
 .field label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
-.input,.select,.textarea,.date-input{width:100%;border:1px solid rgba(139,126,200,.16);border-radius:13px;background:#fff;padding:10px 12px;font-size:13px;outline:0;color:#4A4458;transition:border-color .15s ease,box-shadow .15s ease}
+.input,.select,.textarea,.date-input{width:100%;border:1px solid rgba(139,126,200,.16);border-radius:13px;background:#fff;padding:10px 12px;font-size:13px;outline:0;color:#4A4458;transition:border-color .15s ease,box-shadow .2s ease,transform .12s ease}
 .input:focus,.select:focus,.textarea:focus,.date-input:focus{border-color:#f54f86;box-shadow:0 0 0 3px rgba(245,79,134,.13)}
 .textarea{resize:vertical;min-height:84px;line-height:1.5}
 .dark .input,.dark .select,.dark .textarea,.dark .date-input{background:#3c364b;color:#f0e9ff;border-color:rgba(255,255,255,.14)}
@@ -119,7 +119,6 @@
 .board-col{flex:0 0 250px;min-height:120px;border-radius:18px;padding:10px;background:rgba(139,126,200,.08);display:grid;gap:9px;align-content:start}
 .board-col.drag-over{background:rgba(245,79,134,.14);box-shadow:inset 0 0 0 2px rgba(245,79,134,.35)}
 .col-head{display:flex;align-items:center;justify-content:space-between;padding:4px 6px 8px;font-size:clamp(10px,1.1vw,12px);font-weight:800;color:#5d4f79;text-transform:uppercase;letter-spacing:.07em}
-.dark .col-head{color:#cfc4e6}
 .col-count{background:rgba(139,126,200,.18);border-radius:999px;padding:1px 8px;font-size:10px}
 .board-card{background:#fff;border:1px solid rgba(139,126,200,.13);border-left:4px solid #cbb7ff;border-radius:14px;padding:11px 12px;box-shadow:0 4px 12px rgba(187,104,143,.09);cursor:grab;display:grid;gap:7px;transition:transform .14s ease,box-shadow .14s ease}
 .board-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(187,104,143,.16)}
@@ -289,13 +288,10 @@
 @media(prefers-reduced-motion:reduce){.board-card,.ugc-card,.tab-btn,.subtab,.btn,.icon-btn,.progress-fill{transition:none!important}}
 
 /* ---- Snappy, modern interaction polish ---- */
-.input,.select,.textarea,.date-input{transition:border-color .15s ease,box-shadow .2s ease,transform .12s ease}
 .select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,rgba(112,82,173,.55) 50%),linear-gradient(135deg,rgba(112,82,173,.55) 50%,transparent 50%);background-position:calc(100% - 17px) calc(50% - 2px),calc(100% - 12px) calc(50% - 2px);background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px;cursor:pointer}
 .select:hover{border-color:rgba(139,126,200,.35)}
 .icon-btn,.btn{transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .16s ease,background .16s ease,color .16s ease}
 .btn:active{transform:scale(.97)}
-.ugc-card{transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .2s ease}
-.ugc-card.hoverable:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(187,104,143,.16)}
 .row>button,.row>a{will-change:transform}
 :focus-visible{outline-offset:3px}
 

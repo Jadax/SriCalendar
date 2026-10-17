@@ -2,7 +2,7 @@ import { useMemo, useState, type ReactElement } from 'react';
 import { ExternalLink, Eye } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
 import { NICHES } from '../../../data/creatorIntelligence';
-import { cx, EmptyState, PageHead, Pill, SectionBlock } from '../shared/primitives';
+import { cx, EmptyState, PageHead, Pill, SectionBlock, StatCard } from '../shared/primitives';
 import type { BoardCard, ContentIdea } from '../../../types/ugc';
 
 interface Props { userId: string }
@@ -155,22 +155,10 @@ export function PortfolioGallery({ userId }: Props): ReactElement {
     {entries.length > 0 && (
       <SectionBlock title="Portfolio stats" hint="quick overview of your published content">
         <div className="mini-grid">
-          <div className="stat-card">
-            <div className="stat-label">Total pieces</div>
-            <div className="stat-value">{entries.length}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Niches covered</div>
-            <div className="stat-value">{new Set(entries.map((e) => e.niche)).size}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Platforms used</div>
-            <div className="stat-value">{new Set(entries.map((e) => e.platform).filter(Boolean)).size}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Brand collabs</div>
-            <div className="stat-value">{entries.filter((e) => e.brand).length}</div>
-          </div>
+          <StatCard emoji="🗂️" label="Total pieces" value={String(entries.length)} />
+          <StatCard emoji="🎯" label="Niches covered" value={String(new Set(entries.map((e) => e.niche)).size)} />
+          <StatCard emoji="📱" label="Platforms used" value={String(new Set(entries.map((e) => e.platform).filter(Boolean)).size)} />
+          <StatCard emoji="🤝" label="Brand collabs" value={String(entries.filter((e) => e.brand).length)} />
         </div>
       </SectionBlock>
     )}

@@ -4,8 +4,8 @@ import { useCollection } from '../../../hooks/useCollection';
 import { PLATFORMS, POST_FORMATS, cap } from '../../../data/options';
 import { HOOK_CATEGORIES } from '../../../data/hookTemplates';
 import { analyzeOutcomes, engagementRate } from '../../../lib/outcomeBrain';
-import { toDateKey } from '../../../utils/dateUtils';
-import { EmptyState, Field, FormRow, Modal, PageHead, Pill, SectionBlock, confirmDelete } from '../shared/primitives';
+import { shortDate, toDateKey } from '../../../utils/dateUtils';
+import { EmptyState, Field, FormRow, Modal, PageHead, Pill, SectionBlock, StatCard, confirmDelete } from '../shared/primitives';
 import type { ContentResult } from '../../../types/ugc';
 
 interface Props { userId: string }
@@ -83,10 +83,10 @@ export function Results({ userId }: Props): ReactElement {
       {items.length === 0 ? <EmptyState emoji="📊" title="No results yet" note="After a post has had a few days of views, log it here. Two to three weeks of honest numbers is all the formula needs to get smart."/> :
         <>
           <div className="mini-grid">
-            <div className="stat-card"><div className="stat-label">📖 Posts logged</div><div className="stat-value">{report.sampleSize}</div><div className="stat-note">with real numbers</div></div>
-            <div className="stat-card"><div className="stat-label">💞 Avg engagement</div><div className="stat-value">{report.overall.er.toFixed(1)}%</div><div className="stat-note">of views engaged</div></div>
-            <div className="stat-card"><div className="stat-label">👁️ Avg views</div><div className="stat-value">{report.overall.views.toLocaleString()}</div><div className="stat-note">per post</div></div>
-            <div className="stat-card"><div className="stat-label">🚀 Followers gained</div><div className="stat-value">+{report.overall.followers.toLocaleString()}</div><div className="stat-note">across logged posts</div></div>
+            <StatCard emoji="📖" label="Posts logged" value={String(report.sampleSize)} note="with real numbers" />
+            <StatCard emoji="💞" label="Avg engagement" value={`${report.overall.er.toFixed(1)}%`} note="of views engaged" />
+            <StatCard emoji="👁️" label="Avg views" value={report.overall.views.toLocaleString()} note="per post" />
+            <StatCard emoji="🚀" label="Followers gained" value={`+${report.overall.followers.toLocaleString()}`} note="across logged posts" />
           </div>
 
           {report.winners.length > 0 ? <div className="result-winners">
@@ -125,7 +125,7 @@ export function Results({ userId }: Props): ReactElement {
         <div className="table-wrap"><table className="data-table"><thead><tr><th>Date</th><th>Post</th><th>Platform</th><th>Hook</th><th>Views</th><th>Engagement</th><th>Follows</th><th /></tr></thead><tbody>
           {sorted.map((r) => {
             const er = engagementRate(r);
-            return <tr key={r.id}><td>{r.date.slice(5)}</td><td><strong>{r.title}</strong>{r.pillar && <span className="hint"> · {r.pillar}</span>}</td><td>{cap(r.platform)}</td><td>{r.hook_category ?? '·'}</td><td>{r.views.toLocaleString()}</td><td><Pill color={erPill(er)}>{er.toFixed(1)}%</Pill></td><td>+{r.followers_gained}</td><td><button className="icon-btn" onClick={() => confirmDelete(() => void remove(r.id))} aria-label="Delete result"><Trash2 size={14}/></button></td></tr>;
+            return <tr key={r.id}><td>{shortDate(r.date)}</td><td><strong>{r.title}</strong>{r.pillar && <span className="hint"> · {r.pillar}</span>}</td><td>{cap(r.platform)}</td><td>{r.hook_category ?? '·'}</td><td>{r.views.toLocaleString()}</td><td><Pill color={erPill(er)}>{er.toFixed(1)}%</Pill></td><td>+{r.followers_gained}</td><td><button className="icon-btn" onClick={() => confirmDelete(() => void remove(r.id))} aria-label="Delete result"><Trash2 size={14}/></button></td></tr>;
           })}
         </tbody></table></div>}
     </SectionBlock>

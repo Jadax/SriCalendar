@@ -10,9 +10,8 @@ import { isGeminiConfigured } from '../../../lib/geminiClient';
 import { toDateKey } from '../../../utils/dateUtils';
 import { fromUsd, formatMoneyCompact, getBaseCurrency, toUsd } from '../../../utils/money';
 import type { Platform } from '../../../types';
-import { PageHead, SectionBlock, Pill } from '../shared/primitives';
-
-const PLAN_PLATFORMS: Platform[] = ['tiktok', 'instagram', 'youtube', 'shorts', 'reels'];
+import { PLAN_PLATFORMS } from '../../../data/options';
+import { EmptyState, PageHead, SectionBlock, Pill, StatCard } from '../shared/primitives';
 
 interface Props { userId: string }
 
@@ -106,7 +105,7 @@ export function HomePage({ userId }: Props): ReactElement {
     setScheduling(true);
     try {
       for (const slot of plan) {
-        const platform = PLAN_PLATFORMS.includes(slot.platform as Platform) ? (slot.platform as Platform) : 'tiktok';
+        const platform: Platform = (PLAN_PLATFORMS as readonly string[]).includes(slot.platform) ? (slot.platform as Platform) : 'tiktok';
         const id = await ideas.add({
           title: slot.topic, description: null, platform, priority: 'medium', effort_level: 'medium',
           audience_promise: null, hook_idea: slot.hook, content_angle: slot.angle,
@@ -127,10 +126,10 @@ export function HomePage({ userId }: Props): ReactElement {
     <PageHead eyebrow="Creator HQ" title="Today ✨" subtitle={`${new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })} · let's get your content moving`} actions={<div className="row"><button className="btn primary small" onClick={() => navigate('/app/studio')}>💡 New idea</button><button className="btn soft small" onClick={() => navigate('/app/business')}>🤝 New deal</button><button className="btn ghost small" onClick={() => navigate('/app/knowledge')}>📈 Log metrics</button></div>} />
 
     <div className="grid grid-4">
-      <div className="stat-card"><div className="stat-label">🔥 Streak</div><div className="stat-value">{streak} day{streak === 1 ? '' : 's'}</div><div className="stat-note">{streak >= 3 ? 'Momentum is building — keep showing up.' : 'One day at a time.'}</div></div>
-      <div className="stat-card"><div className="stat-label">👥 Followers</div><div className="stat-value">{followers.toLocaleString()}</div><div className="stat-note">{latest ? `as of ${latest.date}` : 'log your first metrics'}</div></div>
-      <div className="stat-card"><div className="stat-label">💼 Pipeline</div><div className="stat-value">{fmt(pipelineUsd)}</div><div className="stat-note">weighted value of active deals</div></div>
-      <div className="stat-card"><div className="stat-label">🧾 Outstanding</div><div className="stat-value">{fmt(outstandingUsd)}</div><div className="stat-note">unpaid invoices</div></div>
+      <StatCard emoji="🔥" label="Streak" value={`${streak} day${streak === 1 ? '' : 's'}`} note={streak >= 3 ? 'Momentum is building — keep showing up.' : 'One day at a time.'} />
+      <StatCard emoji="👥" label="Followers" value={followers.toLocaleString()} note={latest ? `as of ${latest.date}` : 'log your first metrics'} />
+      <StatCard emoji="💼" label="Pipeline" value={fmt(pipelineUsd)} note="weighted value of active deals" />
+      <StatCard emoji="🧾" label="Outstanding" value={fmt(outstandingUsd)} note="unpaid invoices" />
     </div>
 
     <div className="grid grid-2">
@@ -203,10 +202,10 @@ export function HomePage({ userId }: Props): ReactElement {
 
       <SectionBlock title="💸 Money pulse" hint="pipeline → invoices → payout" actions={<span className="hint">this month: {fmt(paidThisMonthUsd)} paid</span>}>
         <div className="mini-grid">
-          <div className="stat-card"><div className="stat-label">🤝 Deal pipeline</div><div className="stat-value">{fmt(pipelineUsd)}</div><div className="stat-note">{deals.items.filter((d) => d.status !== 'declined').length} active deals</div></div>
-          <div className="stat-card"><div className="stat-label">🧾 Outstanding</div><div className="stat-value">{fmt(outstandingUsd)}</div><div className="stat-note">{invoices.items.filter((i) => i.status !== 'paid' && i.status !== 'draft').length} unpaid</div></div>
-          <div className="stat-card"><div className="stat-label">💵 Paid this month</div><div className="stat-value">{fmt(paidThisMonthUsd)}</div><div className="stat-note">invoiced revenue</div></div>
-          <div className="stat-card"><div className="stat-label">🗂️ Due soon</div><div className="stat-value">{dueSoon}</div><div className="stat-note">production cards, next 7 days</div></div>
+          <StatCard emoji="🤝" label="Deal pipeline" value={fmt(pipelineUsd)} note={`${deals.items.filter((d) => d.status !== 'declined').length} active deals`} />
+          <StatCard emoji="🧾" label="Outstanding" value={fmt(outstandingUsd)} note={`${invoices.items.filter((i) => i.status !== 'paid' && i.status !== 'draft').length} unpaid`} />
+          <StatCard emoji="💵" label="Paid this month" value={fmt(paidThisMonthUsd)} note="invoiced revenue" />
+          <StatCard emoji="🗂️" label="Due soon" value={String(dueSoon)} note="production cards, next 7 days" />
         </div>
         <button className="btn soft small" style={{ marginTop: 12 }} onClick={() => navigate('/app/business')}>Open business hub</button>
       </SectionBlock>

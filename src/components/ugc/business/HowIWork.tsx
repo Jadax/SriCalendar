@@ -1,7 +1,8 @@
-import { useMemo, useState, type ReactElement } from 'react';
+import { useMemo, type ReactElement } from 'react';
 import { Copy } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
-import { EmptyState, PageHead, Pill, SectionBlock } from '../shared/primitives';
+import { useCopy } from '../../../hooks/useCopy';
+import { EmptyState, PageHead, Pill, SectionBlock, StatCard } from '../shared/primitives';
 import type { BoardCard, MediaKitProfile } from '../../../types/ugc';
 
 interface Props { userId: string }
@@ -45,11 +46,11 @@ export function HowIWork({ userId }: Props): ReactElement {
   const totalPublished = board.filter((c: BoardCard) => c.column_name === 'published').length;
   const totalActive = board.filter((c: BoardCard) => !['published', 'repurposed'].includes(c.column_name)).length;
   const totalDeals = board.length;
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopy(1800);
 
   const shareWorkflow = async (): Promise<void> => {
     const text = `⚙️ How I Work\n\n${WORKFLOW_STEPS.map((s, i) => `${i + 1}. ${s.icon} ${s.label} (${s.turnaround})\n   ${s.description}`).join('\n\n')}\n\n⏱ Total turnaround: 5–7 days\n📧 ${profile?.email || 'hello@example.com'}`;
-    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ }
+    void copy(text);
   };
 
   return <div className="ugc-page">
@@ -82,26 +83,10 @@ export function HowIWork({ userId }: Props): ReactElement {
 
     <SectionBlock title="Turnaround estimate" hint="total time from first call to delivery">
       <div className="mini-grid">
-        <div className="stat-card">
-          <div className="stat-label">Typical turnaround</div>
-          <div className="stat-value">5–7 days</div>
-          <div className="stat-note">from strategy call to final delivery</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Revision rounds</div>
-          <div className="stat-value">1 included</div>
-          <div className="stat-note">extra rounds quoted separately</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Content published</div>
-          <div className="stat-value">{totalPublished}</div>
-          <div className="stat-note">pieces delivered to date</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-label">Currently active</div>
-          <div className="stat-value">{totalActive}</div>
-          <div className="stat-note">items in your pipeline</div>
-        </div>
+        <StatCard emoji="⏱️" label="Typical turnaround" value="5–7 days" note="from strategy call to final delivery" />
+        <StatCard emoji="🔄" label="Revision rounds" value="1 included" note="extra rounds quoted separately" />
+        <StatCard emoji="🌍" label="Content published" value={String(totalPublished)} note="pieces delivered to date" />
+        <StatCard emoji="🚀" label="Currently active" value={String(totalActive)} note="items in your pipeline" />
       </div>
     </SectionBlock>
 

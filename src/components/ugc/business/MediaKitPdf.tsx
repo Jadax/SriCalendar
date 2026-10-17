@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react';
 import { Document, Page, StyleSheet, Text, View, type DocumentProps } from '@react-pdf/renderer';
 import { formatMoney } from '../../../utils/money';
+import { formatCompact } from '../../../utils/format';
 import type { MediaKitProfile } from '../../../types/ugc';
 
 const styles = StyleSheet.create({
@@ -83,10 +84,4 @@ export function MediaKitPdf({ profile, stats }: { profile: MediaKitProfile; stat
       </View>
     </Page>
   </Document>;
-}
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
 }

@@ -1,6 +1,7 @@
 import { useMemo, useState, type ReactElement } from 'react';
 import { ClipboardCopy, Plus, Search, Trash2 } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { fillTemplate, PLATFORMS, cap, alpha } from '../../../data/options';
 import { HOOK_CATEGORIES } from '../../../data/hookTemplates';
 import { cx, EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
@@ -19,7 +20,7 @@ export function HookLibrary({ userId }: Props): ReactElement {
   const [platformFilter, setPlatformFilter] = useState('all');
   const [editing, setEditing] = useState<Omit<HookItem, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sync_pending'> | null>(null);
   const [editorId, setEditorId] = useState<string | null>(null);
-  const [copied, setCopied] = useState('');
+  const { copied, copy } = useCopy(1600);
 
   const visible = useMemo(() => items
     .filter((h) => (typeFilter === 'all' ? true : h.type === typeFilter))
@@ -29,9 +30,7 @@ export function HookLibrary({ userId }: Props): ReactElement {
 
   const copyToClipboard = async (item: HookItem): Promise<void> => {
     const text = item.content.includes('{') ? fillTemplate(item.content, 'your topic', item.niche ?? 'your niche') : item.content;
-    try { await navigator.clipboard.writeText(text); } catch { /* fall back to selection */ }
-    setCopied(item.id);
-    window.setTimeout(() => setCopied((c) => (c === item.id ? '' : c)), 1600);
+    await copy(text, item.id);
     await update(item.id, { times_used: item.times_used + 1, status: item.times_used > 0 && item.status === 'untested' ? 'winning' : item.status } as never);
   };
 

@@ -6,6 +6,8 @@ export function toDateKey(date: Date): string { return format(date, 'yyyy-MM-dd'
 export function fromDateKey(dateKey: string): Date { return parseISO(dateKey); }
 /** Formats a date key for the daily panel heading. */
 export function prettyDate(dateKey: string): string { return `🌸 ${format(fromDateKey(dateKey), 'EEEE, d MMMM yyyy')}`; }
+/** Short chart-axis label from a date key — e.g. "17 Oct". */
+export function shortDate(dateKey: string): string { return format(fromDateKey(dateKey), 'd MMM'); }
 /** Returns a time-aware creator greeting. */
 export function getGreeting(date = new Date(), firstName = 'Creator'): string {
   const hour = date.getHours();

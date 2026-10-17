@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactElement } from 'react';
 import { CalendarCheck, Copy, Flame, Globe, Repeat, Sparkles, Zap, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useCollection } from '../../../hooks/useCollection';
+import { useCopy } from '../../../hooks/useCopy';
 import { loadProfile } from '../../../data/onboarding';
 import { NICHES, TREND_REGIONS } from '../../../data/creatorIntelligence';
 import { hashtagPack, rankIdeasForNext, regionLabelOf, repurposeIdea, repurposeIdeaSmart, trendingNow, trendingNowSmart, type NextPick, type RepurposeVariant, type TrendItem } from '../../../lib/creatorBrain';
@@ -41,7 +42,7 @@ export function TrendPulse({ userId }: Props): ReactElement {
   const [repSet, setRepSet] = useState<RepurposeVariant[] | null>(null);
 
   const [hashtagFor, setHashtagFor] = useState<TrendItem | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { copied, copy: copyToClipboard } = useCopy(1800);
 
   const [expandedTrend, setExpandedTrend] = useState<string | null>(null);
 
@@ -398,7 +399,7 @@ export function TrendPulse({ userId }: Props): ReactElement {
     {hashtagFor && (() => {
       const pack = hashtagPack(hashtagFor);
       return <Modal title={`#${hashtagFor.title.slice(0, 40)} - hashtags`} onClose={() => setHashtagFor(null)}
-        footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setHashtagFor(null)}>Close</button><button className="btn primary" onClick={() => { navigator.clipboard.writeText(pack.caption).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1800); }).catch(() => {}); }}><Copy size={15}/> {copied ? 'Copied!' : 'Copy caption + tags'}</button></div>}>
+        footer={<div className="row" style={{ justifyContent: 'flex-end', marginTop: 16 }}><button className="btn ghost" onClick={() => setHashtagFor(null)}>Close</button><button className="btn primary" onClick={() => { void copyToClipboard(pack.caption); }}><Copy size={15}/> {copied ? 'Copied!' : 'Copy caption + tags'}</button></div>}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
           {pack.hashtags.map((h) => <Pill key={h} color="mint">#{h}</Pill>)}
         </div>

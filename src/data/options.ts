@@ -1,4 +1,6 @@
 export const PLATFORMS = ['tiktok', 'instagram', 'youtube', 'linkedin', 'pinterest', 'x', 'shorts', 'reels', 'newsletter', 'podcast'] as const;
+/** Lifecycle of a scheduled platform post. */
+export const POST_STATUSES = ['draft', 'scheduled', 'published', 'posted'] as const;
 /** Video formats used when logging what a published post actually was. */
 export const POST_FORMATS = ['reel', 'demo', 'tutorial', 'before-after', 'review', 'get-ready', 'story', 'carousel', 'vlog', 'trend', 'other'] as const;
 export const PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
@@ -70,6 +72,21 @@ export const PLATFORM_META: Record<string, { color: 'mint' | 'coral' | 'lavender
   newsletter: { color: 'mint' },
   podcast: { color: 'peach' },
 };
+/** The platforms weekly growth plans rotate through (planning + brains share this list). */
+export const PLAN_PLATFORMS = ['tiktok', 'instagram', 'youtube', 'shorts', 'reels'] as const;
+/** Pill colors for invoice lifecycle states. */
+export const INVOICE_STATUS_META: Record<string, { color: 'mint' | 'coral' | 'lavender' | 'gray' }> = {
+  draft: { color: 'gray' },
+  sent: { color: 'lavender' },
+  overdue: { color: 'coral' },
+  paid: { color: 'mint' },
+};
+/** Reads a status meta map with a sane fallback for unknown stored values. */
+type EmojiMeta = { emoji: string; label: string; color: 'mint' | 'coral' | 'lavender' | 'sky' | 'yellow' | 'gray' };
+export function metaFallback<M extends Record<string, EmojiMeta>>(map: M, key: string): M[string] & EmojiMeta {
+  const found = (map as Record<string, EmojiMeta>)[key];
+  return (found ?? { emoji: '·', label: cap(key), color: 'gray' }) as M[string] & EmojiMeta;
+}
 
 /** Title-cases a stored value for display in dropdowns and pills without changing the stored key. */
 const CAP_OVERRIDES: Record<string, string> = {

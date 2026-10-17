@@ -3,7 +3,7 @@ import { Download, Eye, FilePlus2, Pencil, Printer, Trash2 } from 'lucide-react'
 import { useCollection } from '../../../hooks/useCollection';
 import { EmptyState, Field, FormRow, Modal, PageHead, Pill, confirmDelete } from '../shared/primitives';
 import { CURRENCIES, INCOME_STREAMS, formatMoney } from '../../../utils/money';
-import { alphaBy } from '../../../data/options';
+import { INVOICE_STATUS_META, alphaBy } from '../../../data/options';
 import type { Invoice, InvoiceLineItem } from '../../../types/ugc';
 
 interface Props { userId: string }
@@ -85,7 +85,7 @@ export function Invoices({ userId }: Props): ReactElement {
             <td>{invoice.issue_date}</td>
             <td>{invoice.due_date}</td>
             <td>{formatMoney(invoice.total ?? 0, invoice.currency)}</td>
-            <td><Pill color={invoice.status === 'paid' ? 'mint' : invoice.status === 'overdue' ? 'coral' : invoice.status === 'sent' ? 'lavender' : 'gray'}>{invoice.status}</Pill></td>
+            <td><Pill color={INVOICE_STATUS_META[invoice.status]?.color ?? 'gray'}>{invoice.status}</Pill></td>
             <td><div className="row" style={{ gap: 6 }}>
               <button className="icon-btn" title="Preview" onClick={() => setPreview(invoice)}><Eye size={15}/></button>
               <button className="icon-btn" title="Edit" onClick={() => { setEditorId(invoice.id); setDraft({ ...invoice }); }}>✏️</button>

@@ -56,10 +56,10 @@ export function BusinessDashboard({ userId }: Props): ReactElement {
       <section className="section-block">
         <div className="block-head"><h2 style={{ fontSize: 15 }}>📦 Client work</h2><span className="hint">{deliverables.items.length} deliverable{deliverables.items.length !== 1 ? 's' : ''}</span></div>
         <div className="mini-grid">
-          <div className="stat-card"><div className="stat-label">📤 Awaiting feedback</div><div className="stat-value">{awaitingFeedback}</div><div className="stat-note">submitted or in revisions</div></div>
-          <div className="stat-card"><div className="stat-label">✅ Approved, not paid</div><div className="stat-value">{approvedUnpaid}</div><div className="stat-note">send the invoice already</div></div>
-          <div className="stat-card"><div className="stat-label">⏰ Due or overdue</div><div className="stat-value">{dueDeliverables}</div><div className="stat-note">client deadlines to hit</div></div>
-          <div className="stat-card"><div className="stat-label">🎬 To film</div><div className="stat-value">{deliverables.items.filter((d) => d.status === 'contracted').length}</div><div className="stat-note">contracted but not filmed yet</div></div>
+          <StatCard emoji="⏳" label="Awaiting feedback" value={String(awaitingFeedback)} note="submitted or in revisions" />
+          <StatCard emoji="✅" label="Approved, not paid" value={String(approvedUnpaid)} note="send the invoice already" />
+          <StatCard emoji="⏰" label="Due or overdue" value={String(dueDeliverables)} note="client deadlines to hit" />
+          <StatCard emoji="🎬" label="To film" value={String(deliverables.items.filter((d) => d.status === 'contracted').length)} note="contracted but not filmed yet" />
         </div>
       </section>
     </div>

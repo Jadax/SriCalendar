@@ -2,15 +2,10 @@ import { useMemo, type ReactElement } from 'react';
 import { useCollection } from '../../../hooks/useCollection';
 import { StatCard } from '../shared/primitives';
 import { formatMoney, getBaseCurrency, fromUsd, toUsd } from '../../../utils/money';
+import { formatCompact } from '../../../utils/format';
+import { erOf, latestFollowers, avgEngagementRate } from '../../../lib/analyticsStats';
 
 interface Props { userId: string }
-
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-  return String(n);
-}
-const erOf = (likes: number, comments: number, shares: number, saves: number, followers: number): number => (followers > 0 ? ((likes + comments + shares + saves) / followers) * 100 : 0);
 
 /** PILLAR 4.0 — knowledge dashboard summary cards. */
 export function KnowledgeOverview({ userId }: Props): ReactElement {
@@ -19,16 +14,9 @@ export function KnowledgeOverview({ userId }: Props): ReactElement {
   const analytics = useCollection('analytics', userId);
   const goals = useCollection('goals', userId);
 
-  const latestFollowers = useMemo(() => {
-    const latest = new Map<string, number>();
-    for (const e of analytics.items) latest.set(e.platform, e.followers);
-    return [...latest.values()].reduce((a, b) => a + b, 0);
-  }, [analytics.items]);
+  const latest = useMemo(() => latestFollowers(analytics.items), [analytics.items]);
 
-  const avgEr = useMemo(() => {
-    const rows = analytics.items.filter((e) => e.followers > 0);
-    return rows.length ? rows.reduce((s, e) => s + erOf(e.likes, e.comments, e.shares, e.saves, e.followers), 0) / rows.length : 0;
-  }, [analytics.items]);
+  const avgEr = useMemo(() => avgEngagementRate(analytics.items), [analytics.items]);
 
   const base = getBaseCurrency();
   const revenue = fromUsd(analytics.items.reduce((s, e) => s + toUsd(e.revenue, e.currency ?? 'USD'), 0), base);
@@ -39,7 +27,7 @@ export function KnowledgeOverview({ userId }: Props): ReactElement {
 
   return <div className="grid" style={{ gap: 16 }}>
     <div className="grid grid-4">
-      <StatCard emoji="👥" label="Total followers" value={formatCompact(latestFollowers)} note="Latest value per platform" />
+      <StatCard emoji="👥" label="Total followers" value={formatCompact(latest)} note="Latest value per platform" />
       <StatCard emoji="❤️" label="Avg engagement" value={`${avgEr.toFixed(2)}%`} note="(L+C+S+Sv) ÷ followers" />
       <StatCard emoji="🏛️" label="Content mix" value={`${pillarsMix}%`} note={`${pillars.items.length} pillar${pillars.items.length === 1 ? '' : 's'} defined`} />
       <StatCard emoji="💰" label="Revenue logged" value={formatMoney(revenue, base, 0)} note="From analytics entries" />
