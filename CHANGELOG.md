@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.17.0 — 30 August 2026
+
+Pet Studio: a whole second social empire for the floof, built from how the internet's biggest pet accounts actually grew.
+
+- New Pet tab in the command bar. Start with a profile: name, species, signature look or talent, quirks, personality tags (tiny CEO, chaos gremlin, bedtime gremlin…), things they love, rescue story, and which platforms the account runs on with a primary lead.
+- The idea brain studies the patterns behind That Little Puff, Nala Cat and @dontstopmeowing — pet as participant, the 7-second arc, the five-word title test, 70% fun / 20% teaching mix — and turns your pet's personality into 7 shootable video plans. Each idea ships with first-frame hook, setup, payoff, music mood matching the pillar, camera angle, a hype score and the reason it works.
+- One shoot, native everywhere: per-platform cut plans adapt the same footage into TikTok (21-34s, comment bait), Reels (trending audio is a 3-5x boost, share-to-DM format) and Shorts (action in frame one, still cover moves CTR) with safe-zone and best-time guidance for each.
+- Shoot & edit playbooks from top creators: eye-level / low-angle hero / overhead / tracking shots, the 5-step edit (cut dead air, hook in frame one worth up to 45% more watch-through, layer audio, end hot or loop), tool guidance, and music moods per content pillar.
+- Welfare guardrails are built in: treat-rich short sessions on their terms, no risky props, breakaway collars, natural window light. A happy pet is the brand.
+- Ideas and profile persist per user locally, and every idea can jump straight onto the daily calendar as a scheduled post. 96/96 tests passing.
+
 ## 1.16.0 — 30 August 2026
 
 Under the hood tidy-up: one source of truth for the numbers, labels and code the whole suite shares, so screens stay consistent and the app stays snappy.
